@@ -1,5 +1,4 @@
-﻿using System.IO;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
 namespace FileChangePlugin
 {
@@ -13,8 +12,8 @@ namespace FileChangePlugin
         }
 
         #endregion
-        private FileSystemWatcher FileSystemWatcher;
-        private List<FileSystemEventArgs> PendingFileEvents = new List<FileSystemEventArgs>();
+        private FileSystemWatcher FileSystemWatcher = new();
+        private List<FileSystemEventArgs> PendingFileEvents = new();
         public void StartWatching(string path)
         {
             FileSystemWatcher watcher = new FileSystemWatcher

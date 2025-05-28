@@ -13,27 +13,36 @@
     <DebugType>none</DebugType>
   </PropertyGroup>
 
-  <Target Name="BuildPlugins" BeforeTargets="Build">
-    <MSBuild Projects="..\FileChangePlugin\FileChangePlugin.csproj" Targets="Build" Properties="Configuration=$(Configuration);Platform=$(Platform)" />
-    <MSBuild Projects="..\NetworkChangePlugin\NetworkChangePlugin.csproj" Targets="Build" Properties="Configuration=$(Configuration);Platform=$(Platform)" />
-    <MSBuild Projects="..\ScreenBrightnessPlugin\ScreenBrightnessPlugin.csproj" Targets="Build" Properties="Configuration=$(Configuration);Platform=$(Platform)" />
+  <Target Name="BuildPlugins" AfterTargets="Build">
+    <MSBuild Projects="..\FileChangePlugin\FileChangePlugin.csproj" Targets="Build" />
+    <MSBuild Projects="..\NetworkChangePlugin\NetworkChangePlugin.csproj" Targets="Build" />
+    <MSBuild Projects="..\BrightnessChangePlugin\BrightnessChangePlugin.csproj" Targets="Build" />
   </Target>
 
-  <Target Name="CopyPluginsAfterBuild" AfterTargets="Build">
+  <Target Name="CopyPluginsAfterBuild" AfterTargets="BuildPlugins">
     <ItemGroup>
       <PluginDlls Include="..\FileChangePlugin\bin\$(Configuration)\net8.0-windows\win-x64\FileChangePlugin.dll" />
       <PluginDlls Include="..\NetworkChangePlugin\bin\$(Configuration)\net8.0-windows\win-x64\NetworkChangePlugin.dll" />
-      <PluginDlls Include="..\ScreenBrightnessPlugin\bin\$(Configuration)\net8.0-windows\win-x64\ScreenBrightnessPlugin.dll" />
+      <PluginDlls Include="..\BrightnessChangePlugin\bin\$(Configuration)\net8.0-windows\win-x64\BrightnessChangePlugin.dll" />
     </ItemGroup>
+    <Message Text="OutputPath is: $(OutputPath)" Importance="high" />
+    <Message Text="Copy source files: @(PluginDlls)" Importance="high" />
     <Copy SourceFiles="@(PluginDlls)" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true" />
   </Target>
 
-  <Target Name="CopyPluginsAfterPublish" AfterTargets="Publish">
+  <Target Name="PublishPlugins" AfterTargets="Publish">
+    <MSBuild Projects="..\FileChangePlugin\FileChangePlugin.csproj" Targets="Publish" Properties="SelfContained=false;PublishSingleFile=false" />
+    <MSBuild Projects="..\NetworkChangePlugin\NetworkChangePlugin.csproj" Targets="Publish" Properties="SelfContained=false;PublishSingleFile=false" />
+    <MSBuild Projects="..\BrightnessChangePlugin\BrightnessChangePlugin.csproj" Targets="Publish" Properties="SelfContained=false;PublishSingleFile=false" />
+  </Target>
+
+  <Target Name="CopyPluginsAfterPublish" AfterTargets="PublishPlugins">
     <ItemGroup>
-      <PluginDlls Include="..\FileChangePlugin\bin\$(Configuration)\net8.0-windows\win-x64\FileChangePlugin.dll" />
-      <PluginDlls Include="..\NetworkChangePlugin\bin\$(Configuration)\net8.0-windows\win-x64\NetworkChangePlugin.dll" />
-      <PluginDlls Include="..\ScreenBrightnessPlugin\bin\$(Configuration)\net8.0-windows\win-x64\ScreenBrightnessPlugin.dll" />
+      <PluginDlls Include="..\FileChangePlugin\bin\$(Configuration)\net8.0-windows\win-x64\publish\win-x64\FileChangePlugin.dll" />
+      <PluginDlls Include="..\NetworkChangePlugin\bin\$(Configuration)\net8.0-windows\win-x64\publish\win-x64\NetworkChangePlugin.dll" />
+      <PluginDlls Include="..\BrightnessChangePlugin\bin\$(Configuration)\net8.0-windows\win-x64\publish\win-x64\BrightnessChangePlugin.dll" />
     </ItemGroup>
+
     <Copy SourceFiles="@(PluginDlls)" DestinationFolder="$(PublishDir)" SkipUnchangedFiles="true" />
   </Target>
 

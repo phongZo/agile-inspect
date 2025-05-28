@@ -1,4 +1,0 @@
-D:\PROJECT\CSharp\agileinspect\obj\Debug\net8.0-windows\MainWindow.g.cs
-D:\PROJECT\CSharp\agileinspect\obj\Debug\net8.0-windows\App.g.cs
-D:\PROJECT\CSharp\agileinspect\obj\Debug\net8.0-windows\AgileInspect_MarkupCompile.cache
-D:\PROJECT\CSharp\agileinspect\obj\Debug\net8.0-windows\AgileInspect_MarkupCompile.lref

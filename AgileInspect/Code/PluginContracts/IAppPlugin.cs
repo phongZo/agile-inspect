@@ -13,7 +13,7 @@
     public interface INetworkChangePlugin : IAppPlugin
     {
     }
-    public interface IScreenBrightnessPlugin : IAppPlugin
+    public interface IBrightnessChangePlugin : IAppPlugin
     {
     }
 }

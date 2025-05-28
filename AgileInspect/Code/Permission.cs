@@ -47,7 +47,7 @@ namespace AgileInspect.Code
                 fileInfo.SetAccessControl(fSecurity);
                 fileInfo.Attributes = FileAttributes.Normal;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                
             }
@@ -89,7 +89,7 @@ namespace AgileInspect.Code
 
                 dirInfo.SetAccessControl(dirSecurity);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 
             }

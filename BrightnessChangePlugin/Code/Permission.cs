@@ -1,7 +1,8 @@
-﻿using System.Security.AccessControl;
+﻿using System.IO;
+using System.Security.AccessControl;
 using System.Security.Principal;
 
-namespace FileChangePlugin
+namespace BrightnessChangePlugin
 {
     public class Permission
     {

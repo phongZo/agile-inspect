@@ -1,19 +1,18 @@
-﻿using System.IO.Compression;
+﻿using System.IO;
+using System.IO.Compression;
 
-namespace FileChangePlugin
+namespace BrightnessChangePlugin
 {
     public class LogRotate
     {
-        public static string TemporaryLog { get; set; } = String.Empty;
+        public static string TemporaryLog { get; set; } = string.Empty;
         public static bool IsCompressing { get; set; } = false;
-        public StoreCfgJson StoreCfgJson { get; set; } = new StoreCfgJson();
-
         public static void HandleRotation()
         {
             try
             {
-                string logFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\FileChangePlugin\\";
-                string logFilePath = Path.Combine(logFolder, "filelog.txt");
+                string logFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\AgileInspect\\";
+                string logFilePath = Path.Combine(logFolder, "log.txt");
 
                 LogRotation logRotation = StoreCfgJson.Instance.LogRotation;
                 FileInfo logFileInfo = new FileInfo(logFilePath);
@@ -36,7 +35,7 @@ namespace FileChangePlugin
             // fileflog.txt.ddMMyyyyhhmmss.1.gz
             string timestamp = DateTime.Now.ToString("ddMMyyyyHHmmss");
 
-            string tempLogFilePath = Path.Combine(logFolder, $"filelog.txt.{timestamp}.1.txt");
+            string tempLogFilePath = Path.Combine(logFolder, $"log.txt.{timestamp}.1.txt");
             try
             {
                 IsCompressing = true;

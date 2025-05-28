@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+
+    <MainDll>BrightnessChangePlugin.dll</MainDll>
+    <PublishDir>$(MSBuildProjectDirectory)\bin\$(Configuration)\net8.0-windows\win-x64\publish\win-x64\</PublishDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Management" Version="9.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AgileInspect\AgileInspect.csproj" />
+  </ItemGroup>
+  
+  <Target Name="MergeAfterPublish" AfterTargets="Publish">
+    <ItemGroup>
+      <InputAssemblies Include="$(PublishDir)$(MainDll)" />
+      <InputAssemblies Include="$(PublishDir)System.Management.dll" />
+    </ItemGroup>
+    <Exec Command="&quot;$(NuGetPackageRoot)ilrepack\2.0.43\tools\ILRepack.exe&quot; /out:&quot;$(PublishDir)$(MainDll)&quot; /internalize @(InputAssemblies->'&quot;%(FullPath)&quot;', ' ')" />
+  </Target>
+</Project>

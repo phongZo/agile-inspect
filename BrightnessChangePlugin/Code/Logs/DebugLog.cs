@@ -1,4 +1,6 @@
-﻿namespace FileChangePlugin
+﻿using System.IO;
+
+namespace BrightnessChangePlugin
 {
     public static class DebugLog
     {
@@ -15,20 +17,20 @@
                 Directory.CreateDirectory(Folder);
                 Permission.Instance.ResetPermissionRoamingDirectory();
 
-                Filestream = new FileStream(Folder + "filelog.txt", FileMode.OpenOrCreate, FileAccess.ReadWrite);
+                Filestream = new FileStream(Folder + "brightnesschangelog.txt", FileMode.OpenOrCreate, FileAccess.ReadWrite);
                 StreamWriter = new StreamWriter(Filestream)
                 {
                     AutoFlush = true
                 };
                 Console.SetError(StreamWriter);
 
-                DebugLog.CanWrite = true;
+                CanWrite = true;
             }
             catch (Exception e)
             {
-                Console.WriteLine("UNABLE TO WRITE filelog.txt");
+                Console.WriteLine("UNABLE TO WRITE brightnesschangelog.TXT");
                 Console.WriteLine(e.Message);
-                DebugLog.CanWrite = false;
+                CanWrite = false;
             }
         }
 
@@ -36,7 +38,7 @@
         {
             try
             {
-                if (!DebugLog.CanWrite) return;
+                if (!CanWrite) return;
                 Console.WriteLine(message);
                 if (StreamWriter == null) return;
                 if (LogRotate.IsCompressing)
@@ -44,7 +46,7 @@
                     LogRotate.TemporaryLog += (timestamp ? DateTime.Now.ToString(DateTimeFormat) + ":   " : "") + message + Environment.NewLine;
                     return;
                 }
-                Permission.Instance.ResetPermissionOfFile(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\AgileInspect\\" + "filelog.txt");
+                Permission.Instance.ResetPermissionOfFile(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\AgileInspect\\" + "brightnesschangelog.txt");
 
                 Filestream.Seek(0, SeekOrigin.End);
                 if (timestamp) StreamWriter.Write(DateTime.Now.ToString(DateTimeFormat) + ":   ");
