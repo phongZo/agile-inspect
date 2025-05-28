@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36109.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AgileInspect", "AgileInspect.csproj", "{08AD6EE8-0138-45AC-B4B7-24E4B89F80CA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileChangePlugin", "..\FileChangePlugin\FileChangePlugin.csproj", "{61A8280A-2DA4-464E-B1EE-382D0034A4E9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetworkChangePlugin", "..\NetworkChangePlugin\NetworkChangePlugin.csproj", "{F87495AA-D853-47D5-BF27-04934C78DA06}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScreenBrightnessPlugin", "..\ScreenBrightnessPlugin\ScreenBrightnessPlugin.csproj", "{6805A4C9-3595-4B3A-81E9-1CF037375B85}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{08AD6EE8-0138-45AC-B4B7-24E4B89F80CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{08AD6EE8-0138-45AC-B4B7-24E4B89F80CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{08AD6EE8-0138-45AC-B4B7-24E4B89F80CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{08AD6EE8-0138-45AC-B4B7-24E4B89F80CA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{61A8280A-2DA4-464E-B1EE-382D0034A4E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{61A8280A-2DA4-464E-B1EE-382D0034A4E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{61A8280A-2DA4-464E-B1EE-382D0034A4E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{61A8280A-2DA4-464E-B1EE-382D0034A4E9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F87495AA-D853-47D5-BF27-04934C78DA06}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F87495AA-D853-47D5-BF27-04934C78DA06}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F87495AA-D853-47D5-BF27-04934C78DA06}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F87495AA-D853-47D5-BF27-04934C78DA06}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6805A4C9-3595-4B3A-81E9-1CF037375B85}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6805A4C9-3595-4B3A-81E9-1CF037375B85}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6805A4C9-3595-4B3A-81E9-1CF037375B85}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6805A4C9-3595-4B3A-81E9-1CF037375B85}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6DE72907-AF48-4DEC-A08E-BAA55FB8E8CB}
+	EndGlobalSection
+EndGlobal

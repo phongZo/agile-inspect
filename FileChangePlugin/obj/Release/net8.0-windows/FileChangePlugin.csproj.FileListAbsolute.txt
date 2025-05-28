@@ -1,0 +1,17 @@
+D:\PROJECT\CSharp\agile-inspect\FileChangePlugin\bin\Release\net8.0-windows\AgileInspect.deps.json
+D:\PROJECT\CSharp\agile-inspect\FileChangePlugin\bin\Release\net8.0-windows\AgileInspect.runtimeconfig.json
+D:\PROJECT\CSharp\agile-inspect\FileChangePlugin\bin\Release\net8.0-windows\AgileInspect.exe
+D:\PROJECT\CSharp\agile-inspect\FileChangePlugin\bin\Release\net8.0-windows\FileChangePlugin.deps.json
+D:\PROJECT\CSharp\agile-inspect\FileChangePlugin\bin\Release\net8.0-windows\FileChangePlugin.dll
+D:\PROJECT\CSharp\agile-inspect\FileChangePlugin\bin\Release\net8.0-windows\FileChangePlugin.pdb
+D:\PROJECT\CSharp\agile-inspect\FileChangePlugin\bin\Release\net8.0-windows\AgileInspect.dll
+D:\PROJECT\CSharp\agile-inspect\FileChangePlugin\obj\Release\net8.0-windows\FileChangePlugin.csproj.AssemblyReference.cache
+D:\PROJECT\CSharp\agile-inspect\FileChangePlugin\obj\Release\net8.0-windows\FileChangePlugin.GeneratedMSBuildEditorConfig.editorconfig
+D:\PROJECT\CSharp\agile-inspect\FileChangePlugin\obj\Release\net8.0-windows\FileChangePlugin.AssemblyInfoInputs.cache
+D:\PROJECT\CSharp\agile-inspect\FileChangePlugin\obj\Release\net8.0-windows\FileChangePlugin.AssemblyInfo.cs
+D:\PROJECT\CSharp\agile-inspect\FileChangePlugin\obj\Release\net8.0-windows\FileChangePlugin.csproj.CoreCompileInputs.cache
+D:\PROJECT\CSharp\agile-inspect\FileChangePlugin\obj\Release\net8.0-windows\FileChan.00FF93F0.Up2Date
+D:\PROJECT\CSharp\agile-inspect\FileChangePlugin\obj\Release\net8.0-windows\FileChangePlugin.dll
+D:\PROJECT\CSharp\agile-inspect\FileChangePlugin\obj\Release\net8.0-windows\refint\FileChangePlugin.dll
+D:\PROJECT\CSharp\agile-inspect\FileChangePlugin\obj\Release\net8.0-windows\FileChangePlugin.pdb
+D:\PROJECT\CSharp\agile-inspect\FileChangePlugin\obj\Release\net8.0-windows\ref\FileChangePlugin.dll

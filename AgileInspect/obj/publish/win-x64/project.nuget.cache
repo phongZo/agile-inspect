@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "dgSpecHash": "pQgZhsAMeiw=",
+  "success": true,
+  "projectFilePath": "D:\\PROJECT\\CSharp\\agile-inspect\\AgileInspect\\AgileInspect.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\nd24\\.nuget\\packages\\microsoft.net.illink.tasks\\8.0.16\\microsoft.net.illink.tasks.8.0.16.nupkg.sha512",
+    "C:\\Users\\nd24\\.nuget\\packages\\microsoft.netcore.app.runtime.win-x64\\8.0.16\\microsoft.netcore.app.runtime.win-x64.8.0.16.nupkg.sha512",
+    "C:\\Users\\nd24\\.nuget\\packages\\microsoft.windowsdesktop.app.runtime.win-x64\\8.0.16\\microsoft.windowsdesktop.app.runtime.win-x64.8.0.16.nupkg.sha512",
+    "C:\\Users\\nd24\\.nuget\\packages\\microsoft.aspnetcore.app.runtime.win-x64\\8.0.16\\microsoft.aspnetcore.app.runtime.win-x64.8.0.16.nupkg.sha512"
+  ],
+  "logs": []
+}

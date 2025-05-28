@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+
+  <Target Name="BuildPlugins" BeforeTargets="Build">
+    <MSBuild Projects="..\FileChangePlugin\FileChangePlugin.csproj" Targets="Build" Properties="Configuration=$(Configuration);Platform=$(Platform)" />
+    <MSBuild Projects="..\NetworkChangePlugin\NetworkChangePlugin.csproj" Targets="Build" Properties="Configuration=$(Configuration);Platform=$(Platform)" />
+    <MSBuild Projects="..\ScreenBrightnessPlugin\ScreenBrightnessPlugin.csproj" Targets="Build" Properties="Configuration=$(Configuration);Platform=$(Platform)" />
+  </Target>
+
+  <Target Name="CopyPluginsAfterBuild" AfterTargets="Build">
+    <ItemGroup>
+      <PluginDlls Include="..\FileChangePlugin\bin\$(Configuration)\net8.0-windows\win-x64\FileChangePlugin.dll" />
+      <PluginDlls Include="..\NetworkChangePlugin\bin\$(Configuration)\net8.0-windows\win-x64\NetworkChangePlugin.dll" />
+      <PluginDlls Include="..\ScreenBrightnessPlugin\bin\$(Configuration)\net8.0-windows\win-x64\ScreenBrightnessPlugin.dll" />
+    </ItemGroup>
+    <Copy SourceFiles="@(PluginDlls)" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true" />
+  </Target>
+
+  <Target Name="CopyPluginsAfterPublish" AfterTargets="Publish">
+    <ItemGroup>
+      <PluginDlls Include="..\FileChangePlugin\bin\$(Configuration)\net8.0-windows\win-x64\FileChangePlugin.dll" />
+      <PluginDlls Include="..\NetworkChangePlugin\bin\$(Configuration)\net8.0-windows\win-x64\NetworkChangePlugin.dll" />
+      <PluginDlls Include="..\ScreenBrightnessPlugin\bin\$(Configuration)\net8.0-windows\win-x64\ScreenBrightnessPlugin.dll" />
+    </ItemGroup>
+    <Copy SourceFiles="@(PluginDlls)" DestinationFolder="$(PublishDir)" SkipUnchangedFiles="true" />
+  </Target>
+
+</Project>
