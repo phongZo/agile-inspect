@@ -11,39 +11,43 @@
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
 
     <DebugType>none</DebugType>
+    <MainProjectDll>AgileInspect.dll</MainProjectDll>
   </PropertyGroup>
 
+  <!--Plugin list -->
+  <ItemGroup>
+    <PluginProjects Include="FileChangePlugin;NetworkChangePlugin;BrightnessChangePlugin;WatermarkDetectorPlugin" />
+  </ItemGroup>
+  
   <Target Name="BuildPlugins" AfterTargets="Build">
-    <MSBuild Projects="..\FileChangePlugin\FileChangePlugin.csproj" Targets="Build" />
-    <MSBuild Projects="..\NetworkChangePlugin\NetworkChangePlugin.csproj" Targets="Build" />
-    <MSBuild Projects="..\BrightnessChangePlugin\BrightnessChangePlugin.csproj" Targets="Build" />
+    <MSBuild Projects="@(PluginProjects->'..\\%(Identity)\\%(Identity).csproj')" Targets="Build" />
   </Target>
-
-  <Target Name="CopyPluginsAfterBuild" AfterTargets="BuildPlugins">
-    <ItemGroup>
-      <PluginDlls Include="..\FileChangePlugin\bin\$(Configuration)\net8.0-windows\win-x64\FileChangePlugin.dll" />
-      <PluginDlls Include="..\NetworkChangePlugin\bin\$(Configuration)\net8.0-windows\win-x64\NetworkChangePlugin.dll" />
-      <PluginDlls Include="..\BrightnessChangePlugin\bin\$(Configuration)\net8.0-windows\win-x64\BrightnessChangePlugin.dll" />
-    </ItemGroup>
-    <Message Text="OutputPath is: $(OutputPath)" Importance="high" />
-    <Message Text="Copy source files: @(PluginDlls)" Importance="high" />
-    <Copy SourceFiles="@(PluginDlls)" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true" />
-  </Target>
-
+  
+  <!-- Publish plugin -->
   <Target Name="PublishPlugins" AfterTargets="Publish">
-    <MSBuild Projects="..\FileChangePlugin\FileChangePlugin.csproj" Targets="Publish" Properties="SelfContained=false;PublishSingleFile=false" />
-    <MSBuild Projects="..\NetworkChangePlugin\NetworkChangePlugin.csproj" Targets="Publish" Properties="SelfContained=false;PublishSingleFile=false" />
-    <MSBuild Projects="..\BrightnessChangePlugin\BrightnessChangePlugin.csproj" Targets="Publish" Properties="SelfContained=false;PublishSingleFile=false" />
+    <MSBuild Projects="@(PluginProjects->'..\\%(Identity)\\%(Identity).csproj')"
+             Targets="Publish"
+             Properties="SelfContained=false;PublishSingleFile=false" />
   </Target>
 
   <Target Name="CopyPluginsAfterPublish" AfterTargets="PublishPlugins">
     <ItemGroup>
-      <PluginDlls Include="..\FileChangePlugin\bin\$(Configuration)\net8.0-windows\win-x64\publish\win-x64\FileChangePlugin.dll" />
-      <PluginDlls Include="..\NetworkChangePlugin\bin\$(Configuration)\net8.0-windows\win-x64\publish\win-x64\NetworkChangePlugin.dll" />
-      <PluginDlls Include="..\BrightnessChangePlugin\bin\$(Configuration)\net8.0-windows\win-x64\publish\win-x64\BrightnessChangePlugin.dll" />
+      <!-- Get all DLL in publish dir of each plugin -->
+      <PluginPublishFiles Include="..\%(PluginProjects.Identity)\bin\$(Configuration)\net8.0-windows\win-x64\publish\win-x64\**\*.dll">
+        <PluginName>%(PluginProjects.Identity)</PluginName>
+      </PluginPublishFiles>
+
+      <!-- Remove main DLL -->
+      <PluginPublishFiles Remove="..\**\$(MainProjectDll)" />
     </ItemGroup>
 
-    <Copy SourceFiles="@(PluginDlls)" DestinationFolder="$(PublishDir)" SkipUnchangedFiles="true" />
+    <Copy
+      SourceFiles="@(PluginPublishFiles)"
+      DestinationFiles="@(PluginPublishFiles->'$(PublishDir)%(PluginName)\\%(RecursiveDir)%(Filename)%(Extension)')"
+      SkipUnchangedFiles="true" />
+
+    <Message Text="Copied ALL plugin DLLs to $(PublishDir), excluding $(MainProjectDll)" Importance="high" />
   </Target>
+
 
 </Project>

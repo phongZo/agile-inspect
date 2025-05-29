@@ -16,4 +16,7 @@
     public interface IBrightnessChangePlugin : IAppPlugin
     {
     }
+    public interface IWatermarkDetectorPlugin : IAppPlugin
+    {
+    }
 }
