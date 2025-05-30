@@ -4,56 +4,73 @@
     {
         public const string DateTimeFormat = "dd/MM/yy HH:mm:ss";
         public static StreamWriter StreamWriter;
-        private static bool CanWrite = true;
         public static FileStream Filestream;
+        public static bool CanWrite = true;
+        private static readonly object _lock = new();
+
         public static void Init()
         {
             try
             {
-                string Folder = "";
-                Folder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\AgileInspect\\";
-                Directory.CreateDirectory(Folder);
+                string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AgileInspect");
+                Directory.CreateDirectory(folder);
                 Permission.Instance.ResetPermissionRoamingDirectory();
 
-                Filestream = new FileStream(Folder + "filelog.txt", FileMode.OpenOrCreate, FileAccess.ReadWrite);
-                StreamWriter = new StreamWriter(Filestream)
-                {
-                    AutoFlush = true
-                };
+                Filestream = new FileStream(Path.Combine(folder, "filechangelog.txt"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
+                StreamWriter = new StreamWriter(Filestream) { AutoFlush = true };
                 Console.SetError(StreamWriter);
 
-                DebugLog.CanWrite = true;
+                CanWrite = true;
             }
             catch (Exception e)
             {
-                Console.WriteLine("UNABLE TO WRITE filelog.txt");
+                Console.WriteLine("UNABLE TO WRITE filechangelog.TXT");
                 Console.WriteLine(e.Message);
-                DebugLog.CanWrite = false;
+                CanWrite = false;
             }
         }
 
         public static void Write(string message, bool timestamp = true)
         {
-            try
-            {
-                if (!DebugLog.CanWrite) return;
-                Console.WriteLine(message);
-                if (StreamWriter == null) return;
-                if (LogRotate.IsCompressing)
-                {
-                    LogRotate.TemporaryLog += (timestamp ? DateTime.Now.ToString(DateTimeFormat) + ":   " : "") + message + Environment.NewLine;
-                    return;
-                }
-                Permission.Instance.ResetPermissionOfFile(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\AgileInspect\\" + "filelog.txt");
+            if (!CanWrite) return;
 
-                Filestream.Seek(0, SeekOrigin.End);
-                if (timestamp) StreamWriter.Write(DateTime.Now.ToString(DateTimeFormat) + ":   ");
-                StreamWriter.WriteLine(message);
-            }
-            catch (Exception ex)
+            lock (_lock)
             {
-                if (timestamp) StreamWriter.Write(DateTime.Now.ToString(DateTimeFormat) + ":   ");
-                StreamWriter.WriteLine("Error when write to log: " + ex.Message);
+                try
+                {
+                    if (timestamp)
+                        Console.WriteLine($"{DateTime.Now.ToString(DateTimeFormat)}:   {message}");
+                    else
+                        Console.WriteLine(message);
+
+                    if (StreamWriter == null) return;
+
+                    if (LogRotate.IsCompressing)
+                    {
+                        LogRotate.TemporaryLog += (timestamp ? DateTime.Now.ToString(DateTimeFormat) + ":   " : "") + message + Environment.NewLine;
+                        return;
+                    }
+
+                    Permission.Instance.ResetPermissionOfFile(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AgileInspect", "filechangelog.txt"));
+
+                    Filestream?.Seek(0, SeekOrigin.End);
+
+                    if (timestamp)
+                        StreamWriter.WriteLine($"{DateTime.Now.ToString(DateTimeFormat)}:   {message}");
+                    else
+                        StreamWriter.WriteLine(message);
+                }
+                catch (Exception ex)
+                {
+                    try
+                    {
+                        if (StreamWriter != null)
+                        {
+                            StreamWriter.WriteLine($"{DateTime.Now.ToString(DateTimeFormat)}:   Error when write to log: {ex.Message}");
+                        }
+                    }
+                    catch { /* swallow */ }
+                }
             }
         }
 
@@ -62,10 +79,6 @@
             Write(message, timestamp);
         }
 
-        // Structual logging
-        // Action Name like: REQUEST, RESPONSE
-        // Function Name: What do we do?
-        // Message: more detail
         public static void WriteLine(string funcName, string actionName, string message)
         {
             WriteLine($"[{funcName} -> {actionName}]: {message}");

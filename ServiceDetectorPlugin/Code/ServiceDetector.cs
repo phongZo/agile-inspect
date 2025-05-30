@@ -11,26 +11,20 @@ namespace ServiceDetectorPlugin.Code
             Instance = this;
         }
         #endregion
-        private readonly List<string> _services = new();
-
-        public void SetServices(List<string> services)
-        {
-            _services.Clear();
-            if (services != null && services.Count > 0)
-            {
-                _services.AddRange(services.Where(s => !string.IsNullOrWhiteSpace(s)));
-            }
-        }
 
         public void CheckServices()
         {
-            if (_services.Count == 0)
+            var setting = StoreCfgJson.Instance.EventSetting ?? new EventSetting();
+
+            List<string> services = setting.EventParams.Services.ToList();
+
+            if (services.Count == 0)
             {
                 DebugLog.WriteLine("No services specified for monitoring.");
                 return;
             }
 
-            foreach (var serviceName in _services)
+            foreach (var serviceName in services)
             {
                 try
                 {
