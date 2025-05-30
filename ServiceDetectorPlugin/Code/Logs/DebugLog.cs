@@ -1,4 +1,4 @@
-﻿namespace WatermarkDetectorPlugin
+﻿namespace ServiceDetectorPlugin
 {
     public static class DebugLog
     {
@@ -15,7 +15,7 @@
                 Directory.CreateDirectory(Folder);
                 Permission.Instance.ResetPermissionRoamingDirectory();
 
-                Filestream = new FileStream(Folder + "watermarkdetectorlog.txt", FileMode.OpenOrCreate, FileAccess.ReadWrite);
+                Filestream = new FileStream(Folder + "servicedetectorlog.txt", FileMode.OpenOrCreate, FileAccess.ReadWrite);
                 StreamWriter = new StreamWriter(Filestream)
                 {
                     AutoFlush = true
@@ -26,7 +26,7 @@
             }
             catch (Exception e)
             {
-                Console.WriteLine("UNABLE TO WRITE watermarkdetectorlog.TXT");
+                Console.WriteLine("UNABLE TO WRITE servicedetectorlog.TXT");
                 Console.WriteLine(e.Message);
                 CanWrite = false;
             }
@@ -44,7 +44,7 @@
                     LogRotate.TemporaryLog += (timestamp ? DateTime.Now.ToString(DateTimeFormat) + ":   " : "") + message + Environment.NewLine;
                     return;
                 }
-                Permission.Instance.ResetPermissionOfFile(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\AgileInspect\\" + "watermarkdetectorlog.txt");
+                Permission.Instance.ResetPermissionOfFile(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\AgileInspect\\" + "servicedetectorlog.txt");
 
                 Filestream.Seek(0, SeekOrigin.End);
                 if (timestamp) StreamWriter.Write(DateTime.Now.ToString(DateTimeFormat) + ":   ");

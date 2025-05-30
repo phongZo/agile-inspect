@@ -1,5 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
@@ -16,7 +15,7 @@
 
   <!--Plugin list -->
   <ItemGroup>
-    <PluginProjects Include="FileChangePlugin;NetworkChangePlugin;BrightnessChangePlugin;WatermarkDetectorPlugin" />
+    <PluginProjects Include="ServiceDetectorPlugin;NetworkChangePlugin;BrightnessChangePlugin;FileChangePlugin;WatermarkDetectorPlugin" />
   </ItemGroup>
   
   <Target Name="BuildPlugins" AfterTargets="Build">
@@ -48,6 +47,4 @@
 
     <Message Text="Copied ALL plugin DLLs to $(PublishDir), excluding $(MainProjectDll)" Importance="high" />
   </Target>
-
-
 </Project>

@@ -1,4 +1,5 @@
 ﻿using System.Text.RegularExpressions;
+using static FileChangePlugin.FileScanner;
 
 namespace FileChangePlugin
 {
@@ -225,23 +226,39 @@ namespace FileChangePlugin
             if (string.IsNullOrWhiteSpace(path))
                 return false;
 
-            var scanDirs = new HashSet<string>(StoreCfgJson.Instance.ScanDirectories ?? Array.Empty<string>(), StringComparer.OrdinalIgnoreCase);
+            var eventParams = StoreCfgJson.Instance.EventSetting.EventParams;
+            if (eventParams?.Paths == null || eventParams.Paths.Length == 0)
+                return false;
 
-            var directoriesInPath = path
-                .Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
-                .Where(dir => !string.IsNullOrWhiteSpace(dir))
-                .Select(dir => Path.Combine(path.Substring(0, path.IndexOf(dir) + dir.Length)))
-                .ToList();
+            var scanDirs = new HashSet<string>(eventParams.Paths, StringComparer.OrdinalIgnoreCase);
+
+            var directoriesInPath = new List<string>();
+            var currentPath = path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            while (!string.IsNullOrEmpty(currentPath))
+            {
+                directoriesInPath.Add(currentPath);
+                currentPath = Path.GetDirectoryName(currentPath);
+            }
 
             return directoriesInPath.Any(dir => scanDirs.Contains(dir));
         }
 
-
         public bool IsDetectedExtension(string filePath)
         {
+            var eventParams = StoreCfgJson.Instance.EventSetting.EventParams;
+            if (eventParams?.Filters == null || eventParams.Filters.Length == 0)
+                return false;
+
             string ext = Path.GetExtension(filePath);
-            return StoreCfgJson.Instance.ScanExtensions.Contains(ext, StringComparer.OrdinalIgnoreCase);
+
+            // Chuyển filters như "*.txt" thành ".txt"
+            var extensions = eventParams.Filters
+                .Select(f => f.StartsWith("*.") ? f.Substring(1) : f)
+                .ToArray();
+
+            return extensions.Contains(ext, StringComparer.OrdinalIgnoreCase);
         }
+
 
         public bool IsTemporaryFile(string filePath)
         {
@@ -290,11 +307,8 @@ namespace FileChangePlugin
 
         public bool ShouldTrackFile(string filePath)
         {
-            if (!StoreCfgJson.Instance.IsFullScan)
-            {
-                if (!IsDetectedExtension(filePath)) return false;
-                if (IsTemporaryFile(filePath)) return false;
-            }
+            if (!IsDetectedExtension(filePath)) return false;
+            if (IsTemporaryFile(filePath)) return false;
             return true;
         }
 

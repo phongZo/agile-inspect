@@ -1,4 +1,4 @@
-﻿namespace NetworkChangePlugin
+﻿namespace ServiceDetectorPlugin
 {
     public class StoreCfgJson
     {
@@ -11,8 +11,8 @@
         #endregion
 
         public LogRotation LogRotation { get; set; } = new LogRotation();
-
         public EventSetting EventSetting { get; set; } = new EventSetting();
+
     }
 
     public class LogRotation
@@ -25,16 +25,17 @@
     public class EventSetting
     {
         public EventParams EventParams { get; set; } = new EventParams();
-        public string TriggerType { get; set; } = "Realtime";
+        public string TriggerType { get; set; } = "Interval";
         public TriggerParams TriggerParams { get; set; } = new TriggerParams();
     }
 
     public class EventParams
     {
+        public string[] Services { get; set; } = [];
     }
 
     public class TriggerParams
     {
-        public int Interval { get; set; }
+        public int Interval { get; set; } = 30;
     }
 }

@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
+using System.Text.Json;
 
 namespace AgileInspect.Code
 {
@@ -19,6 +20,8 @@ namespace AgileInspect.Code
                 DebugLog.WriteLine($"Plugin folder not found: {folderPath}");
                 return;
             }
+
+            var settings = StoreCfgJson.Instance.EventConfig.EventSettings;
 
             var subDirs = Directory.GetDirectories(folderPath);
             foreach (var subDir in subDirs)
@@ -43,9 +46,23 @@ namespace AgileInspect.Code
                         {
                             if (Activator.CreateInstance(type) is IAppPlugin plugin)
                             {
+                                string pluginName = plugin.Name;
+
+                                var setting = settings.FirstOrDefault(s => s.EventType == pluginName);
+                                if (setting == null)
+                                {
+                                    DebugLog.WriteLine($"Skipped plugin (not in EventSettings): {pluginName}");
+                                    continue;
+                                }
+
+                                string eventParamsJson = JsonSerializer.Serialize(setting.EventParams);
+                                string triggerParamsJson = JsonSerializer.Serialize(setting.TriggerParams);
+
+                                plugin.SetParameters(eventParamsJson, setting.TriggerType, triggerParamsJson);
+
                                 plugin.Initialize();
                                 Plugins.Add(plugin);
-                                DebugLog.WriteLine($"Loaded plugin: {plugin.Name} from {dll}");
+                                DebugLog.WriteLine($"Loaded plugin: {pluginName} from {dll}");
                             }
                         }
                     }
@@ -56,6 +73,7 @@ namespace AgileInspect.Code
                 }
             }
         }
+
 
 
         public void StartAll()

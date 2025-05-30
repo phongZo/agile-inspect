@@ -1,0 +1,47 @@
+﻿using System.Diagnostics;
+
+namespace ServiceDetectorPlugin.Code
+{
+    public class ServiceDetector
+    {
+        #region Singleton
+        public static ServiceDetector Instance { get; set; }
+        public ServiceDetector()
+        {
+            Instance = this;
+        }
+        #endregion
+        private readonly List<string> _services = new();
+
+        public void SetServices(List<string> services)
+        {
+            _services.Clear();
+            if (services != null && services.Count > 0)
+            {
+                _services.AddRange(services.Where(s => !string.IsNullOrWhiteSpace(s)));
+            }
+        }
+
+        public void CheckServices()
+        {
+            if (_services.Count == 0)
+            {
+                DebugLog.WriteLine("No services specified for monitoring.");
+                return;
+            }
+
+            foreach (var serviceName in _services)
+            {
+                try
+                {
+                    bool isRunning = Process.GetProcessesByName(System.IO.Path.GetFileNameWithoutExtension(serviceName)).Any();
+                    DebugLog.WriteLine($"Service '{serviceName}': {(isRunning ? "Running" : "Not running")}");
+                }
+                catch (Exception ex)
+                {
+                    DebugLog.WriteLine($"Error checking service '{serviceName}': {ex.Message}");
+                }
+            }
+        }
+    }
+}

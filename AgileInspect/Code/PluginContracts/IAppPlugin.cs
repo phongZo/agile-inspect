@@ -2,10 +2,12 @@
 {
     public interface IAppPlugin
     {
-        public string Name => GetType().Assembly.GetName().Name;
+        string Name { get; }
         void Initialize();
         void Start();
         void Stop();
+        void SetParameters(string eventParamsJson, string triggerType, string triggerParamsJson);
+
     }
     public interface IFileChangePlugin : IAppPlugin
     {
@@ -17,6 +19,9 @@
     {
     }
     public interface IWatermarkDetectorPlugin : IAppPlugin
+    {
+    }
+    public interface IServiceDetectorPlugin : IAppPlugin
     {
     }
 }

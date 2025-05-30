@@ -17,7 +17,6 @@ namespace FileChangePlugin
 
         public List<TrackedDirectory> LastTrackedDirs = [];
         public List<TrackedDirectory> TrackedDirs = [];
-        private HashSet<string> watchedDirs = [];
         public bool IsScanning = false;
         private const string CacheFile = "scan_cache.json";
         private string LastCacheHash;
@@ -51,9 +50,11 @@ namespace FileChangePlugin
             try
             {
                 var cfg = StoreCfgJson.Instance;
-                string[] scanDirs = cfg.ScanDirectories;
-                string[] extensions = cfg.ScanExtensions;
-                bool isFullScan = cfg.IsFullScan;
+                var eventSetting = cfg.EventSetting;
+
+                var eventParams = eventSetting.EventParams;
+                string[] scanDirs = eventParams?.Paths;
+                string[] filters = eventParams?.Filters;
 
                 if (scanDirs == null || scanDirs.Length == 0)
                 {
@@ -61,20 +62,13 @@ namespace FileChangePlugin
                     return;
                 }
 
-                if (isFullScan)
+                if (filters == null || filters.Length == 0)
                 {
-                    DebugLog.WriteLine("[FileScanner] Running in FULL SCAN mode. All files will be scanned.");
+                    DebugLog.WriteLine("[FileScanner] No filters specified for scanning. Skipping scan.");
+                    return;
                 }
-                else
-                {
-                    if (extensions == null || extensions.Length == 0)
-                    {
-                        DebugLog.WriteLine("[FileScanner] No extensions configured for filtered scan. Skipping scan.");
-                        return;
-                    }
 
-                    DebugLog.WriteLine("[FileScanner] Running in FILTERED SCAN mode. Scanning extensions: " + string.Join(", ", extensions));
-                }
+                DebugLog.WriteLine("[FileScanner] Running scan with filters: " + string.Join(", ", filters));
 
                 TrackedDirs.Clear();
                 LoadScanCache();
@@ -87,14 +81,6 @@ namespace FileChangePlugin
                         DebugLog.WriteLine($"[FileScanner] Directory does not exist: {scanDir}");
                         continue;
                     }
-
-                    if (!watchedDirs.Contains(scanDir))
-                    {
-                        DebugLog.WriteLine($"[FileScanner] Starting FileWatcher in directory: {scanDir}");
-                        FileWatcher.Instance.StartWatching(scanDir);
-                        watchedDirs.Add(scanDir);
-                    }
-
                     ScanSingleDirectory(scanDir, ref allFiles);
                 }
 
@@ -282,26 +268,21 @@ namespace FileChangePlugin
         {
             List<string> matchedFiles = new List<string>();
 
-            bool isFullScan = StoreCfgJson.Instance.IsFullScan;
-            var scanExtensions = StoreCfgJson.Instance.ScanExtensions;
+            var eventParams = StoreCfgJson.Instance.EventSetting.EventParams as EventParams;
+            string[] filters = eventParams?.Filters;
 
-            if (!isFullScan && scanExtensions == null)
+            if (filters == null || filters.Length == 0)
             {
-                DebugLog.WriteLine("[FileScanner] ScanExtensions setting is null. No files will be matched.");
-                return null;
+                DebugLog.WriteLine("[FileScanner] Filters setting is null or empty. No files will be matched.");
+                return matchedFiles;
             }
+
             try
             {
                 foreach (var file in Directory.EnumerateFiles(rootPath, "*", SearchOption.AllDirectories))
                 {
                     if (!Permission.Instance.HasReadWritePermissions(file))
                         continue;
-
-                    if (isFullScan)
-                    {
-                        matchedFiles.Add(file);
-                        continue;
-                    }
 
                     string dir = Path.GetDirectoryName(file);
 
@@ -311,7 +292,8 @@ namespace FileChangePlugin
                     if (FileWatcher.Instance.IsTemporaryFile(file))
                         continue;
 
-                    if (!FileWatcher.Instance.IsDetectedExtension(file))
+                    string fileExt = Path.GetExtension(file);
+                    if (!filters.Contains(fileExt, StringComparer.OrdinalIgnoreCase))
                         continue;
 
                     matchedFiles.Add(file);
@@ -324,32 +306,33 @@ namespace FileChangePlugin
 
             return matchedFiles;
         }
-    }
 
-    public class CacheWrapper<T>
-    {
-        [JsonPropertyName("Data")]
-        public T Data { get; set; }
 
-        [JsonPropertyName("Hash")]
-        public string Hash { get; set; }
-    }
+        public class CacheWrapper<T>
+        {
+            [JsonPropertyName("Data")]
+            public T Data { get; set; }
 
-    public class TrackedDirectory
-    {
-        [JsonPropertyName("DirectoryPath")]
-        public string DirectoryPath { get; set; }
+            [JsonPropertyName("Hash")]
+            public string Hash { get; set; }
+        }
 
-        [JsonPropertyName("Files")]
-        public List<TrackedFile> Files { get; set; }
-    }
+        public class TrackedDirectory
+        {
+            [JsonPropertyName("DirectoryPath")]
+            public string DirectoryPath { get; set; }
 
-    public class TrackedFile
-    {
-        [JsonPropertyName("FilePath")]
-        public string FilePath { get; set; }
+            [JsonPropertyName("Files")]
+            public List<TrackedFile> Files { get; set; }
+        }
 
-        [JsonPropertyName("LastWriteTime")]
-        public DateTime LastWriteTime { get; set; }
+        public class TrackedFile
+        {
+            [JsonPropertyName("FilePath")]
+            public string FilePath { get; set; }
+
+            [JsonPropertyName("LastWriteTime")]
+            public DateTime LastWriteTime { get; set; }
+        }
     }
 }

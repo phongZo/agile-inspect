@@ -1,4 +1,5 @@
 ﻿using AgileInspect.Code;
+using AgileInspect.Code.Settings;
 using System;
 using System.Windows;
 
@@ -21,6 +22,7 @@ namespace AgileInspect
 
             DebugLog.Write("", false);
             DebugLog.Write("--------AgileInspect Start-------");
+            StoreCfgLoader.Load();
             string pluginsDir = AppDomain.CurrentDomain.BaseDirectory;
             PluginManager.LoadPlugins(pluginsDir);
             PluginManager.StartAll();

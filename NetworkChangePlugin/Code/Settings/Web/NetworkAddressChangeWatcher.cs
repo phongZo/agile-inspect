@@ -12,9 +12,26 @@ namespace NetworkChangePlugin.Code.Settings.Web
         }
         #endregion
 
+        private bool isWatching = false;
+
         public void StartWatcher()
         {
-            NetworkChange.NetworkAddressChanged += new NetworkAddressChangedEventHandler(NetworkAddressChangedCallback);
+            if (!isWatching)
+            {
+                NetworkChange.NetworkAddressChanged += NetworkAddressChangedCallback;
+                isWatching = true;
+                DebugLog.WriteLine("NetworkAddressChangeWatcher started.");
+            }
+        }
+
+        public void StopWatcher()
+        {
+            if (isWatching)
+            {
+                NetworkChange.NetworkAddressChanged -= NetworkAddressChangedCallback;
+                isWatching = false;
+                DebugLog.WriteLine("NetworkAddressChangeWatcher stopped.");
+            }
         }
 
         void NetworkAddressChangedCallback(object sender, EventArgs e)

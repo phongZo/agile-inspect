@@ -1,69 +1,93 @@
 using AgileInspect.Code.PluginContracts;
-using System.Management;
+using BrightnessChangePlugin.Code;
+using System.Text.Json;
+
 namespace BrightnessChangePlugin
 {
     public class BrightnessChangePlugin : IBrightnessChangePlugin
     {
-        private ManagementEventWatcher EventWatcher;
+        private Timer? LogRotateTimer;
+        private Timer? BrightnessChangeTimer;
+
+        public string Name => "BrightnessChangePlugin";
+
         public Permission Permission { get; set; } = new Permission();
+        public StoreCfgJson StoreCfgJson { get; set; } = new StoreCfgJson();
+
+        public BrightnessChangeWatcher BrightnessChangeWatcher { get; set; } = new BrightnessChangeWatcher();
 
         public void Initialize()
         {
+            DebugLog.Write("", false);
+            DebugLog.WriteLine($"{Name} initialized.");
+            DebugLog.Write("---------------------------------", false);
             DebugLog.Init();
-            DebugLog.WriteLine("ScreenBrightnessPlugin initialized.");
+        }
+
+        public void SetParameters(string eventParamsJson, string triggerType, string triggerParamsJson)
+        {
+            var setting = StoreCfgJson.Instance.EventSetting ?? new EventSetting();
+
+            var parsedEventParams = !string.IsNullOrWhiteSpace(eventParamsJson)
+                ? JsonSerializer.Deserialize<EventParams>(eventParamsJson)
+                : null;
+
+            var parsedTriggerParams = !string.IsNullOrWhiteSpace(triggerParamsJson)
+                ? JsonSerializer.Deserialize<TriggerParams>(triggerParamsJson)
+                : null;
+
+            setting.EventParams = parsedEventParams ?? setting.EventParams;
+            setting.TriggerType = !string.IsNullOrWhiteSpace(triggerType) ? triggerType : setting.TriggerType;
+            setting.TriggerParams = parsedTriggerParams ?? setting.TriggerParams;
+
+            StoreCfgJson.Instance.EventSetting = setting;
         }
 
         public void Start()
         {
-            DebugLog.WriteLine("ScreenBrightnessPlugin started.: " + GetBrightness());
+            LogRotateTimer = new Timer(LogRotateTimerCallBack, null, 0, 24 * 60 * 60 * 1000); // 86400000 ms
 
-            try
+            var setting = StoreCfgJson.Instance.EventSetting ?? new EventSetting();
+            var triggerType = setting.TriggerType ?? "Realtime";
+            var interval = setting.TriggerParams?.Interval > 0 ? setting.TriggerParams.Interval : 10; // default 10s
+
+            DebugLog.WriteLine($"{Name} started.");
+            DebugLog.WriteLine($"{Name}: TriggerType : {triggerType}");
+
+            if (triggerType.Equals("Interval", StringComparison.OrdinalIgnoreCase))
             {
-                // Listen to brightness change events
-                WqlEventQuery query = new WqlEventQuery("SELECT * FROM WmiMonitorBrightnessEvent");
-                EventWatcher = new ManagementEventWatcher("root\\WMI", query.QueryString);
-                EventWatcher.EventArrived += (sender, args) =>
-                {
-                    var brightness = args.NewEvent["Brightness"];
-                    DebugLog.WriteLine($"Brightness changed: {brightness}");
-                };
-                EventWatcher.Start();
+                BrightnessChangeTimer = new Timer(CheckBrightnessTimerCallBack, null, 0, interval * 1000);
             }
-            catch (Exception ex)
+            else if (triggerType.Equals("Realtime", StringComparison.OrdinalIgnoreCase))
             {
-                DebugLog.WriteLine($"Failed to start brightness monitor: {ex.Message}");
+                BrightnessChangeWatcher.Instance.StartWatcher();
+            }
+            else
+            {
+                DebugLog.WriteLine($"[Brightness] Unsupported TriggerType '{triggerType}, plugin will not start.");
+                return;
             }
         }
+
 
         public void Stop()
         {
-            DebugLog.WriteLine("ScreenBrightnessPlugin stopped.");
-
-            if (EventWatcher != null)
-            {
-                EventWatcher.Stop();
-                EventWatcher.Dispose();
-                EventWatcher = null;
-            }
+            DebugLog.WriteLine($"{Name} stopped.");
+            BrightnessChangeTimer?.Dispose();
+            BrightnessChangeTimer = null;
+            BrightnessChangeWatcher.Instance.StopWatcher();
         }
 
-        public static int GetBrightness()
+        private void LogRotateTimerCallBack(object? state)
         {
-            try
-            {
-                using var searcher = new ManagementObjectSearcher("root\\WMI", "SELECT * FROM WmiMonitorBrightness");
-                foreach (ManagementObject obj in searcher.Get())
-                {
-                    return Convert.ToInt32(obj["CurrentBrightness"]);
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException("Unable to get brightness.", ex);
-            }
-
-            throw new NotSupportedException("Brightness info not found.");
+            DebugLog.WriteLine("[LogRotate] Interval hit");
+            LogRotate.HandleRotation();
         }
-    }
+        private void CheckBrightnessTimerCallBack(object? state)
+        {
+            DebugLog.WriteLine("[CheckBrightness] Interval hit");
+            BrightnessChangeWatcher.Instance.GetCurrentBrightness();
+        }
 
+    }
 }

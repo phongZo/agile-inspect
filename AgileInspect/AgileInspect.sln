@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BrightnessChangePlugin", ".
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WatermarkDetectorPlugin", "..\WatermarkDetectorPlugin\WatermarkDetectorPlugin.csproj", "{A087DA84-6CCE-4A14-88D6-E39EF84057AD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceDetectorPlugin", "..\ServiceDetectorPlugin\ServiceDetectorPlugin.csproj", "{66A672B1-5DFC-43C8-9092-D99E155ED6FD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{A087DA84-6CCE-4A14-88D6-E39EF84057AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A087DA84-6CCE-4A14-88D6-E39EF84057AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A087DA84-6CCE-4A14-88D6-E39EF84057AD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{66A672B1-5DFC-43C8-9092-D99E155ED6FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{66A672B1-5DFC-43C8-9092-D99E155ED6FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{66A672B1-5DFC-43C8-9092-D99E155ED6FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{66A672B1-5DFC-43C8-9092-D99E155ED6FD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
