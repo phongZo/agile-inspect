@@ -14,6 +14,7 @@ namespace AgileInspect
 
         public LogRotation LogRotation { get; set; } = new LogRotation();
         public EventConfig EventConfig { get; set; } = new EventConfig();
+        public RuleConfig RuleConfig { get; set; } = new RuleConfig();
     }
 
     public class LogRotation
@@ -32,5 +33,21 @@ namespace AgileInspect
         public object EventParams { get; set; }
         public string TriggerType { get; set; } // Interval or Realtime
         public object TriggerParams { get; set; }
+    }
+    public class RuleConfig
+    {
+        public List<RuleSetting> RuleSettings { get; set; } = new();
+    }
+    public class RuleSetting
+    {
+        public List<string> Plugins { get; set; } = new();
+        public List<Condition> Conditions { get; set; } = new();
+        public string Action { get; set; } = "None";
+    }
+
+    public class Condition
+    {
+        public string Field { get; set; }
+        public string Expected { get; set; }
     }
 }

@@ -26,13 +26,13 @@ public static class PluginContext
         }
     }
 
-    public static void SendDetectionResult(string pluginName, int result)
+    public static void SendDetectionResult(string pluginName, string jsonResult)
     {
         if (Callback != null)
         {
             try
             {
-                Callback.OnDetectionResult(pluginName, result);
+                Callback.OnDetectionResult(pluginName, jsonResult);
             }
             catch (Exception ex)
             {

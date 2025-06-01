@@ -1,4 +1,3 @@
-using AgileInspect.Code;
 using AgileInspect.Code.PluginContracts;
 using BrightnessChangePlugin.Code;
 using System.Text.Json;
@@ -43,6 +42,8 @@ namespace BrightnessChangePlugin
             setting.TriggerParams = parsedTriggerParams ?? setting.TriggerParams;
 
             StoreCfgJson.Instance.EventSetting = setting;
+
+            PluginContext.Log(Name, $"Parameters is set ");
         }
 
         public void Start()
@@ -69,8 +70,6 @@ namespace BrightnessChangePlugin
                 return;
             }
         }
-
-
 
         public void Stop()
         {

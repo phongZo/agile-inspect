@@ -3,7 +3,7 @@
     public interface IAppCallback
     {
         void OnLog(string pluginName, string message);
-        void OnDetectionResult(string pluginName, int result);
+        void OnDetectionResult(string pluginName, string jsonResult);
 
     }
     public interface IAppPlugin

@@ -4,6 +4,7 @@ using Compunet.YoloSharp.Plotting;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 
 namespace WatermarkDetectorPlugin
 {
@@ -18,7 +19,6 @@ namespace WatermarkDetectorPlugin
         #endregion
 
         private readonly YoloPredictor Predictor;
-        private static int _lastWatermarkCount = -1;
         string pluginName = "WatermarkDetectorPlugin";
 
         public WatermarkDetector(Stream modelStream)
@@ -37,7 +37,8 @@ namespace WatermarkDetectorPlugin
         {
             try
             {
-                string screenshotDir = Path.Combine(AppContext.BaseDirectory, "screenshot");
+                string dllDir = Path.Combine(AppContext.BaseDirectory, pluginName);
+                string screenshotDir = Path.Combine(dllDir, "screeenshot");
                 Directory.CreateDirectory(screenshotDir);
 
                 string fileName = $"screenshot_{DateTime.Now:yyyyMMdd_HHmmss}.png";
@@ -54,15 +55,22 @@ namespace WatermarkDetectorPlugin
                 await Predictor.PredictAndSaveAsync(tempImagePath, outputPath);
                 YoloResult<Detection> result = await Predictor.DetectAsync(tempImagePath);
 
-                PluginContext.Log(pluginName, $"[WatermarkDetector] Done: {fileName} | Result: {result.Count} Watermark | Last Result: {_lastWatermarkCount} Watermark");
+                PluginContext.Log(pluginName, $"[WatermarkDetector] Done: {fileName} | Result: {result.Count} Watermark");
 
-                _lastWatermarkCount = result.Count;
+                var resultObj = new Dictionary<string, object>
+                {
+                    { "watermark", result.Count },
+                };
+
+                string jsonResult = JsonSerializer.Serialize(resultObj);
+                PluginContext.SendDetectionResult(pluginName, jsonResult);
             }
             catch (Exception ex)
             {
                 PluginContext.Log(pluginName, $"Detection error: {ex}");
             }
         }
+
 
 
         public static void CapturePrimaryScreen(string savePath)

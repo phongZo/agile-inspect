@@ -93,6 +93,8 @@ namespace FileChangePlugin
             setting.TriggerParams = parsedTriggerParams ?? setting.TriggerParams;
 
             StoreCfgJson.Instance.EventSetting = setting;
+
+            PluginContext.Log(Name, $"Parameters is set ");
         }
 
         private async Task FileScannerTimerCallback()

@@ -70,15 +70,15 @@ namespace WatermarkDetectorPlugin
                 return;
             }
 
-            WatermarkDetector = new WatermarkDetector(modelStream); 
+            WatermarkDetector = new WatermarkDetector(modelStream);
+
             _watermarkDetectorTimer = new AsyncTimerService(intervalSeconds * 1000, async () =>
             {
-               await RunDetectionAsync();
+                await WatermarkDetectorCallback(WatermarkDetector);
             });
 
             _watermarkDetectorTimer.Start();
         }
-
 
         public void Stop()
         {
@@ -87,21 +87,12 @@ namespace WatermarkDetectorPlugin
 
             PluginContext.Log(Name, "Stopped");
         }
-        private async Task RunDetectionAsync()
+        private async Task WatermarkDetectorCallback(WatermarkDetector detector)
         {
-            PluginContext.Log(Name, "Started");
+            PluginContext.Log(Name, "Interval hit");
 
             try
             {
-                string resourceName = "WatermarkDetectorPlugin.Model.best.onnx";
-                using var modelStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName);
-                if (modelStream == null)
-                {
-                    PluginContext.Log(Name, $"Model resource '{resourceName}' not found.");
-                    return;
-                }
-
-                var detector = new WatermarkDetector(modelStream);
                 await detector.ProcessAsync();
             }
             catch (Exception ex)
@@ -109,5 +100,6 @@ namespace WatermarkDetectorPlugin
                 PluginContext.Log(Name, $"Detection failed: {ex}");
             }
         }
+
     }
 }

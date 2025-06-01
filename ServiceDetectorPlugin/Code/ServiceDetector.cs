@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Text.Json;
 
 namespace ServiceDetectorPlugin.Code
 {
@@ -16,7 +17,6 @@ namespace ServiceDetectorPlugin.Code
         public void CheckServices()
         {
             var setting = StoreCfgJson.Instance.EventSetting ?? new EventSetting();
-
             List<string> services = setting.EventParams.Services.ToList();
 
             if (services.Count == 0)
@@ -25,18 +25,28 @@ namespace ServiceDetectorPlugin.Code
                 return;
             }
 
+            var result = new Dictionary<string, string>();
+
             foreach (var serviceName in services)
             {
                 try
                 {
+                    string key = serviceName.ToLower();
                     bool isRunning = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(serviceName)).Any();
-                    PluginContext.Log(pluginName,$"Service '{serviceName}': {(isRunning ? "Running" : "Not running")}");
+                    string status = isRunning ? "on" : "off";
+
+                    PluginContext.Log(pluginName, $"Service '{serviceName}': {status}");
+                    result[key] = status;
                 }
                 catch (Exception ex)
                 {
-                    PluginContext.Log(pluginName,$"Error checking service '{serviceName}': {ex.Message}");
+                    PluginContext.Log(pluginName, $"Error checking service '{serviceName}': {ex.Message}");
+                    result[serviceName.ToLower()] = "error";
                 }
             }
+
+            string jsonResult = JsonSerializer.Serialize(result);
+            PluginContext.SendDetectionResult(pluginName, jsonResult);
         }
     }
 }
