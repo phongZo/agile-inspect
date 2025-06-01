@@ -1,4 +1,5 @@
 ﻿using Compunet.YoloSharp;
+using Compunet.YoloSharp.Data;
 using Compunet.YoloSharp.Plotting;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -15,7 +16,10 @@ namespace WatermarkDetectorPlugin
             Instance = this;
         }
         #endregion
+
         private readonly YoloPredictor Predictor;
+        private static int _lastWatermarkCount = -1;
+        string pluginName = "WatermarkDetectorPlugin";
 
         public WatermarkDetector(Stream modelStream)
         {
@@ -40,7 +44,7 @@ namespace WatermarkDetectorPlugin
                 string tempImagePath = Path.Combine(screenshotDir, fileName);
 
                 CapturePrimaryScreen(tempImagePath);
-                DebugLog.WriteLine($"[WatermarkDetector] Captured screenshot: {tempImagePath}");
+                PluginContext.Log(pluginName, $"Captured screenshot: {tempImagePath}");
 
                 string outputFolder = Path.Combine(screenshotDir, "result");
                 Directory.CreateDirectory(outputFolder);
@@ -48,13 +52,15 @@ namespace WatermarkDetectorPlugin
                 string outputPath = Path.Combine(outputFolder, fileName);
 
                 await Predictor.PredictAndSaveAsync(tempImagePath, outputPath);
-                var result = await Predictor.DetectAsync(tempImagePath);
+                YoloResult<Detection> result = await Predictor.DetectAsync(tempImagePath);
 
-                DebugLog.WriteLine($"[WatermarkDetector] Done: {fileName} | Result: {result}");
+                PluginContext.Log(pluginName, $"[WatermarkDetector] Done: {fileName} | Result: {result.Count} Watermark | Last Result: {_lastWatermarkCount} Watermark");
+
+                _lastWatermarkCount = result.Count;
             }
             catch (Exception ex)
             {
-                DebugLog.WriteLine($"[WatermarkDetector] ERROR: {ex}");
+                PluginContext.Log(pluginName, $"Detection error: {ex}");
             }
         }
 
@@ -71,7 +77,7 @@ namespace WatermarkDetectorPlugin
         }
 
         [DllImport("user32.dll")]
-        private static extern bool GetCursorPos(out Point lpPoint);       
+        private static extern bool GetCursorPos(out Point lpPoint);
 
         [DllImport("user32.dll")]
         private static extern int GetSystemMetrics(SystemMetric smIndex);
@@ -81,8 +87,5 @@ namespace WatermarkDetectorPlugin
             SM_CXSCREEN = 0,
             SM_CYSCREEN = 1,
         }
-
     }
-
-
 }

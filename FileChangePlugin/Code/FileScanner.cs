@@ -21,29 +21,7 @@ namespace FileChangePlugin
         private const string CacheFile = "scan_cache.json";
         private string LastCacheHash;
         public StoreCfgJson StoreCfgJson { get; set; } = new StoreCfgJson();
-
-        public void StartHandleScan()
-        {
-            if (IsScanning) return;
-
-            IsScanning = true;
-            Task.Run(() =>
-            {
-                try
-                {
-                    HandleScan();
-                }
-                catch (Exception ex)
-                {
-                    DebugLog.WriteLine($"[FileScanner] Error during call task scanning: {ex.Message}");
-                }
-                finally
-                {
-                    IsScanning = false;
-                    FileWatcher.Instance.ProcessPendingFileEvents();
-                }
-            });
-        }
+        public string Name => "FileChangePlugin";
 
         public void HandleScan()
         {
@@ -58,17 +36,17 @@ namespace FileChangePlugin
 
                 if (scanDirs == null || scanDirs.Length == 0)
                 {
-                    DebugLog.WriteLine("[FileScanner] No directories specified for scanning. Skipping scan.");
+                    PluginContext.Log(Name,"[FileScanner] No directories specified for scanning. Skipping scan.");
                     return;
                 }
 
                 if (filters == null || filters.Length == 0)
                 {
-                    DebugLog.WriteLine("[FileScanner] No filters specified for scanning. Skipping scan.");
+                    PluginContext.Log(Name, "[FileScanner] No filters specified for scanning. Skipping scan.");
                     return;
                 }
 
-                DebugLog.WriteLine("[FileScanner] Running scan with filters: " + string.Join(", ", filters));
+                PluginContext.Log(Name, "[FileScanner] Running scan with filters: " + string.Join(", ", filters));
 
                 TrackedDirs.Clear();
                 LoadScanCache();
@@ -78,7 +56,7 @@ namespace FileChangePlugin
                 {
                     if (!Directory.Exists(scanDir))
                     {
-                        DebugLog.WriteLine($"[FileScanner] Directory does not exist: {scanDir}");
+                        PluginContext.Log(Name, $"[FileScanner] Directory does not exist: {scanDir}");
                         continue;
                     }
                     ScanSingleDirectory(scanDir, ref allFiles);
@@ -86,17 +64,17 @@ namespace FileChangePlugin
 
                 SaveScanCache();
                 int totalFiles = TrackedDirs.Sum(d => d.Files.Count);
-                DebugLog.WriteLine($"[FileScanner] Total tracked files: {totalFiles}");
+                PluginContext.Log(Name, $"[FileScanner] Total tracked files: {totalFiles}");
             }
             catch (Exception ex)
             {
-                DebugLog.WriteLine($"[FileScanner] Exception during scanning process: {ex.Message}");
+                PluginContext.Log(Name, $"[FileScanner] Exception during scanning process: {ex.Message}");
             }
         }
 
         private void ScanSingleDirectory(string scanDir, ref HashSet<string> allFiles)
         {
-            DebugLog.WriteLine($"[FileScanner] Starting scan in directory: {scanDir}");
+            PluginContext.Log(Name, $"[FileScanner] Starting scan in directory: {scanDir}");
 
             List<string> dirFiles = ScanDirectoryIterative(scanDir);
             if (dirFiles == null) return;
@@ -126,7 +104,7 @@ namespace FileChangePlugin
 
             foreach (string deletedFile in oldFileSet)
             {
-                DebugLog.WriteLine(" - DELETED: " + deletedFile);
+                PluginContext.Log(Name, " - DELETED: " + deletedFile);
             }
         }
 
@@ -144,11 +122,11 @@ namespace FileChangePlugin
 
                 if (oldFile == null)
                 {
-                    DebugLog.WriteLine(" - NEW: " + filePath);
+                    PluginContext.Log(Name, " - NEW: " + filePath);
                 }
                 else if (lastWrite > oldFile.LastWriteTime)
                 {
-                    DebugLog.WriteLine(" - MODIFIED: " + filePath);
+                    PluginContext.Log(Name, " - MODIFIED: " + filePath);
                 }
 
                 newTrackedDir.Files.Add(new TrackedFile
@@ -163,7 +141,7 @@ namespace FileChangePlugin
             }
             catch (Exception exFile)
             {
-                DebugLog.WriteLine("[FileScanner] Error accessing file '" + filePath + "': " + exFile.Message);
+                PluginContext.Log(Name, "[FileScanner] Error accessing file '" + filePath + "': " + exFile.Message);
             }
         }
 
@@ -181,7 +159,7 @@ namespace FileChangePlugin
 
                 if (LastCacheHash == hash)
                 {
-                    DebugLog.WriteLine("[FileScanner] Cache hash is unchanged. No need to save.");
+                    PluginContext.Log(Name, "[FileScanner] Cache hash is unchanged. No need to save.");
                     return;
                 }
                 var wrapper = new CacheWrapper<List<TrackedDirectory>>
@@ -201,11 +179,11 @@ namespace FileChangePlugin
 
                 LastCacheHash = hash;
 
-                DebugLog.WriteLine("[FileScanner] Scan cache with hash saved.");
+                PluginContext.Log(Name, "[FileScanner] Scan cache with hash saved.");
             }
             catch (Exception ex)
             {
-                DebugLog.WriteLine($"[FileScanner] Error saving scan cache: {ex.Message}");
+                PluginContext.Log(Name, $"[FileScanner] Error saving scan cache: {ex.Message}");
             }
         }
 
@@ -241,26 +219,26 @@ namespace FileChangePlugin
                             LastTrackedDirs = new List<TrackedDirectory>(wrapper.Data);
                             LastCacheHash = wrapper.Hash;
 
-                            DebugLog.WriteLine("[FileScanner] Cache loaded and hash verified.");
+                            PluginContext.Log(Name, "[FileScanner] Cache loaded and hash verified.");
                         }
                         else
                         {
-                            DebugLog.WriteLine("[FileScanner] Hash mismatch!");
+                            PluginContext.Log(Name, "[FileScanner] Hash mismatch!");
                         }
                     }
                     else
                     {
-                        DebugLog.WriteLine("[FileScanner] Cache file structure is invalid.");
+                        PluginContext.Log(Name, "[FileScanner] Cache file structure is invalid.");
                     }
                 }
                 else
                 {
-                    DebugLog.WriteLine("[FileScanner] No cache file found.");
+                    PluginContext.Log(Name, "[FileScanner] No cache file found.");
                 }
             }
             catch (Exception ex)
             {
-                DebugLog.WriteLine($"[FileScanner] Error loading scan cache: {ex.Message}");
+                PluginContext.Log(Name, $"[FileScanner] Error loading scan cache: {ex.Message}");
             }
         }
 
@@ -273,7 +251,7 @@ namespace FileChangePlugin
 
             if (filters == null || filters.Length == 0)
             {
-                DebugLog.WriteLine("[FileScanner] Filters setting is null or empty. No files will be matched.");
+                PluginContext.Log(Name, "[FileScanner] Filters setting is null or empty. No files will be matched.");
                 return matchedFiles;
             }
 
@@ -301,7 +279,7 @@ namespace FileChangePlugin
             }
             catch (Exception ex)
             {
-                DebugLog.WriteLine($"[FileScanner] Error during scan: {ex.Message}");
+                PluginContext.Log(Name, $"[FileScanner] Error during scan: {ex.Message}");
             }
 
             return matchedFiles;

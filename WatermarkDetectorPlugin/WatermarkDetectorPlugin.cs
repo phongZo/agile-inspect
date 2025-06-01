@@ -1,5 +1,4 @@
-using AgileInspect.Code.PluginContracts;
-using Compunet.YoloSharp;
+﻿using AgileInspect.Code.PluginContracts;
 using System.Reflection;
 using System.Text.Json;
 
@@ -7,87 +6,98 @@ namespace WatermarkDetectorPlugin
 {
     public class WatermarkDetectorPlugin : IWatermarkDetectorPlugin
     {
-        private YoloPredictor? Predictor;
-        private Timer WatermarkDetectorTimer;
-        private Timer LogRotationTimer;
-
-        public Permission Permission { get; set; } = new Permission();
+        private AsyncTimerService _watermarkDetectorTimer;
         public StoreCfgJson StoreCfgJson { get; set; } = new StoreCfgJson();
         public WatermarkDetector WatermarkDetector { get; set; } = new WatermarkDetector();
         public string Name => "WatermarkDetectorPlugin";
 
+        public void SetCallback(IAppCallback callback)
+        {
+            if (callback == null) throw new ArgumentNullException(nameof(callback));
+            PluginContext.SetCallback(callback);
+        }
+
         public void Initialize()
         {
-            DebugLog.Init();
-            DebugLog.Write("", false);
-            DebugLog.Write($"--------{Name} Initialize-------");
+            PluginContext.Log(Name, $"Initialize");
         }
 
         public void SetParameters(string eventParamsJson, string triggerType, string triggerParamsJson)
         {
             var setting = StoreCfgJson.Instance.EventSetting ?? new EventSetting();
 
-            var parsedEventParams = !string.IsNullOrWhiteSpace(eventParamsJson)
-                ? JsonSerializer.Deserialize<EventParams>(eventParamsJson)
-                : null;
+            if (!string.IsNullOrWhiteSpace(eventParamsJson))
+            {
+                var parsedEventParams = JsonSerializer.Deserialize<EventParams>(eventParamsJson);
+                if (parsedEventParams != null) setting.EventParams = parsedEventParams;
+            }
 
-            var parsedTriggerParams = !string.IsNullOrWhiteSpace(triggerParamsJson)
-                ? JsonSerializer.Deserialize<TriggerParams>(triggerParamsJson)
-                : null;
+            if (!string.IsNullOrWhiteSpace(triggerType))
+            {
+                setting.TriggerType = triggerType;
+            }
 
-            setting.EventParams = parsedEventParams ?? setting.EventParams;
-            setting.TriggerType = !string.IsNullOrWhiteSpace(triggerType) ? triggerType : setting.TriggerType;
-            setting.TriggerParams = parsedTriggerParams ?? setting.TriggerParams;
+            if (!string.IsNullOrWhiteSpace(triggerParamsJson))
+            {
+                var parsedTriggerParams = JsonSerializer.Deserialize<TriggerParams>(triggerParamsJson);
+                if (parsedTriggerParams != null) setting.TriggerParams = parsedTriggerParams;
+            }
 
             StoreCfgJson.Instance.EventSetting = setting;
+
+            PluginContext.Log(Name, $"Parameters is set ");
         }
 
         public void Start()
         {
-            LogRotationTimer = new Timer(LogRotateTimerCallBack, null, 0, 24 * 60 * 60 * 1000); // 86400000 ms
-
-            DebugLog.WriteLine($"[{Name}] Start");
-
             var setting = StoreCfgJson.Instance.EventSetting ?? new EventSetting();
             var triggerType = setting.TriggerType;
-            var interval = setting.TriggerParams.Interval;
+            var intervalSeconds = setting.TriggerParams.Interval;
 
-            DebugLog.WriteLine($"[{Name}] TriggerType: {triggerType}");
+            PluginContext.Log(Name, "Start");
+            PluginContext.Log(Name, $"TriggerType: {triggerType}");
 
-            if (triggerType.Equals("Interval", StringComparison.OrdinalIgnoreCase))
+            if (!triggerType.Equals("Interval", StringComparison.OrdinalIgnoreCase))
             {
-                // OK, run interval
+                PluginContext.Log(Name, $"Unsupported TriggerType '{triggerType}', fallback to Interval");
             }
-            else if (triggerType.Equals("Realtime", StringComparison.OrdinalIgnoreCase))
+
+            string resourceName = "WatermarkDetectorPlugin.Model.best.onnx";
+            using var modelStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName);
+            if (modelStream == null)
             {
-                DebugLog.WriteLine($"[{Name}] Realtime not implemented, fallback to Interval.");
-            }
-            else
-            {
-                DebugLog.WriteLine($"[{Name}] Unsupport TriggerType '{triggerType}', plugin will not start.");
+                PluginContext.Log(Name, $"Model resource '{resourceName}' not found.");
                 return;
             }
 
-            WatermarkDetectorTimer = new Timer(async _ =>
+            WatermarkDetector = new WatermarkDetector(modelStream); 
+            _watermarkDetectorTimer = new AsyncTimerService(intervalSeconds * 1000, async () =>
             {
-                await RunDetectionAsync();
-            }, null, 0, interval * 1000);
+               await RunDetectionAsync();
+            });
+
+            _watermarkDetectorTimer.Start();
         }
+
 
         public void Stop()
         {
-            throw new NotImplementedException();
-        }
+            _watermarkDetectorTimer?.Stop();
+            _watermarkDetectorTimer?.Dispose();
 
+            PluginContext.Log(Name, "Stopped");
+        }
         private async Task RunDetectionAsync()
         {
+            PluginContext.Log(Name, "Started");
+
             try
             {
                 string resourceName = "WatermarkDetectorPlugin.Model.best.onnx";
                 using var modelStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName);
                 if (modelStream == null)
                 {
-                    DebugLog.WriteLine($"[{Name}] Model resource '{resourceName}' not found.");
+                    PluginContext.Log(Name, $"Model resource '{resourceName}' not found.");
                     return;
                 }
 
@@ -96,14 +106,8 @@ namespace WatermarkDetectorPlugin
             }
             catch (Exception ex)
             {
-                DebugLog.WriteLine($"[{Name}] Detection failed: {ex}");
+                PluginContext.Log(Name, $"Detection failed: {ex}");
             }
-        }
-
-        private void LogRotateTimerCallBack(object? state)
-        {
-            DebugLog.WriteLine("[LogRotate] Interval hit");
-            LogRotate.HandleRotation();
         }
     }
 }

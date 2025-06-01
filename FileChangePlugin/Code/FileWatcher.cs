@@ -15,6 +15,8 @@ namespace FileChangePlugin
         #endregion
         private FileSystemWatcher FileSystemWatcher = new();
         private List<FileSystemEventArgs> PendingFileEvents = new();
+        public string Name => "FileChangePlugin";
+
         public void StartWatching(string path)
         {
             FileSystemWatcher watcher = new FileSystemWatcher
@@ -25,7 +27,7 @@ namespace FileChangePlugin
                 IncludeSubdirectories = true,
                 EnableRaisingEvents = true,
             };
-
+            watcher.InternalBufferSize = 64 * 1024;
             watcher.Created += (sender, e) => OnCreated(sender, e, path);
             watcher.Changed += (sender, e) => OnChanged(sender, e, path);
             watcher.Deleted += (sender, e) => OnDeleted(sender, e, path);
@@ -71,7 +73,7 @@ namespace FileChangePlugin
 
                 if (Directory.Exists(e.FullPath)) // Folder renamed
                 {
-                    DebugLog.WriteLine($"[FileWatcher] Renamed folder from: {e.OldFullPath} to: {e.FullPath}");
+                    PluginContext.Log(Name, $"[FileWatcher] Renamed folder from: {e.OldFullPath} to: {e.FullPath}");
                     if (!IsScanDirectory(e.FullPath)) return;
 
                     foreach (var trackedFile in trackedDir.Files.ToList())
@@ -86,7 +88,7 @@ namespace FileChangePlugin
                             RemoveFile(trackedDir, trackedFile.FilePath);
                             AddOrUpdateFile(trackedDir, newFilePath);
 
-                            DebugLog.WriteLine($"[FileWatcher] Renamed file from: {trackedFile.FilePath} to: {newFilePath}");
+                            PluginContext.Log(Name, $"[FileWatcher] Renamed file from: {trackedFile.FilePath} to: {newFilePath}");
                         }
                     }
                 }
@@ -95,14 +97,14 @@ namespace FileChangePlugin
                     RemoveFile(trackedDir, e.OldFullPath);
                     AddOrUpdateFile(trackedDir, e.FullPath);
 
-                    DebugLog.WriteLine($"[FileWatcher] Renamed file from: {e.OldFullPath} to: {e.FullPath}");
+                    PluginContext.Log(Name, $"[FileWatcher] Renamed file from: {e.OldFullPath} to: {e.FullPath}");
                 }
 
                 FileScanner.Instance.SaveScanCache();
             }
             catch (Exception ex)
             {
-                DebugLog.WriteLine($"[FileWatcher] Error in Renamed for {e.FullPath}: {ex.Message}");
+                PluginContext.Log(Name, $"[FileWatcher] Error in Renamed for {e.FullPath}: {ex.Message}");
             }
         }
 
@@ -122,7 +124,7 @@ namespace FileChangePlugin
 
                 if (!Path.HasExtension(e.FullPath)) // Directory
                 {
-                    DebugLog.WriteLine($"[FileWatcher] Directory Deleted: {e.FullPath}");
+                    PluginContext.Log(Name, $"[FileWatcher] Directory Deleted: {e.FullPath}");
 
                     var filesToRemove = trackedDir.Files
                         .Where(f => f.FilePath.StartsWith(e.FullPath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
@@ -132,7 +134,7 @@ namespace FileChangePlugin
                     foreach (var file in filesToRemove)
                     {
                         trackedDir.Files.Remove(file);
-                        DebugLog.WriteLine($"[FileWatcher] Deleted file in deleted directory: {file.FilePath}");
+                        PluginContext.Log(Name, $"[FileWatcher] Deleted file in deleted directory: {file.FilePath}");
                     }
                 }
                 else // File
@@ -140,7 +142,7 @@ namespace FileChangePlugin
                     if (ShouldTrackFile(e.FullPath))
                     {
                         RemoveFile(trackedDir, e.FullPath);
-                        DebugLog.WriteLine($"[FileWatcher] File Deleted: {e.FullPath}");
+                        PluginContext.Log(Name, $"[FileWatcher] File Deleted: {e.FullPath}");
                     }
                 }
 
@@ -149,7 +151,7 @@ namespace FileChangePlugin
             }
             catch (Exception ex)
             {
-                DebugLog.WriteLine($"[FileWatcher] Error in Deleted for {e.FullPath}: {ex.Message}");
+                PluginContext.Log(Name, $"[FileWatcher] Error in Deleted for {e.FullPath}: {ex.Message}");
             }
         }
 
@@ -168,7 +170,7 @@ namespace FileChangePlugin
                 
                 if (Directory.Exists(e.FullPath))
                 {
-                    DebugLog.WriteLine($"[FileWatcher] Directory Created: {e.FullPath}");
+                    PluginContext.Log(Name, $"[FileWatcher] Directory Created: {e.FullPath}");
 
                     var files = FileScanner.Instance.ScanDirectoryIterative(e.FullPath);
                     foreach (var file in files)
@@ -185,13 +187,13 @@ namespace FileChangePlugin
                 else if (File.Exists(e.FullPath) && ShouldTrackFile(e.FullPath))
                 {
                     AddOrUpdateFile(trackedDir, e.FullPath);
-                    DebugLog.WriteLine($"[FileWatcher] File Created: {e.FullPath}");
+                    PluginContext.Log(Name, $"[FileWatcher] File Created: {e.FullPath}");
                     FileScanner.Instance.SaveScanCache();
                 }
             }
             catch (Exception ex)
             {
-                DebugLog.WriteLine($"[FileWatcher] Error in Created for {e.FullPath}: {ex.Message}");
+                PluginContext.Log(Name, $"[FileWatcher] Error in Created for {e.FullPath}: {ex.Message}");
             }
         }
 
@@ -211,13 +213,13 @@ namespace FileChangePlugin
                 if (trackedDir == null) return;
 
                 AddOrUpdateFile(trackedDir, e.FullPath);
-                DebugLog.WriteLine($"[FileWatcher] Changed: {e.FullPath}");
+                PluginContext.Log(Name, $"[FileWatcher] Changed: {e.FullPath}");
 
                 FileScanner.Instance.SaveScanCache();
             }
             catch (Exception ex)
             {
-                DebugLog.WriteLine($"[FileWatcher] Error in Changed for {e.FullPath}: {ex.Message}");
+                PluginContext.Log(Name, $"[FileWatcher] Error in Changed for {e.FullPath}: {ex.Message}");
             }
         }
 
@@ -251,7 +253,6 @@ namespace FileChangePlugin
 
             string ext = Path.GetExtension(filePath);
 
-            // Chuyển filters như "*.txt" thành ".txt"
             var extensions = eventParams.Filters
                 .Select(f => f.StartsWith("*.") ? f.Substring(1) : f)
                 .ToArray();

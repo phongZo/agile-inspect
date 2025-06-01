@@ -11,6 +11,7 @@ namespace ServiceDetectorPlugin.Code
             Instance = this;
         }
         #endregion
+        string pluginName = "ServiceDetectorPlugin";
 
         public void CheckServices()
         {
@@ -20,7 +21,7 @@ namespace ServiceDetectorPlugin.Code
 
             if (services.Count == 0)
             {
-                DebugLog.WriteLine("No services specified for monitoring.");
+                PluginContext.Log(pluginName, "No services specified for monitoring.");
                 return;
             }
 
@@ -28,12 +29,12 @@ namespace ServiceDetectorPlugin.Code
             {
                 try
                 {
-                    bool isRunning = Process.GetProcessesByName(System.IO.Path.GetFileNameWithoutExtension(serviceName)).Any();
-                    DebugLog.WriteLine($"Service '{serviceName}': {(isRunning ? "Running" : "Not running")}");
+                    bool isRunning = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(serviceName)).Any();
+                    PluginContext.Log(pluginName,$"Service '{serviceName}': {(isRunning ? "Running" : "Not running")}");
                 }
                 catch (Exception ex)
                 {
-                    DebugLog.WriteLine($"Error checking service '{serviceName}': {ex.Message}");
+                    PluginContext.Log(pluginName,$"Error checking service '{serviceName}': {ex.Message}");
                 }
             }
         }

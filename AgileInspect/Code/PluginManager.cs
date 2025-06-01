@@ -12,9 +12,11 @@ namespace AgileInspect.Code
     public class PluginManager
     {
         private readonly List<IAppPlugin> Plugins = new();
-
+        public AppCallbackHandler AppCallbackHandler {  get; set; } = new AppCallbackHandler();
         public void LoadPlugins(string folderPath)
         {
+            PluginContext.SetCallback(AppCallbackHandler.Instance);
+
             if (!Directory.Exists(folderPath))
             {
                 DebugLog.WriteLine($"Plugin folder not found: {folderPath}");
@@ -58,9 +60,10 @@ namespace AgileInspect.Code
                                 string eventParamsJson = JsonSerializer.Serialize(setting.EventParams);
                                 string triggerParamsJson = JsonSerializer.Serialize(setting.TriggerParams);
 
+                                plugin.Initialize();
+                                plugin.SetCallback(AppCallbackHandler.Instance);
                                 plugin.SetParameters(eventParamsJson, setting.TriggerType, triggerParamsJson);
 
-                                plugin.Initialize();
                                 Plugins.Add(plugin);
                                 DebugLog.WriteLine($"Loaded plugin: {pluginName} from {dll}");
                             }
@@ -83,7 +86,6 @@ namespace AgileInspect.Code
                 try
                 {
                     plugin.Start();
-                    DebugLog.WriteLine($"Started plugin: {plugin.Name}");
                 }
                 catch (Exception ex)
                 {

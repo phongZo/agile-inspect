@@ -7,19 +7,22 @@ namespace NetworkChangePlugin
     public class NetworkChangePlugin : INetworkChangePlugin
     {
         public NetworkAddressChangeWatcher NetworkAddressChangeWatcher { get; set; } = new NetworkAddressChangeWatcher();
-        public Permission Permission { get; set; } = new Permission();
-        private string TriggerType = "Interval";
         public StoreCfgJson StoreCfgJson { get; set; } = new StoreCfgJson();
-
         public string Name => "NetworkChangePlugin";
-        private Timer LogRotateTimer;
-       
+
+        public void SetCallback(IAppCallback callback)
+        {
+            if (callback == null)
+            {
+                throw new ArgumentNullException(nameof(callback));
+            }
+
+            PluginContext.SetCallback(callback);
+        }
 
         public void Initialize()
         {
-            DebugLog.Init();
-            DebugLog.Write("", false);
-            DebugLog.Write($"--------{Name} Initialize-------");
+            PluginContext.Log(Name, $"Initialize");
         }
 
         public void SetParameters(string eventParamsJson, string triggerType, string triggerParamsJson)
@@ -39,17 +42,17 @@ namespace NetworkChangePlugin
             setting.TriggerParams = parsedTriggerParams ?? setting.TriggerParams;
 
             StoreCfgJson.Instance.EventSetting = setting;
+            PluginContext.Log(Name, $"Parameters is set ");
+
         }
 
         public void Start()
         {
-            LogRotateTimer = new Timer(LogRotateTimerCallBack, null, 0, 24 * 60 * 60 * 1000); // 86400000 ms
-
             var setting = StoreCfgJson.Instance.EventSetting ?? new EventSetting();
             var triggerType = setting.TriggerType;
 
-            DebugLog.WriteLine($"{Name} started.");
-            DebugLog.WriteLine($"{Name}: TriggerType : {triggerType}");
+            PluginContext.Log(Name, $"{Name} started.");
+            PluginContext.Log(Name, $"{Name}: TriggerType : {triggerType}");
 
             if (triggerType.Equals("RealTime", StringComparison.OrdinalIgnoreCase))
             {
@@ -57,11 +60,11 @@ namespace NetworkChangePlugin
             }
             else if (triggerType.Equals("Interval", StringComparison.OrdinalIgnoreCase))
             {
-                DebugLog.WriteLine($"{Name}: TriggerType 'Interval' is not implemented, fallback to RealTime.");
+                PluginContext.Log(Name, $"{Name}: TriggerType 'Interval' is not implemented, fallback to RealTime.");
             }
             else
             {
-                DebugLog.WriteLine($"{Name}: Unknown TriggerType '{triggerType}, plugin will not start.");
+                PluginContext.Log(Name, $"{Name}: Unknown TriggerType '{triggerType}, plugin will not start.");
                 return;
             }
             NetworkAddressChangeWatcher.Instance.StartWatcher();
@@ -70,14 +73,8 @@ namespace NetworkChangePlugin
 
         public void Stop()
         {
-            DebugLog.WriteLine($"{Name} stopped.");
+            PluginContext.Log(Name, $"Stopped.");
             NetworkAddressChangeWatcher.Instance.StopWatcher();
-        }
-
-        private void LogRotateTimerCallBack(object? state)
-        {
-            DebugLog.WriteLine("[LogRotate] Interval hit");
-            LogRotate.HandleRotation();
         }
     }
 }

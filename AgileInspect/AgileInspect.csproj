@@ -15,7 +15,7 @@
 
   <!--Plugin list -->
   <ItemGroup>
-    <PluginProjects Include="ServiceDetectorPlugin;NetworkChangePlugin;BrightnessChangePlugin;FileChangePlugin;WatermarkDetectorPlugin" />
+    <PluginProjects Include="WatermarkDetectorPlugin;ServiceDetectorPlugin;NetworkChangePlugin;FileChangePlugin;BrightnessChangePlugin" />
   </ItemGroup>
   
   <Target Name="BuildPlugins" AfterTargets="Build">

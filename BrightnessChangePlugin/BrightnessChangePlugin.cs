@@ -1,3 +1,4 @@
+using AgileInspect.Code;
 using AgileInspect.Code.PluginContracts;
 using BrightnessChangePlugin.Code;
 using System.Text.Json;
@@ -6,22 +7,23 @@ namespace BrightnessChangePlugin
 {
     public class BrightnessChangePlugin : IBrightnessChangePlugin
     {
-        private Timer? LogRotateTimer;
-        private Timer? BrightnessChangeTimer;
-
-        public string Name => "BrightnessChangePlugin";
-
+        private AsyncTimerService _brightnessTimerService;
         public Permission Permission { get; set; } = new Permission();
         public StoreCfgJson StoreCfgJson { get; set; } = new StoreCfgJson();
-
         public BrightnessChangeWatcher BrightnessChangeWatcher { get; set; } = new BrightnessChangeWatcher();
+        public string Name => "BrightnessChangePlugin";
+        public void SetCallback(IAppCallback callback)
+        {
+            if (callback == null)
+            {
+                throw new ArgumentNullException(nameof(callback));
+            }
 
+            PluginContext.SetCallback(callback);
+        }
         public void Initialize()
         {
-            DebugLog.Write("", false);
-            DebugLog.WriteLine($"{Name} initialized.");
-            DebugLog.Write("---------------------------------", false);
-            DebugLog.Init();
+            PluginContext.Log(Name, $"Initialize");
         }
 
         public void SetParameters(string eventParamsJson, string triggerType, string triggerParamsJson)
@@ -45,18 +47,17 @@ namespace BrightnessChangePlugin
 
         public void Start()
         {
-            LogRotateTimer = new Timer(LogRotateTimerCallBack, null, 0, 24 * 60 * 60 * 1000); // 86400000 ms
-
             var setting = StoreCfgJson.Instance.EventSetting ?? new EventSetting();
-            var triggerType = setting.TriggerType ?? "Realtime";
-            var interval = setting.TriggerParams?.Interval > 0 ? setting.TriggerParams.Interval : 10; // default 10s
+            var triggerType = setting.TriggerType;
+            var interval = setting.TriggerParams.Interval;
 
-            DebugLog.WriteLine($"{Name} started.");
-            DebugLog.WriteLine($"{Name}: TriggerType : {triggerType}");
+            PluginContext.Log(Name, "Start");
+            PluginContext.Log(Name, $"TriggerType: {triggerType}");
 
             if (triggerType.Equals("Interval", StringComparison.OrdinalIgnoreCase))
             {
-                BrightnessChangeTimer = new Timer(CheckBrightnessTimerCallBack, null, 0, interval * 1000);
+                _brightnessTimerService = new AsyncTimerService(interval * 1000, CheckBrightnessTimerCallbackAsync);
+                _brightnessTimerService.Start();
             }
             else if (triggerType.Equals("Realtime", StringComparison.OrdinalIgnoreCase))
             {
@@ -64,29 +65,26 @@ namespace BrightnessChangePlugin
             }
             else
             {
-                DebugLog.WriteLine($"[Brightness] Unsupported TriggerType '{triggerType}, plugin will not start.");
+                DebugLog.WriteLine($"[Brightness] Unsupported TriggerType '{triggerType}', plugin will not start.");
                 return;
             }
         }
 
 
+
         public void Stop()
         {
-            DebugLog.WriteLine($"{Name} stopped.");
-            BrightnessChangeTimer?.Dispose();
-            BrightnessChangeTimer = null;
+            PluginContext.Log(Name, "Stopped.");
+            _brightnessTimerService?.Stop();
+            _brightnessTimerService?.Dispose();
+            _brightnessTimerService = null;
             BrightnessChangeWatcher.Instance.StopWatcher();
         }
 
-        private void LogRotateTimerCallBack(object? state)
+        private async Task CheckBrightnessTimerCallbackAsync()
         {
-            DebugLog.WriteLine("[LogRotate] Interval hit");
-            LogRotate.HandleRotation();
-        }
-        private void CheckBrightnessTimerCallBack(object? state)
-        {
-            DebugLog.WriteLine("[CheckBrightness] Interval hit");
-            BrightnessChangeWatcher.Instance.GetCurrentBrightness();
+            PluginContext.Log(Name, "[CheckBrightness] Interval hit");
+            await Task.Run(() => BrightnessChangeWatcher.Instance.GetCurrentBrightness());
         }
 
     }

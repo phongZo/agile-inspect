@@ -13,6 +13,7 @@ namespace NetworkChangePlugin.Code.Settings.Web
         #endregion
 
         private bool isWatching = false;
+        string pluginName = "NetworkChangePlugin";
 
         public void StartWatcher()
         {
@@ -20,7 +21,7 @@ namespace NetworkChangePlugin.Code.Settings.Web
             {
                 NetworkChange.NetworkAddressChanged += NetworkAddressChangedCallback;
                 isWatching = true;
-                DebugLog.WriteLine("NetworkAddressChangeWatcher started.");
+                PluginContext.Log(pluginName, "NetworkAddressChangeWatcher started.");
             }
         }
 
@@ -30,13 +31,13 @@ namespace NetworkChangePlugin.Code.Settings.Web
             {
                 NetworkChange.NetworkAddressChanged -= NetworkAddressChangedCallback;
                 isWatching = false;
-                DebugLog.WriteLine("NetworkAddressChangeWatcher stopped.");
+                PluginContext.Log(pluginName, "NetworkAddressChangeWatcher stopped.");
             }
         }
 
         void NetworkAddressChangedCallback(object sender, EventArgs e)
         {
-            DebugLog.WriteLine("Network address change detected, reviewing policy");
+            PluginContext.Log(pluginName, "Network address change detected, reviewing policy");
             //_ = WebPing.Instance.PrepareForConditionCheck(); //Will eventually determinecurrentpolicy
         }
     }

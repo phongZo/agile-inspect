@@ -1,5 +1,11 @@
 ﻿namespace AgileInspect.Code.PluginContracts
 {
+    public interface IAppCallback
+    {
+        void OnLog(string pluginName, string message);
+        void OnDetectionResult(string pluginName, int result);
+
+    }
     public interface IAppPlugin
     {
         string Name { get; }
@@ -7,7 +13,7 @@
         void Start();
         void Stop();
         void SetParameters(string eventParamsJson, string triggerType, string triggerParamsJson);
-
+        void SetCallback(IAppCallback callback);
     }
     public interface IFileChangePlugin : IAppPlugin
     {

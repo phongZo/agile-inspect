@@ -10,7 +10,6 @@ namespace AgileInspect
         public static StreamWriter StreamWriter;
         public static FileStream Filestream;
         public static bool CanWrite = true;
-        private static readonly object _lock = new();
 
         public static void Init()
         {
@@ -36,45 +35,26 @@ namespace AgileInspect
 
         public static void Write(string message, bool timestamp = true)
         {
-            if (!CanWrite) return;
-
-            lock (_lock)
+            try
             {
-                try
+                if (!DebugLog.CanWrite) return;
+                Console.WriteLine(message);
+                if (StreamWriter == null) return;
+                if (LogRotate.IsCompressing)
                 {
-                    if (timestamp)
-                        Console.WriteLine($"{DateTime.Now.ToString(DateTimeFormat)}:   {message}");
-                    else
-                        Console.WriteLine(message);
-
-                    if (StreamWriter == null) return;
-
-                    if (LogRotate.IsCompressing)
-                    {
-                        LogRotate.TemporaryLog += (timestamp ? DateTime.Now.ToString(DateTimeFormat) + ":   " : "") + message + Environment.NewLine;
-                        return;
-                    }
-
-                    Permission.Instance.ResetPermissionOfFile(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AgileInspect", "log.txt"));
-
-                    Filestream?.Seek(0, SeekOrigin.End);
-
-                    if (timestamp)
-                        StreamWriter.WriteLine($"{DateTime.Now.ToString(DateTimeFormat)}:   {message}");
-                    else
-                        StreamWriter.WriteLine(message);
+                    LogRotate.TemporaryLog += (timestamp ? DateTime.Now.ToString(DateTimeFormat) + ":   " : "") + message + Environment.NewLine;
+                    return;
                 }
-                catch (Exception ex)
-                {
-                    try
-                    {
-                        if (StreamWriter != null)
-                        {
-                            StreamWriter.WriteLine($"{DateTime.Now.ToString(DateTimeFormat)}:   Error when write to log: {ex.Message}");
-                        }
-                    }
-                    catch { /* swallow */ }
-                }
+                Permission.Instance.ResetPermissionOfFile(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\AgileInspect\\" + "log.txt");
+
+                Filestream.Seek(0, SeekOrigin.End);
+                if (timestamp) StreamWriter.Write(DateTime.Now.ToString(DateTimeFormat) + ":   ");
+                StreamWriter.WriteLine(message);
+            }
+            catch (Exception ex)
+            {
+                if (timestamp) StreamWriter.Write(DateTime.Now.ToString(DateTimeFormat) + ":   ");
+                StreamWriter.WriteLine("Error when write to log: " + ex.Message);
             }
         }
 

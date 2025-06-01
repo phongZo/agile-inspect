@@ -3,7 +3,6 @@
 namespace FileChangePlugin
 {
     using System.Text.Json;
-    using System.Threading;
 
     public class FileChangePlugin : IFileChangePlugin
     {
@@ -13,65 +12,67 @@ namespace FileChangePlugin
         public Permission Permission { get; set; } = new Permission();
 
         public string Name => "FileChangePlugin";
+        private AsyncTimerService _scanTimer;
 
-        private Timer ScanTimer;
-        private Timer LogRotateTimer;
+        public void SetCallback(IAppCallback callback)
+        {
+            if (callback == null)
+            {
+                throw new ArgumentNullException(nameof(callback));
+            }
+
+            PluginContext.SetCallback(callback);
+        }
 
         public void Initialize()
         {
-            DebugLog.Init();
-            DebugLog.Write($"Initializing {Name}...", false);
+            PluginContext.Log(Name, $"Initialize");
         }
 
         public void Start()
         {
-            DebugLog.Write("", false);
-            DebugLog.Write($"Starting {Name}...", false);
-            DebugLog.Write("---------------------------------", false);
-
-            LogRotateTimer = new Timer(LogRotateTimerCallBack, null, 0, 24 * 60 * 60 * 1000); // 86400000 ms
-
             var setting = StoreCfgJson.Instance.EventSetting ?? new EventSetting();
             var triggerType = setting.TriggerType;
             var intervalSeconds = setting.TriggerParams.Interval;
             var scanDirs = setting.EventParams?.Paths;
 
-            DebugLog.WriteLine($"{Name}: TriggerType : {triggerType}");
+            PluginContext.Log(Name, "Start");
+            PluginContext.Log(Name, $"TriggerType: {triggerType}");
 
             if (triggerType.Equals("Interval", StringComparison.OrdinalIgnoreCase))
             {
-                ScanTimer = new Timer(FileScannerTimerCallBack, null, 0, intervalSeconds * 1000); // 86400000 ms
+                _scanTimer = new AsyncTimerService(intervalSeconds * 1000, FileScannerTimerCallback);
+                _scanTimer.Start();
             }
-
             else if (triggerType.Equals("Realtime", StringComparison.OrdinalIgnoreCase))
             {
-                FileScanner.StartHandleScan();
+                FileScanner.Instance.HandleScan();
                 foreach (var dir in scanDirs)
                 {
                     if (Directory.Exists(dir))
                     {
-                        DebugLog.WriteLine($"[FileWatcher] Start watching directory: {dir}");
+                        PluginContext.Log(Name,$"[FileWatcher] Start watching directory: {dir}");
                         FileWatcher.Instance.StartWatching(dir);
                     }
                     else
                     {
-                        DebugLog.WriteLine($"[FileWatcher] Directory does not exist: {dir}");
+                        PluginContext.Log(Name,($"[FileWatcher] Directory does not exist: {dir}"));
                     }
                 }
             }
             else
             {
-                DebugLog.WriteLine($"[Trigger] Unsupported TriggerType '{triggerType}, plugin will not start.");
+                PluginContext.Log(Name, $"[Trigger] Unsupported TriggerType '{triggerType}, plugin will not start.");
                 return;
             }
         }
 
-
         public void Stop()
         {
-            DebugLog.Write("Stop FileChangePlugin...", false);
-            ScanTimer?.Dispose();
-            ScanTimer = null;
+            PluginContext.Log(Name, "Stopped.");
+            _scanTimer?.Stop();
+            _scanTimer?.Dispose();
+            _scanTimer = null;
             FileWatcher.Instance.StopWatching();
         }
 
@@ -93,17 +94,20 @@ namespace FileChangePlugin
 
             StoreCfgJson.Instance.EventSetting = setting;
         }
-        private void LogRotateTimerCallBack(object? state)
+
+        private async Task FileScannerTimerCallback()
         {
-            DebugLog.WriteLine("[LogRotate] Interval hit");
-            LogRotate.HandleRotation();
+            PluginContext.Log(Name, "[LogRotate] Interval hit");
+            try
+            {
+                await Task.Run(() => FileScanner.Instance.HandleScan());
+            }
+            catch (Exception ex)
+            {
+                PluginContext.Log(Name, $"[FileScanner] Error during scan: {ex.Message}");
+            }
         }
 
-        private void FileScannerTimerCallBack(object? state)
-        {
-            DebugLog.WriteLine("[LogRotate] Interval hit");
-            FileScanner.Instance.StartHandleScan();        
-        }   
     }
 
 }

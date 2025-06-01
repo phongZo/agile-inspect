@@ -1,4 +1,5 @@
-﻿using AgileInspect.Code.PluginContracts;
+﻿using AgileInspect.Code;
+using AgileInspect.Code.PluginContracts;
 using ServiceDetectorPlugin.Code;
 using System.Text.Json;
 
@@ -6,10 +7,16 @@ namespace ServiceDetectorPlugin
 {
     public class ServiceDetectorPlugin : IServiceDetectorPlugin
     {
-        private Timer? LogTimer;
-        private Timer? ServiceDetectorTimer;
+        private AsyncTimerService _serviceDetectorTimer;
+        public void SetCallback(IAppCallback callback)
+        {
+            if (callback == null)
+            {
+                throw new ArgumentNullException(nameof(callback));
+            }
 
-        public Permission Permission { get; set; } = new Permission();
+            PluginContext.SetCallback(callback);
+        }
         public ServiceDetector ServiceDetector { get; set; } = new ServiceDetector();
         public StoreCfgJson StoreCfgJson { get; set; } = new StoreCfgJson();
 
@@ -17,22 +24,19 @@ namespace ServiceDetectorPlugin
 
         public void Initialize()
         {
-            DebugLog.Init();
-            DebugLog.Write("", false);
-            DebugLog.Write($"--------{Name} Initialize-------");
+            PluginContext.Log(Name, $"Initialize");
         }
+
 
         public void Start()
         {
-            // LogRotation Callback
-            LogTimer = new Timer(LogRotateTimerCallBack, null, 0, 24 * 60 * 60 * 1000); // 86400000 ms
 
             var setting = StoreCfgJson.Instance.EventSetting ?? new EventSetting();
             var triggerType = setting.TriggerType;
             var interval = setting.TriggerParams.Interval;
 
-            DebugLog.WriteLine($"{Name} started.");
-            DebugLog.WriteLine($"{Name}: TriggerType : {triggerType}");
+            PluginContext.Log(Name,$"{Name} started.");
+            PluginContext.Log(Name,$"{Name}: TriggerType : {triggerType}");
 
             if (triggerType.Equals("Interval", StringComparison.OrdinalIgnoreCase))
             {
@@ -40,24 +44,25 @@ namespace ServiceDetectorPlugin
             }
             else if (triggerType.Equals("Realtime", StringComparison.OrdinalIgnoreCase))
             {
-                DebugLog.WriteLine($"{Name}: Realtime trigger not implemented, fallback to interval.");
+                PluginContext.Log(Name, $"{Name}: Realtime trigger not implemented, fallback to interval.");
             }
             else
             {
-                DebugLog.WriteLine($"{Name}: Unsupport trigger type '{triggerType}, plugin will not start.");
+                PluginContext.Log(Name, $"{Name}: Unsupport trigger type '{triggerType}, plugin will not start.");
                 return;
             }
 
-            ServiceDetectorTimer = new Timer(CheckServiceTimersCallBack, null, 0, interval * 1000);
-
+            _serviceDetectorTimer = new AsyncTimerService(interval * 1000, CheckServiceTimersAsync);
+            _serviceDetectorTimer.Start();
         }
 
 
         public void Stop()
         {
-            DebugLog.WriteLine($"{Name} stopped.");
-            ServiceDetectorTimer?.Dispose();
-            ServiceDetectorTimer = null;
+            PluginContext.Log(Name, $"Stopped");
+            _serviceDetectorTimer?.Stop();
+            _serviceDetectorTimer?.Dispose();
+            _serviceDetectorTimer = null;
         }
 
         public void SetParameters(string eventParamsJson, string triggerType, string triggerParamsJson)
@@ -77,18 +82,15 @@ namespace ServiceDetectorPlugin
             setting.TriggerParams = parsedTriggerParams ?? setting.TriggerParams;
 
             StoreCfgJson.Instance.EventSetting = setting;
+
+            PluginContext.Log(Name, $"Parameters is set ");
         }
 
-        private void CheckServiceTimersCallBack(object? state)
+        private async Task CheckServiceTimersAsync()
         {
-            DebugLog.WriteLine("[CheckService] Interval hit");
-            ServiceDetector.Instance.CheckServices();
+            PluginContext.Log(Name, "[CheckService] Interval hit");
+            await Task.Run(() => ServiceDetector.Instance.CheckServices());
         }
 
-        private void LogRotateTimerCallBack(object? state)
-        {
-            DebugLog.WriteLine("[LogRotate] Interval hit");
-            LogRotate.HandleRotation();
-        }
     }
 }

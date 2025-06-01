@@ -13,6 +13,7 @@ namespace BrightnessChangePlugin.Code
         #endregion
 
         private ManagementEventWatcher? EventWatcher;
+        public string Name => "BrightnessChangePlugin";
 
         public void StartWatcher()
         {
@@ -23,14 +24,14 @@ namespace BrightnessChangePlugin.Code
                 EventWatcher.EventArrived += (sender, args) =>
                 {
                     var brightness = args.NewEvent["Brightness"];
-                    DebugLog.WriteLine($"[Brightness] Brightness changed: {brightness}");
+                    PluginContext.Log(Name, $"[Brightness] Brightness changed: {brightness}");
                 };
                 EventWatcher.Start();
-                DebugLog.WriteLine("[Brightness] Realtime watcher started.");
+                PluginContext.Log(Name, "[Brightness] Realtime watcher started.");
             }
             catch (Exception ex)
             {
-                DebugLog.WriteLine($"[Brightness] Failed to start realtime watcher: {ex.Message}");
+                PluginContext.Log(Name, $"[Brightness] Failed to start realtime watcher: {ex.Message}");
             }
         }
 
@@ -43,12 +44,12 @@ namespace BrightnessChangePlugin.Code
                     EventWatcher.Stop();
                     EventWatcher.Dispose();
                     EventWatcher = null;
-                    DebugLog.WriteLine("[Brightness] Realtime watcher stopped.");
+                    PluginContext.Log(Name, "[Brightness] Realtime watcher stopped.");
                 }
             }
             catch (Exception ex)
             {
-                DebugLog.WriteLine($"[Brightness] Error stopping realtime watcher: {ex.Message}");
+                PluginContext.Log(Name, $"[Brightness] Error stopping realtime watcher: {ex.Message}");
             }
         }
 
@@ -60,17 +61,17 @@ namespace BrightnessChangePlugin.Code
                 foreach (ManagementObject obj in searcher.Get())
                 {
                     int brightness = Convert.ToInt32(obj["CurrentBrightness"]);
-                    DebugLog.WriteLine($"[Brightness] Current brightness: {brightness}");
+                    PluginContext.Log(Name, $"[Brightness] Current brightness: {brightness}");
                     return;
                 }
             }
             catch (Exception ex)
             {
-                DebugLog.WriteLine($"[Brightness] Failed to get current brightness: {ex.Message}");
+                PluginContext.Log(Name, $"[Brightness] Failed to get current brightness: {ex.Message}");
                 return;
             }
 
-            DebugLog.WriteLine("[Brightness] Brightness info not found.");
+            PluginContext.Log(Name, "[Brightness] Brightness info not found.");
         }
     }
 }
