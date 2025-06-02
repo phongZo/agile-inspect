@@ -96,10 +96,6 @@ namespace AgileInspect
                         OnLog(pluginName, $"[RULE TRIGGERED] Action: LogWarning | Conditions: {conditionStr}");
                         break;
 
-                    case "logerror":
-                        OnLog(pluginName, $"[RULE TRIGGERED] Action: LogError | Conditions: {conditionStr}");
-                        break;
-
                     default:
                         OnLog(pluginName, $"[RULE] Unknown action '{rule.Action}' | Conditions: {conditionStr}");
                         break;

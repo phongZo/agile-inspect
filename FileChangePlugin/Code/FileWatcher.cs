@@ -196,7 +196,6 @@ namespace FileChangePlugin
                 PluginContext.Log(Name, $"[FileWatcher] Error in Created for {e.FullPath}: {ex.Message}");
             }
         }
-
         private void OnChanged(object sender, FileSystemEventArgs e, string scanDir)
         {
             if (FileScanner.Instance.IsScanning)

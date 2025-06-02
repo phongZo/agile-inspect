@@ -55,7 +55,6 @@ public class AsyncTimerService : IDisposable
     {
         if (_runImmediately)
         {
-            // Gọi ngay callback mà không chờ timer
             _queue.Enqueue(1);
             _ = ProcessQueueAsync();
         }
