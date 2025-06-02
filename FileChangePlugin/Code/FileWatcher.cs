@@ -32,6 +32,11 @@ namespace FileChangePlugin
             watcher.Changed += (sender, e) => OnChanged(sender, e, path);
             watcher.Deleted += (sender, e) => OnDeleted(sender, e, path);
             watcher.Renamed += (sender, e) => OnRenamed(sender, e, path);
+            watcher.Error += (sender, e) =>
+            {
+                var ex = e.GetException();
+                PluginContext.Log("FileWatcher", $"Watcher error: {ex?.Message}");
+            };
         }
         public void ProcessPendingFileEvents()
         {

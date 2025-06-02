@@ -72,10 +72,7 @@ namespace WatermarkDetectorPlugin
 
             WatermarkDetector = new WatermarkDetector(modelStream);
 
-            _watermarkDetectorTimer = new AsyncTimerService(intervalSeconds * 1000, async () =>
-            {
-                await WatermarkDetectorCallback(WatermarkDetector);
-            });
+            _watermarkDetectorTimer = new AsyncTimerService(intervalSeconds * 1000, WatermarkDetectorCallback);
 
             _watermarkDetectorTimer.Start();
         }
@@ -87,13 +84,13 @@ namespace WatermarkDetectorPlugin
 
             PluginContext.Log(Name, "Stopped");
         }
-        private async Task WatermarkDetectorCallback(WatermarkDetector detector)
+        private async Task WatermarkDetectorCallback()
         {
             PluginContext.Log(Name, "Interval hit");
 
             try
             {
-                await detector.ProcessAsync();
+                await WatermarkDetector.ProcessAsync();
             }
             catch (Exception ex)
             {

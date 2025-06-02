@@ -55,13 +55,14 @@ namespace WatermarkDetectorPlugin
                 await Predictor.PredictAndSaveAsync(tempImagePath, outputPath);
                 YoloResult<Detection> result = await Predictor.DetectAsync(tempImagePath);
 
-                PluginContext.Log(pluginName, $"[WatermarkDetector] Done: {fileName} | Result: {result.Count} Watermark");
+                bool isOn = result.Count > 0;
+
+                PluginContext.Log(pluginName, $"[WatermarkDetector] Done: {fileName} | Watermark detected: {isOn}");
 
                 var resultObj = new Dictionary<string, object>
                 {
-                    { "watermark", result.Count },
+                    { "watermark", isOn ? "on" : "off" },
                 };
-
                 string jsonResult = JsonSerializer.Serialize(resultObj);
                 PluginContext.SendDetectionResult(pluginName, jsonResult);
             }
