@@ -10,6 +10,7 @@ namespace AgileInspect
         public static StreamWriter StreamWriter;
         public static FileStream Filestream;
         public static bool CanWrite = true;
+        private static readonly object _logLock = new();
 
         public static void Init()
         {
@@ -38,23 +39,36 @@ namespace AgileInspect
             try
             {
                 if (!DebugLog.CanWrite) return;
-                Console.WriteLine(message);
-                if (StreamWriter == null) return;
-                if (LogRotate.IsCompressing)
+                lock (_logLock)
                 {
-                    LogRotate.TemporaryLog += (timestamp ? DateTime.Now.ToString(DateTimeFormat) + ":   " : "") + message + Environment.NewLine;
-                    return;
-                }
-                Permission.Instance.ResetPermissionOfFile(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\AgileInspect\\" + "log.txt");
+                    Console.WriteLine(message);
+                    if (StreamWriter == null) return;
+                    if (LogRotate.IsCompressing)
+                    {
+                        LogRotate.TemporaryLog += (timestamp ? DateTime.Now.ToString(DateTimeFormat) + ":   " : "") + message + Environment.NewLine;
+                        return;
+                    }
 
-                Filestream.Seek(0, SeekOrigin.End);
-                if (timestamp) StreamWriter.Write(DateTime.Now.ToString(DateTimeFormat) + ":   ");
-                StreamWriter.WriteLine(message);
+                    string logPath = Path.Combine(
+                        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                        "AgileInspect",
+                        "log.txt"
+                    );
+
+                    Permission.Instance.ResetPermissionOfFile(logPath);
+
+                    Filestream.Seek(0, SeekOrigin.End);
+                    if (timestamp) StreamWriter.Write(DateTime.Now.ToString(DateTimeFormat) + ":   ");
+                    StreamWriter.WriteLine(message);
+                }
             }
             catch (Exception ex)
             {
-                if (timestamp) StreamWriter.Write(DateTime.Now.ToString(DateTimeFormat) + ":   ");
-                StreamWriter.WriteLine("Error when write to log: " + ex.Message);
+                lock (_logLock)
+                {
+                    if (timestamp) StreamWriter?.Write(DateTime.Now.ToString(DateTimeFormat) + ":   ");
+                    StreamWriter?.WriteLine("Error when write to log: " + ex.Message);
+                }
             }
         }
 
