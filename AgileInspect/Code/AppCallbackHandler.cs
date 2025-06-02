@@ -1,4 +1,5 @@
-﻿using AgileInspect.Code.PluginContracts;
+﻿using AgileInspect.Code;
+using AgileInspect.Code.PluginContracts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +16,7 @@ namespace AgileInspect
             Instance = this;
         }
         #endregion
-
+        private RuleConditionQueueService RuleConditionQueueService { get; set; } = new RuleConditionQueueService();
         private readonly Dictionary<string, string> _latestFields = new();
 
         public void OnLog(string pluginName, string message)
@@ -90,10 +91,11 @@ namespace AgileInspect
                 }
 
                 string conditionStr = string.Join(", ", rule.Conditions.Select(c => $"{c.Field}={c.Expected}"));
-                switch (rule.Action?.ToLowerInvariant())
+                switch (rule.Action)
                 {
-                    case "logwarning":
-                        OnLog(pluginName, $"[RULE TRIGGERED] Action: LogWarning | Conditions: {conditionStr}");
+                    case "SendToServer":
+                        OnLog(pluginName, $"[RULE MATCH] Action: '{rule.Action}' | Conditions: {conditionStr}");
+                        RuleConditionQueueService.Instance.EnqueueMatchedConditions(rule.Plugins,rule.Conditions);
                         break;
 
                     default:

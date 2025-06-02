@@ -38,7 +38,7 @@ namespace WatermarkDetectorPlugin
             try
             {
                 string dllDir = Path.Combine(AppContext.BaseDirectory, pluginName);
-                string screenshotDir = Path.Combine(dllDir, "screeenshot");
+                string screenshotDir = Path.Combine(dllDir, "screenshot");
                 Directory.CreateDirectory(screenshotDir);
 
                 string fileName = $"screenshot_{DateTime.Now:yyyyMMdd_HHmmss}.png";
@@ -57,7 +57,7 @@ namespace WatermarkDetectorPlugin
 
                 bool isOn = result.Count > 0;
 
-                PluginContext.Log(pluginName, $"[WatermarkDetector] Done: {fileName} | Watermark detected: {isOn}");
+                PluginContext.Log(pluginName, $"[WatermarkDetector] Done: {fileName} | Watermark detected: {(isOn ? "on" : "off")}");
 
                 var resultObj = new Dictionary<string, object>
                 {
@@ -71,8 +71,6 @@ namespace WatermarkDetectorPlugin
                 PluginContext.Log(pluginName, $"Detection error: {ex}");
             }
         }
-
-
 
         public static void CapturePrimaryScreen(string savePath)
         {

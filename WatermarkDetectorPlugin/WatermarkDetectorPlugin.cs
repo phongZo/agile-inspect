@@ -20,6 +20,15 @@ namespace WatermarkDetectorPlugin
         public void Initialize()
         {
             PluginContext.Log(Name, $"Initialize");
+            string resourceName = "WatermarkDetectorPlugin.Model.best.onnx";
+            using var modelStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName);
+            if (modelStream == null)
+            {
+                PluginContext.Log(Name, $"Model resource '{resourceName}' not found.");
+                return;
+            }
+
+            WatermarkDetector = new WatermarkDetector(modelStream);
         }
 
         public void SetParameters(string eventParamsJson, string triggerType, string triggerParamsJson)
@@ -61,16 +70,6 @@ namespace WatermarkDetectorPlugin
             {
                 PluginContext.Log(Name, $"Unsupported TriggerType '{triggerType}', fallback to Interval");
             }
-
-            string resourceName = "WatermarkDetectorPlugin.Model.best.onnx";
-            using var modelStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName);
-            if (modelStream == null)
-            {
-                PluginContext.Log(Name, $"Model resource '{resourceName}' not found.");
-                return;
-            }
-
-            WatermarkDetector = new WatermarkDetector(modelStream);
 
             _watermarkDetectorTimer = new AsyncTimerService(intervalSeconds * 1000, WatermarkDetectorCallback);
 

@@ -9,7 +9,9 @@ namespace AgileInspect
     {
         public static MainWindow Instance { get; set; }
         private readonly PluginManager PluginManager = new();
+        private RuleConditionQueueService RuleConditionQueueService { get; set; } = new RuleConditionQueueService();
 
+        private AsyncTimerService _timerService;
         public MainWindow()
         {
             InitializeComponent();
@@ -26,6 +28,14 @@ namespace AgileInspect
             string pluginsDir = AppDomain.CurrentDomain.BaseDirectory;
             PluginManager.LoadPlugins(pluginsDir);
             PluginManager.StartAll();
+
+            // set timer
+            _timerService = new AsyncTimerService(10000, async () =>
+            {
+                await RuleConditionQueueService.Instance.SendQueueAsync();
+            });
+            _timerService.Start();
+
         }
     }
 }
