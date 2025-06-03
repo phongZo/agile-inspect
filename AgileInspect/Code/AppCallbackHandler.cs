@@ -1,5 +1,4 @@
-﻿using AgileInspect.Code;
-using AgileInspect.Code.PluginContracts;
+﻿using AgileInspect.Code.PluginContracts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,7 +31,8 @@ namespace AgileInspect
 
                 if (dict == null) return;
 
-                bool updated = false;
+                //bool updated = false;
+                bool updated = true;
 
                 foreach (var kvp in dict)
                 {
@@ -42,7 +42,7 @@ namespace AgileInspect
                     if (!_latestFields.ContainsKey(key) || _latestFields[key] != value)
                     {
                         _latestFields[key] = value;
-                        updated = true;
+                        //updated = true;
                     }
                 }
 

@@ -77,8 +77,6 @@ namespace AgileInspect.Code
             }
         }
 
-
-
         public void StartAll()
         {
             foreach (var plugin in Plugins)
@@ -122,7 +120,7 @@ namespace AgileInspect.Code
             this.pluginDirectory = pluginDirectory;
         }
 
-        protected override Assembly? Load(AssemblyName assemblyName)
+        protected override Assembly Load(AssemblyName assemblyName)
         {
             string dllPath = Path.Combine(pluginDirectory, $"{assemblyName.Name}.dll");
             if (File.Exists(dllPath))

@@ -29,8 +29,19 @@ namespace WatermarkDetectorPlugin
             {
                 modelStream.CopyTo(file);
             }
+            var config = new YoloConfiguration
+            {
+                Confidence = 0.9f,
+                IoU = 0.45f,
+                KeepAspectRatio = true,
+                ApplyAutoOrient = true
+            };
 
-            Predictor = new YoloPredictor(tempPath);
+            var options = new YoloPredictorOptions
+            {
+                Configuration = config
+            };
+            Predictor = new YoloPredictor(tempPath, options);
         }
 
         public async Task ProcessAsync()

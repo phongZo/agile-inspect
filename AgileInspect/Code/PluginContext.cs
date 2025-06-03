@@ -4,7 +4,7 @@ using System;
 
 public static class PluginContext
 {
-    public static IAppCallback? Callback { get; private set; }
+    public static IAppCallback Callback { get; private set; }
 
     public static void SetCallback(IAppCallback callback)
     {
