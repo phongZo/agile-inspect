@@ -11,12 +11,16 @@ namespace AgileInspect
             Instance = this;
         }
         #endregion
-
+        public RuleConditionQueueConfig RuleConditionQueueConfig { get; set; } = new RuleConditionQueueConfig();
         public LogRotation LogRotation { get; set; } = new LogRotation();
         public EventConfig EventConfig { get; set; } = new EventConfig();
         public RuleConfig RuleConfig { get; set; } = new RuleConfig();
     }
-
+    public class RuleConditionQueueConfig
+    {
+        public string ServerUrl { get; set; } = "https://default/api/rule-match";
+        public int Interval { get; set; } = 10;
+    }
     public class LogRotation
     {
         public bool enable { get; set; } = true;

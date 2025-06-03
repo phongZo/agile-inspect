@@ -15,19 +15,30 @@ public class RuleConditionQueueService
     public RuleConditionQueueService()
     {
         Instance = this;
-    }
-    #endregion
-
-    private readonly object _lock = new();
-    string _filePath = Path.Combine(
+        _filePath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "AgileInspect",
             "rule_queue.json"
         );
 
+        var directory = Path.GetDirectoryName(_filePath);
+        if (!string.IsNullOrEmpty(directory))
+        {
+            Directory.CreateDirectory(directory);
+        }
+
+        if (!File.Exists(_filePath))
+        {
+            File.WriteAllText(_filePath, "[]");
+        }
+    }
+    #endregion
+
+    private readonly object _lock = new();
+    string _filePath;
+
     public void EnqueueMatchedConditions(List<string> plugins, List<Condition> matchedConditions)
     {
-
         var entry = new
         {
             Plugins = plugins,
@@ -36,26 +47,12 @@ public class RuleConditionQueueService
 
         lock (_lock)
         {
-            var directory = Path.GetDirectoryName(_filePath);
-            if (!string.IsNullOrEmpty(directory))
-            {
-                Directory.CreateDirectory(directory);
-            }
-
-            if (!File.Exists(_filePath))
-            {
-                File.WriteAllText(_filePath, "[]");
-            }
-
-            List<object> queue = new();
-
             var existing = File.ReadAllText(_filePath);
-            if (!string.IsNullOrWhiteSpace(existing))
-            {
-                queue = JsonSerializer.Deserialize<List<object>>(existing) ?? new List<object>();
-            }
+            List<JsonElement> queue = JsonSerializer.Deserialize<List<JsonElement>>(existing);
 
-            queue.Add(entry);
+            var entryElement = JsonSerializer.SerializeToElement(entry);
+            queue.Add(entryElement);
+
             var json = JsonSerializer.Serialize(queue, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(_filePath, json);
         }
@@ -63,7 +60,7 @@ public class RuleConditionQueueService
 
     public async Task SendQueueAsync()
     {
-        List<JsonElement> queue;
+        List<JsonElement> originalQueue;
 
         lock (_lock)
         {
@@ -80,35 +77,39 @@ public class RuleConditionQueueService
                 return;
             }
 
-            queue = JsonSerializer.Deserialize<List<JsonElement>>(content) ?? new();
+            originalQueue = JsonSerializer.Deserialize<List<JsonElement>>(content) ?? [];
         }
 
-        if (queue.Count == 0)
+        if (originalQueue.Count == 0)
         {
             DebugLog.WriteLine("[SendQueueAsync] Queue is empty, nothing to send.");
             return;
         }
 
-        var first = queue[0];
-        var json = first.GetRawText();
-        DebugLog.WriteLine($"[SendQueueAsync] Sending JSON: {json}");
+        var newQueue = new List<JsonElement>();
 
-        bool success = await TrySendToServerAsync(json);
-
-        if (success)
+        foreach (var item in originalQueue)
         {
-            DebugLog.WriteLine("[SendQueueAsync] Send success.");
-            lock (_lock)
+            var json = item.GetRawText();
+            DebugLog.WriteLine($"[SendQueueAsync] Sending JSON: {json}");
+
+            bool success = await TrySendToServerAsync(json);
+            if (success)
             {
-                queue.RemoveAt(0);
-                var newContent = JsonSerializer.Serialize(queue, new JsonSerializerOptions { WriteIndented = true });
-                File.WriteAllText(_filePath, newContent);
-                DebugLog.WriteLine($"[SendQueueAsync] Messages left in queue: {queue.Count}");
+                DebugLog.WriteLine("[SendQueueAsync] Send success.");
+            }
+            else
+            {
+                DebugLog.WriteLine("[SendQueueAsync] Send failed. Will retry next time.");
+                newQueue.Add(item); // Keep to retry at next interval hit
             }
         }
-        else
+
+        lock (_lock)
         {
-            DebugLog.WriteLine($"[SendQueueAsync] Send failed. Will retry later, messages left in queue: {queue.Count}");
+            var updatedContent = JsonSerializer.Serialize(newQueue, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(_filePath, updatedContent);
+            DebugLog.WriteLine($"[SendQueueAsync] Updated queue. Remaining: {newQueue.Count}");
         }
     }
 
@@ -116,9 +117,12 @@ public class RuleConditionQueueService
     {
         try
         {
+            string url = StoreCfgJson.Instance.RuleConditionQueueConfig.ServerUrl;
+            DebugLog.WriteLine($"[TrySendToServerAsync] URL: {url}");
+
             using var client = new HttpClient();
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await client.PostAsync("https://your-server-endpoint/api/rule-match", content);
+            var response = await client.PostAsync(url, content);
             return response.IsSuccessStatusCode;
         }
         catch (Exception ex)

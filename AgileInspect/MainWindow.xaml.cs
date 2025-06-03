@@ -30,7 +30,7 @@ namespace AgileInspect
             PluginManager.StartAll();
 
             // set timer
-            _timerService = new AsyncTimerService(10000, async () =>
+            _timerService = new AsyncTimerService(StoreCfgJson.Instance.RuleConditionQueueConfig.Interval * 1000, async () =>
             {
                 await RuleConditionQueueService.Instance.SendQueueAsync();
             });
