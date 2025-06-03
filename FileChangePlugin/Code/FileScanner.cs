@@ -25,8 +25,16 @@ namespace FileChangePlugin
 
         public void HandleScan()
         {
+            if (IsScanning)
+            {
+                PluginContext.Log(Name, "[FileScanner] Scan is already running. Skipping scan.");
+                return;
+            }
+
             try
             {
+                IsScanning = true;
+
                 var cfg = StoreCfgJson.Instance;
                 var eventSetting = cfg.EventSetting;
 
@@ -36,7 +44,7 @@ namespace FileChangePlugin
 
                 if (scanDirs == null || scanDirs.Length == 0)
                 {
-                    PluginContext.Log(Name,"[FileScanner] No directories specified for scanning. Skipping scan.");
+                    PluginContext.Log(Name, "[FileScanner] No directories specified for scanning. Skipping scan.");
                     return;
                 }
 
@@ -69,6 +77,11 @@ namespace FileChangePlugin
             catch (Exception ex)
             {
                 PluginContext.Log(Name, $"[FileScanner] Exception during scanning process: {ex.Message}");
+            }
+            finally
+            {
+                IsScanning = false;
+                FileWatcher.Instance.ProcessPendingFileEvents();
             }
         }
 
@@ -149,23 +162,21 @@ namespace FileChangePlugin
         {
             try
             {
-                string folder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\FileChangePlugin\\";
-                Directory.CreateDirectory(folder);
-                string cacheFilePath = Path.Combine(folder, CacheFile);
+                string cacheFilePath = EnsureCacheDirectoryAndGetPath();
 
                 string dataJson = JsonSerializer.Serialize(TrackedDirs);
+                string currentHash = ComputeSHA256Hash(dataJson);
 
-                string hash = ComputeSHA256Hash(dataJson);
-
-                if (LastCacheHash == hash)
+                if (LastCacheHash == currentHash)
                 {
                     PluginContext.Log(Name, "[FileScanner] Cache hash is unchanged. No need to save.");
                     return;
                 }
+
                 var wrapper = new CacheWrapper<List<TrackedDirectory>>
                 {
                     Data = TrackedDirs,
-                    Hash = hash
+                    Hash = currentHash
                 };
 
                 var optionsIndented = new JsonSerializerOptions
@@ -174,11 +185,9 @@ namespace FileChangePlugin
                 };
 
                 string wrapperJson = JsonSerializer.Serialize(wrapper, optionsIndented);
-
                 File.WriteAllText(cacheFilePath, wrapperJson);
 
-                LastCacheHash = hash;
-
+                LastCacheHash = currentHash;
                 PluginContext.Log(Name, "[FileScanner] Scan cache with hash saved.");
             }
             catch (Exception ex)
@@ -187,38 +196,26 @@ namespace FileChangePlugin
             }
         }
 
-        private string ComputeSHA256Hash(string input)
-        {
-            using (SHA256 sha256 = SHA256.Create())
-            {
-                byte[] bytes = Encoding.UTF8.GetBytes(input);
-                byte[] hashBytes = sha256.ComputeHash(bytes);
-                return Convert.ToBase64String(hashBytes);
-            }
-        }
-
         public void LoadScanCache()
         {
             try
             {
-                string folder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\FileChangePlugin\\";
-                string cacheFilePath = Path.Combine(folder, CacheFile);
+                string cacheFilePath = EnsureCacheDirectoryAndGetPath();
 
                 if (File.Exists(cacheFilePath))
                 {
                     string json = File.ReadAllText(cacheFilePath);
                     var wrapper = JsonSerializer.Deserialize<CacheWrapper<List<TrackedDirectory>>>(json);
 
-                    if (wrapper != null && wrapper.Data != null)
+                    if (wrapper?.Data != null)
                     {
                         string rawDataJson = JsonSerializer.Serialize(wrapper.Data);
                         string recomputedHash = ComputeSHA256Hash(rawDataJson);
 
                         if (recomputedHash == wrapper.Hash)
                         {
-                            LastTrackedDirs = new List<TrackedDirectory>(wrapper.Data);
+                            LastTrackedDirs = [.. wrapper.Data];
                             LastCacheHash = wrapper.Hash;
-
                             PluginContext.Log(Name, "[FileScanner] Cache loaded and hash verified.");
                         }
                         else
@@ -285,6 +282,27 @@ namespace FileChangePlugin
             return matchedFiles;
         }
 
+        private string EnsureCacheDirectoryAndGetPath()
+        {
+            string folder = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "AgileInspect"
+            );
+
+            Directory.CreateDirectory(folder); // Tạo nếu chưa tồn tại
+
+            return Path.Combine(folder, CacheFile);
+        }
+
+        private string ComputeSHA256Hash(string input)
+        {
+            using (SHA256 sha256 = SHA256.Create())
+            {
+                byte[] bytes = Encoding.UTF8.GetBytes(input);
+                byte[] hashBytes = sha256.ComputeHash(bytes);
+                return Convert.ToBase64String(hashBytes);
+            }
+        }
 
         public class CacheWrapper<T>
         {

@@ -13,8 +13,8 @@ namespace FileChangePlugin
         }
 
         #endregion
-        private FileSystemWatcher FileSystemWatcher = new();
-        private List<FileSystemEventArgs> PendingFileEvents = new();
+        private List<FileSystemEventArgs> PendingFileEvents = [];
+        private readonly List<FileSystemWatcher> _watchers = [];
         public string Name => "FileChangePlugin";
 
         public void StartWatching(string path)
@@ -26,8 +26,9 @@ namespace FileChangePlugin
                 NotifyFilter = NotifyFilters.FileName | NotifyFilters.Size | NotifyFilters.LastWrite | NotifyFilters.DirectoryName,
                 IncludeSubdirectories = true,
                 EnableRaisingEvents = true,
+                InternalBufferSize = 64 * 1024,
             };
-            watcher.InternalBufferSize = 64 * 1024;
+
             watcher.Created += (sender, e) => OnCreated(sender, e, path);
             watcher.Changed += (sender, e) => OnChanged(sender, e, path);
             watcher.Deleted += (sender, e) => OnDeleted(sender, e, path);
@@ -37,7 +38,9 @@ namespace FileChangePlugin
                 var ex = e.GetException();
                 PluginContext.Log("FileWatcher", $"Watcher error: {ex?.Message}");
             };
+            _watchers.Add(watcher); // must have to prevent the FileSystemWatcher from being garbage collected
         }
+
         public void ProcessPendingFileEvents()
         {
             foreach (var eventArgs in PendingFileEvents)
@@ -306,8 +309,19 @@ namespace FileChangePlugin
         // Stop 
         public void StopWatching()
         {
-            FileSystemWatcher.EnableRaisingEvents = false;
-            FileSystemWatcher.Dispose();
+            foreach (var watcher in _watchers)
+            {
+                try
+                {
+                    watcher.EnableRaisingEvents = false;
+                    watcher.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    PluginContext.Log("FileWatcher", $"Failed to stop watcher: {ex.Message}");
+                }
+            }
+            _watchers.Clear();
         }
 
         public bool ShouldTrackFile(string filePath)
