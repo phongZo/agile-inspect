@@ -13,7 +13,6 @@
         void Start();
         void Stop();
         void SetParameters(string eventParamsJson, string triggerType, string triggerParamsJson);
-        void SetCallback(IAppCallback callback);
     }
     public interface IFileChangePlugin : IAppPlugin
     {

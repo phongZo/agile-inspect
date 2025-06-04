@@ -61,7 +61,6 @@ namespace AgileInspect.Code
                                 string triggerParamsJson = JsonSerializer.Serialize(setting.TriggerParams);
 
                                 plugin.Initialize();
-                                plugin.SetCallback(AppCallbackHandler.Instance);
                                 plugin.SetParameters(eventParamsJson, setting.TriggerType, triggerParamsJson);
 
                                 Plugins.Add(plugin);

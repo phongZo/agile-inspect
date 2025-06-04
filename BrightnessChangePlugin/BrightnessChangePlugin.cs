@@ -11,15 +11,7 @@ namespace BrightnessChangePlugin
         public StoreCfgJson StoreCfgJson { get; set; } = new StoreCfgJson();
         public BrightnessChangeWatcher BrightnessChangeWatcher { get; set; } = new BrightnessChangeWatcher();
         public string Name => "BrightnessChangePlugin";
-        public void SetCallback(IAppCallback callback)
-        {
-            if (callback == null)
-            {
-                throw new ArgumentNullException(nameof(callback));
-            }
-
-            PluginContext.SetCallback(callback);
-        }
+        
         public void Initialize()
         {
             PluginContext.Log(Name, $"Initialize");

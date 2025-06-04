@@ -1,5 +1,4 @@
-﻿using AgileInspect.Code;
-using AgileInspect.Code.PluginContracts;
+﻿using AgileInspect.Code.PluginContracts;
 using ServiceDetectorPlugin.Code;
 using System.Text.Json;
 
@@ -8,15 +7,6 @@ namespace ServiceDetectorPlugin
     public class ServiceDetectorPlugin : IServiceDetectorPlugin
     {
         private AsyncTimerService _serviceDetectorTimer;
-        public void SetCallback(IAppCallback callback)
-        {
-            if (callback == null)
-            {
-                throw new ArgumentNullException(nameof(callback));
-            }
-
-            PluginContext.SetCallback(callback);
-        }
         public ServiceDetector ServiceDetector { get; set; } = new ServiceDetector();
         public StoreCfgJson StoreCfgJson { get; set; } = new StoreCfgJson();
 

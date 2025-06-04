@@ -14,16 +14,6 @@ namespace FileChangePlugin
         public string Name => "FileChangePlugin";
         private AsyncTimerService _scanTimer;
 
-        public void SetCallback(IAppCallback callback)
-        {
-            if (callback == null)
-            {
-                throw new ArgumentNullException(nameof(callback));
-            }
-
-            PluginContext.SetCallback(callback);
-        }
-
         public void Initialize()
         {
             PluginContext.Log(Name, $"Initialize");

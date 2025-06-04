@@ -10,16 +10,6 @@ namespace NetworkChangePlugin
         public StoreCfgJson StoreCfgJson { get; set; } = new StoreCfgJson();
         public string Name => "NetworkChangePlugin";
 
-        public void SetCallback(IAppCallback callback)
-        {
-            if (callback == null)
-            {
-                throw new ArgumentNullException(nameof(callback));
-            }
-
-            PluginContext.SetCallback(callback);
-        }
-
         public void Initialize()
         {
             PluginContext.Log(Name, $"Initialize");
