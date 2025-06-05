@@ -9,6 +9,8 @@ namespace AgileInspect
     {
         public static MainWindow Instance { get; set; }
         private readonly PluginManager PluginManager = new();
+        public MachineName MachineName { get; set; } = new MachineName();
+
         private RuleConditionQueueService RuleConditionQueueService { get; set; } = new RuleConditionQueueService();
 
         private AsyncTimerService _timerService;
@@ -25,6 +27,15 @@ namespace AgileInspect
             DebugLog.Write("", false);
             DebugLog.Write("--------AgileInspect Start-------");
             StoreCfgLoader.Load();
+            if (string.Equals(StoreCfgJson.Instance.DeployType, "Server", StringComparison.OrdinalIgnoreCase))
+            {
+                HashCheckInterval.Instance.Start();
+            }
+            else
+            {
+                DebugLog.Write("DeployType is serverless - skip HashCheckInterval.");
+            }
+            MachineName.Instance.UpdateName();
             string pluginsDir = AppDomain.CurrentDomain.BaseDirectory;
             PluginManager.LoadPlugins(pluginsDir);
             PluginManager.StartAll();

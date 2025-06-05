@@ -12,39 +12,51 @@
     <DebugType>none</DebugType>
     <MainProjectDll>AgileInspect.dll</MainProjectDll>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
 
   <!--Plugin list -->
   <ItemGroup>
-    <PluginProjects Include="WatermarkDetectorPlugin;ServiceDetectorPlugin;NetworkChangePlugin;FileChangePlugin;BrightnessChangePlugin" />
+    <PluginProjects Include="FileChangePlugin;NetworkChangePlugin;BrightnessChangePlugin;WatermarkDetectorPlugin;ServiceDetectorPlugin" />
   </ItemGroup>
-  
+
   <Target Name="BuildPlugins" AfterTargets="Build">
     <MSBuild Projects="@(PluginProjects->'..\\%(Identity)\\%(Identity).csproj')" Targets="Build" />
   </Target>
-  
+
   <!-- Publish plugin -->
   <Target Name="PublishPlugins" AfterTargets="Publish">
-    <MSBuild Projects="@(PluginProjects->'..\\%(Identity)\\%(Identity).csproj')"
-             Targets="Publish"
-             Properties="SelfContained=false;PublishSingleFile=false" />
+    <MSBuild Projects="@(PluginProjects->'..\\%(Identity)\\%(Identity).csproj')" Targets="Publish" Properties="SelfContained=false;PublishSingleFile=false" />
   </Target>
 
   <Target Name="CopyPluginsAfterPublish" AfterTargets="PublishPlugins">
     <ItemGroup>
-      <!-- Get all DLL in publish dir of each plugin -->
       <PluginPublishFiles Include="..\%(PluginProjects.Identity)\bin\$(Configuration)\net8.0-windows\win-x64\publish\win-x64\**\*.dll">
         <PluginName>%(PluginProjects.Identity)</PluginName>
       </PluginPublishFiles>
+    </ItemGroup>
 
-      <!-- Remove main DLL -->
-      <PluginPublishFiles Remove="..\**\$(MainProjectDll)" />
+    <ItemGroup>
+      <MainDllFiles Include="@(PluginPublishFiles)" Condition="'%(Filename)%(Extension)' == '%(PluginName).dll'" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <DependencyDllFiles Include="@(PluginPublishFiles)" Condition="'%(Filename)%(Extension)' != '%(PluginName).dll'" />
     </ItemGroup>
 
     <Copy
-      SourceFiles="@(PluginPublishFiles)"
-      DestinationFiles="@(PluginPublishFiles->'$(PublishDir)%(PluginName)\\%(RecursiveDir)%(Filename)%(Extension)')"
+      SourceFiles="@(MainDllFiles)"
+      DestinationFiles="@(MainDllFiles->'$(PublishDir)dll\\%(PluginName)\\%(Filename)%(Extension)')"
       SkipUnchangedFiles="true" />
 
-    <Message Text="Copied ALL plugin DLLs to $(PublishDir), excluding $(MainProjectDll)" Importance="high" />
+    <Copy
+      SourceFiles="@(DependencyDllFiles)"
+      DestinationFiles="@(DependencyDllFiles->'$(PublishDir)dll\\%(PluginName)\\libs\\%(Filename)%(Extension)')"
+      SkipUnchangedFiles="true" />
   </Target>
+
 </Project>

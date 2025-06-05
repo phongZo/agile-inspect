@@ -73,7 +73,7 @@ public class RuleConditionQueueService
             var content = File.ReadAllText(_filePath);
             if (string.IsNullOrWhiteSpace(content))
             {
-                DebugLog.WriteLine("[SendQueueAsync] Queue is empty, nothing to send.");
+                //DebugLog.WriteLine("[SendQueueAsync] Queue is empty, nothing to send.");
                 return;
             }
 
@@ -82,7 +82,7 @@ public class RuleConditionQueueService
 
         if (originalQueue.Count == 0)
         {
-            DebugLog.WriteLine("[SendQueueAsync] Queue is empty, nothing to send.");
+            //DebugLog.WriteLine("[SendQueueAsync] Queue is empty, nothing to send.");
             return;
         }
 
@@ -117,7 +117,7 @@ public class RuleConditionQueueService
     {
         try
         {
-            string url = StoreCfgJson.Instance.RuleConditionQueueConfig.ServerUrl;
+            string url = StoreCfgJson.Instance.ServerUrl;
             DebugLog.WriteLine($"[TrySendToServerAsync] URL: {url}");
 
             using var client = new HttpClient();

@@ -1,12 +1,17 @@
-﻿namespace BrightnessChangePlugin
+﻿using AgileInspect.Code;
+using System;
+using System.Diagnostics;
+using System.IO;
+
+namespace AgileInspect
 {
-    public static class DebugLog
+    public static class EventLog
     {
         public const string DateTimeFormat = "dd/MM/yy HH:mm:ss";
         public static StreamWriter StreamWriter;
         public static FileStream Filestream;
         public static bool CanWrite = true;
-        private static readonly object _lock = new();
+        private static readonly object _logLock = new();
 
         public static void Init()
         {
@@ -16,7 +21,7 @@
                 Directory.CreateDirectory(folder);
                 Permission.Instance.ResetPermissionRoamingDirectory();
 
-                Filestream = new FileStream(Path.Combine(folder, "brightnesschangelog.txt"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
+                Filestream = new FileStream(Path.Combine(folder, "eventlog.txt"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
                 StreamWriter = new StreamWriter(Filestream) { AutoFlush = true };
                 Console.SetError(StreamWriter);
 
@@ -24,7 +29,7 @@
             }
             catch (Exception e)
             {
-                Console.WriteLine("UNABLE TO WRITE brightnesschangelog.TXT");
+                Console.WriteLine("UNABLE TO WRITE eventlog.TXT");
                 Console.WriteLine(e.Message);
                 CanWrite = false;
             }
@@ -32,44 +37,39 @@
 
         public static void Write(string message, bool timestamp = true)
         {
-            if (!CanWrite) return;
-
-            lock (_lock)
+            try
             {
-                try
+                if (!DebugLog.CanWrite) return;
+                lock (_logLock)
                 {
-                    if (timestamp)
-                        Console.WriteLine($"{DateTime.Now.ToString(DateTimeFormat)}:   {message}");
-                    else
-                        Console.WriteLine(message);
-
+                    Debug.WriteLine(message);
+                    Console.WriteLine(message);
                     if (StreamWriter == null) return;
-
                     if (LogRotate.IsCompressing)
                     {
                         LogRotate.TemporaryLog += (timestamp ? DateTime.Now.ToString(DateTimeFormat) + ":   " : "") + message + Environment.NewLine;
                         return;
                     }
 
-                    Permission.Instance.ResetPermissionOfFile(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AgileInspect", "brightnesschangelog.txt"));
+                    string logPath = Path.Combine(
+                        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                        "AgileInspect",
+                        "eventlog.txt"
+                    );
 
-                    Filestream?.Seek(0, SeekOrigin.End);
+                    Permission.Instance.ResetPermissionOfFile(logPath);
 
-                    if (timestamp)
-                        StreamWriter.WriteLine($"{DateTime.Now.ToString(DateTimeFormat)}:   {message}");
-                    else
-                        StreamWriter.WriteLine(message);
+                    Filestream.Seek(0, SeekOrigin.End);
+                    if (timestamp) StreamWriter.Write(DateTime.Now.ToString(DateTimeFormat) + ":   ");
+                    StreamWriter.WriteLine(message);
                 }
-                catch (Exception ex)
+            }
+            catch (Exception ex)
+            {
+                lock (_logLock)
                 {
-                    try
-                    {
-                        if (StreamWriter != null)
-                        {
-                            StreamWriter.WriteLine($"{DateTime.Now.ToString(DateTimeFormat)}:   Error when write to log: {ex.Message}");
-                        }
-                    }
-                    catch { /* swallow */ }
+                    if (timestamp) StreamWriter?.Write(DateTime.Now.ToString(DateTimeFormat) + ":   ");
+                    StreamWriter?.WriteLine("Error when write to log: " + ex.Message);
                 }
             }
         }
@@ -89,5 +89,4 @@
             WriteLine($"[{funcName}]: {message}");
         }
     }
-
 }

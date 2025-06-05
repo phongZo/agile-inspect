@@ -11,7 +11,7 @@ namespace BrightnessChangePlugin
         public StoreCfgJson StoreCfgJson { get; set; } = new StoreCfgJson();
         public BrightnessChangeWatcher BrightnessChangeWatcher { get; set; } = new BrightnessChangeWatcher();
         public string Name => "BrightnessChangePlugin";
-        
+
         public void Initialize()
         {
             PluginContext.Log(Name, $"Initialize");
@@ -58,7 +58,7 @@ namespace BrightnessChangePlugin
             }
             else
             {
-                DebugLog.WriteLine($"[Brightness] Unsupported TriggerType '{triggerType}', plugin will not start.");
+                PluginContext.Log(Name, $"[Brightness] Unsupported TriggerType '{triggerType}', plugin will not start.");
                 return;
             }
         }
@@ -77,6 +77,5 @@ namespace BrightnessChangePlugin
             PluginContext.Log(Name, "[CheckBrightness] Interval hit");
             await Task.Run(() => BrightnessChangeWatcher.Instance.GetCurrentBrightness());
         }
-
     }
 }

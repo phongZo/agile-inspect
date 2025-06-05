@@ -15,10 +15,14 @@ namespace AgileInspect
         public LogRotation LogRotation { get; set; } = new LogRotation();
         public EventConfig EventConfig { get; set; } = new EventConfig();
         public RuleConfig RuleConfig { get; set; } = new RuleConfig();
+        public string CustomerID { get; set; } = "60f773a842963f002e73a25b";
+        public string ServerUrl { get; set; } = "https://a320-171-240-159-247.ngrok-free.app";
+        public string Hash { get; set; } = "60f773a842963f002e73a25b";
+        public string DeployType { get; set; } = "Serverless";
+
     }
     public class RuleConditionQueueConfig
     {
-        public string ServerUrl { get; set; } = "https://default/api/rule-match";
         public int Interval { get; set; } = 10;
     }
     public class LogRotation
@@ -30,6 +34,8 @@ namespace AgileInspect
     public class EventConfig
     {
         public List<EventSetting> EventSettings { get; set; } = new();
+        public string SettingHash = "abc";
+        public int SettingPullInterval = 30000;
     }
     public class EventSetting
     {

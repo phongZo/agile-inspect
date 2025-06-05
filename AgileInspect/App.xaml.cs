@@ -12,6 +12,7 @@ namespace AgileInspect
         protected override void OnStartup(StartupEventArgs e)
         {
             DebugLog.Init();
+            EventLog.Init();
             base.OnStartup(e);
         }
     }

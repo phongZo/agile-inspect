@@ -1,5 +1,6 @@
 ﻿using AgileInspect.Code;
 using System;
+using System.Diagnostics;
 using System.IO;
 
 namespace AgileInspect
@@ -41,6 +42,7 @@ namespace AgileInspect
                 if (!DebugLog.CanWrite) return;
                 lock (_logLock)
                 {
+                    Debug.WriteLine(message);
                     Console.WriteLine(message);
                     if (StreamWriter == null) return;
                     if (LogRotate.IsCompressing)
