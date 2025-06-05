@@ -76,7 +76,8 @@ namespace AgileInspect
             else
                 return "";
         }
-        private async void logEvent(string pluginName, Dictionary<string, JsonElement> json){
+        private async void logEvent(string pluginName, Dictionary<string, JsonElement> json)
+        {
             using var client = new HttpClient();
 
             // Create the SaveEvent object

@@ -85,8 +85,7 @@ namespace AgileInspect
                 }
                 else
                 {
-                    DebugLog.WriteLine($"[GET HASH] Failed - StatusCode: {(int)response.StatusCode} {response.ReasonPhrase}");
-                    DebugLog.WriteLine($"[GET HASH] Response Body: {data}");
+                    DebugLog.WriteLine($"[GetHash] Error: {response.StatusCode}, {data}");
                 }
 
             }
