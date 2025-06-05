@@ -12,6 +12,12 @@
     <DebugType>none</DebugType>
     <MainProjectDll>AgileInspect.dll</MainProjectDll>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
 
   <!--Plugin list -->
   <ItemGroup>
@@ -24,9 +30,7 @@
   
   <!-- Publish plugin -->
   <Target Name="PublishPlugins" AfterTargets="Publish">
-    <MSBuild Projects="@(PluginProjects->'..\\%(Identity)\\%(Identity).csproj')"
-             Targets="Publish"
-             Properties="SelfContained=false;PublishSingleFile=false" />
+    <MSBuild Projects="@(PluginProjects->'..\\%(Identity)\\%(Identity).csproj')" Targets="Publish" Properties="SelfContained=false;PublishSingleFile=false" />
   </Target>
 
   <Target Name="CopyPluginsAfterPublish" AfterTargets="PublishPlugins">
@@ -40,10 +44,7 @@
       <PluginPublishFiles Remove="..\**\$(MainProjectDll)" />
     </ItemGroup>
 
-    <Copy
-      SourceFiles="@(PluginPublishFiles)"
-      DestinationFiles="@(PluginPublishFiles->'$(PublishDir)%(PluginName)\\%(RecursiveDir)%(Filename)%(Extension)')"
-      SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(PluginPublishFiles)" DestinationFiles="@(PluginPublishFiles->'$(PublishDir)%(PluginName)\\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
 
     <Message Text="Copied ALL plugin DLLs to $(PublishDir), excluding $(MainProjectDll)" Importance="high" />
   </Target>

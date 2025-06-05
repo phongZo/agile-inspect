@@ -30,10 +30,7 @@ namespace WatermarkDetectorPlugin
             }
             var config = new YoloConfiguration
             {
-                Confidence = 0.9f,
-                IoU = 0.45f,
-                KeepAspectRatio = true,
-                ApplyAutoOrient = true
+                Confidence = 0.8f,
             };
 
             var options = new YoloPredictorOptions

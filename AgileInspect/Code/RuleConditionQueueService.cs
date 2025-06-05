@@ -73,7 +73,7 @@ public class RuleConditionQueueService
             var content = File.ReadAllText(_filePath);
             if (string.IsNullOrWhiteSpace(content))
             {
-                DebugLog.WriteLine("[SendQueueAsync] Queue is empty, nothing to send.");
+                //DebugLog.WriteLine("[SendQueueAsync] Queue is empty, nothing to send.");
                 return;
             }
 
@@ -82,7 +82,7 @@ public class RuleConditionQueueService
 
         if (originalQueue.Count == 0)
         {
-            DebugLog.WriteLine("[SendQueueAsync] Queue is empty, nothing to send.");
+            //DebugLog.WriteLine("[SendQueueAsync] Queue is empty, nothing to send.");
             return;
         }
 

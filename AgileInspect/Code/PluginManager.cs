@@ -26,6 +26,9 @@ namespace AgileInspect.Code
             var settings = StoreCfgJson.Instance.EventConfig.EventSettings;
 
             var subDirs = Directory.GetDirectories(folderPath);
+            #if DEBUG
+            subDirs =  Directory.GetDirectories("..\\..\\..\\..\\..\\AgileInspect\\bin\\Release\\net8.0-windows\\win-x64\\publish\\win-x64");
+            #endif
             foreach (var subDir in subDirs)
             {
                 var folderName = Path.GetFileName(subDir);
@@ -51,11 +54,11 @@ namespace AgileInspect.Code
                                 string pluginName = plugin.Name;
 
                                 var setting = settings.FirstOrDefault(s => s.EventType == pluginName);
-                                if (setting == null)
-                                {
-                                    DebugLog.WriteLine($"Skipped plugin (not in EventSettings): {pluginName}");
-                                    continue;
-                                }
+                                //if (setting == null)
+                                //{
+                                //    DebugLog.WriteLine($"Skipped plugin (not in EventSettings): {pluginName}");
+                                //    continue;
+                                //}
 
                                 string eventParamsJson = JsonSerializer.Serialize(setting.EventParams);
                                 string triggerParamsJson = JsonSerializer.Serialize(setting.TriggerParams);

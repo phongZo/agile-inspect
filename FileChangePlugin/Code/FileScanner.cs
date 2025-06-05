@@ -118,6 +118,9 @@ namespace FileChangePlugin
             foreach (string deletedFile in oldFileSet)
             {
                 PluginContext.Log(Name, " - DELETED: " + deletedFile);
+                var jsonObj = new { delete = deletedFile };
+                var json = JsonSerializer.Serialize(jsonObj);
+                PluginContext.SendDetectionResult(Name, json);
             }
         }
 
@@ -136,10 +139,16 @@ namespace FileChangePlugin
                 if (oldFile == null)
                 {
                     PluginContext.Log(Name, " - NEW: " + filePath);
+                    var jsonObj = new { delete = filePath };
+                    var json = JsonSerializer.Serialize(jsonObj);
+                    PluginContext.SendDetectionResult(Name, json);
                 }
                 else if (lastWrite > oldFile.LastWriteTime)
                 {
                     PluginContext.Log(Name, " - MODIFIED: " + filePath);
+                    var jsonObj = new { delete = filePath };
+                    var json = JsonSerializer.Serialize(jsonObj);
+                    PluginContext.SendDetectionResult(Name, json);
                 }
 
                 newTrackedDir.Files.Add(new TrackedFile
