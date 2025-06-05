@@ -13,22 +13,20 @@ namespace AgileInspect.Code
     {
         private readonly List<IAppPlugin> Plugins = new();
         public AppCallbackHandler AppCallbackHandler {  get; set; } = new AppCallbackHandler();
-        public void LoadPlugins(string folderPath)
+        public void LoadPlugins(string rootPluginDir)
         {
             PluginContext.SetCallback(AppCallbackHandler.Instance);
 
-            if (!Directory.Exists(folderPath))
+            if (!Directory.Exists(rootPluginDir))
             {
-                DebugLog.WriteLine($"Plugin folder not found: {folderPath}");
+                DebugLog.WriteLine($"Plugin folder not found: {rootPluginDir}");
                 return;
             }
 
             var settings = StoreCfgJson.Instance.EventConfig.EventSettings;
 
-            var subDirs = Directory.GetDirectories(folderPath);
-            #if DEBUG
-            subDirs =  Directory.GetDirectories("..\\..\\..\\..\\..\\AgileInspect\\bin\\Release\\net8.0-windows\\win-x64\\publish\\win-x64");
-            #endif
+            var subDirs = Directory.GetDirectories(rootPluginDir);
+
             foreach (var subDir in subDirs)
             {
                 var folderName = Path.GetFileName(subDir);
@@ -54,11 +52,11 @@ namespace AgileInspect.Code
                                 string pluginName = plugin.Name;
 
                                 var setting = settings.FirstOrDefault(s => s.EventType == pluginName);
-                                //if (setting == null)
-                                //{
-                                //    DebugLog.WriteLine($"Skipped plugin (not in EventSettings): {pluginName}");
-                                //    continue;
-                                //}
+                                if (setting == null)
+                                {
+                                    DebugLog.WriteLine($"Skipped plugin (not in EventSettings): {pluginName}");
+                                    continue;
+                                }
 
                                 string eventParamsJson = JsonSerializer.Serialize(setting.EventParams);
                                 string triggerParamsJson = JsonSerializer.Serialize(setting.TriggerParams);
@@ -79,6 +77,7 @@ namespace AgileInspect.Code
                 }
             }
         }
+
 
         public void StartAll()
         {
@@ -116,19 +115,22 @@ namespace AgileInspect.Code
 
     public class PluginLoadContext : AssemblyLoadContext
     {
-        private readonly string pluginDirectory;
+        private readonly string pluginPath;
+        private readonly string dependencyDir;
 
-        public PluginLoadContext(string pluginDirectory) : base(isCollectible: false)
+        public PluginLoadContext(string pluginPath)
+            : base(isCollectible: false)
         {
-            this.pluginDirectory = pluginDirectory;
+            this.pluginPath = pluginPath;
+            this.dependencyDir = Path.Combine(pluginPath, "libs");
         }
 
         protected override Assembly Load(AssemblyName assemblyName)
         {
-            string dllPath = Path.Combine(pluginDirectory, $"{assemblyName.Name}.dll");
-            if (File.Exists(dllPath))
+            string depPath = Path.Combine(dependencyDir, $"{assemblyName.Name}.dll");
+            if (File.Exists(depPath))
             {
-                return LoadFromAssemblyPath(dllPath);
+                return LoadFromAssemblyPath(depPath);
             }
 
             return null;

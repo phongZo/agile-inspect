@@ -6,17 +6,19 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
 
-    <MainDll>WatermarkDetectorPlugin.dll</MainDll>
-    <PublishDir>$(MSBuildProjectDirectory)\bin\$(Configuration)\net8.0-windows\win-x64\publish\win-x64\</PublishDir>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DebugType>embedded</DebugType>
+    <OutputPath>bin\Debug\net8.0-windows\win-x64\</OutputPath>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DebugType>embedded</DebugType>
+    <OutputPath>bin\Release\net8.0-windows\win-x64\</OutputPath>
   </PropertyGroup>
+
   <ItemGroup>
     <None Remove="Model\best.onnx" />
   </ItemGroup>
@@ -35,4 +37,28 @@
   <ItemGroup>
     <ProjectReference Include="..\AgileInspect\AgileInspect.csproj" />
   </ItemGroup>
+
+  <Target Name="CopyPluginWithDependencies" AfterTargets="Build">
+    <PropertyGroup>
+      <PluginRootDir>..\AgileInspect\dll\WatermarkDetectorPlugin</PluginRootDir>
+    </PropertyGroup>
+
+    <Copy
+      SourceFiles="$(TargetPath)"
+      DestinationFolder="$(PluginRootDir)"
+      SkipUnchangedFiles="true" />
+
+    <ItemGroup>
+      <DependencyFiles Include="@(ReferenceCopyLocalPaths)" />
+    </ItemGroup>
+    <Copy
+      SourceFiles="@(DependencyFiles)"
+      DestinationFolder="$(PluginRootDir)\libs"
+      SkipUnchangedFiles="true" />
+
+    <ItemGroup>
+      <FilesToDelete Include="$(PluginRootDir)\libs\AgileInspect*" />
+    </ItemGroup>
+    <Delete Files="@(FilesToDelete)" />
+  </Target>
 </Project>
