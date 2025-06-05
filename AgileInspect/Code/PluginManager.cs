@@ -13,8 +13,10 @@ namespace AgileInspect.Code
     {
         private readonly List<IAppPlugin> Plugins = new();
         public AppCallbackHandler AppCallbackHandler {  get; set; } = new AppCallbackHandler();
-        public void LoadPlugins(string rootPluginDir)
+        public void LoadPlugins(string dir)
         {
+            var rootPluginDir = Path.Combine(dir, "dll");
+
             PluginContext.SetCallback(AppCallbackHandler.Instance);
 
             if (!Directory.Exists(rootPluginDir))
@@ -62,7 +64,6 @@ namespace AgileInspect.Code
                                 string triggerParamsJson = JsonSerializer.Serialize(setting.TriggerParams);
 
                                 plugin.Initialize();
-                                plugin.SetCallback(AppCallbackHandler.Instance);
                                 plugin.SetParameters(eventParamsJson, setting.TriggerType, triggerParamsJson);
 
                                 Plugins.Add(plugin);

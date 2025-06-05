@@ -89,7 +89,7 @@ namespace AgileInspect
             };
             // Serialize the object to JSON
             var jsonContent = JsonSerializer.Serialize(saveEvent);
-            DebugLog.WriteLine(jsonContent);
+            EventLog.WriteLine(jsonContent);
             var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
             // Send POST request
@@ -99,14 +99,12 @@ namespace AgileInspect
             if (response.IsSuccessStatusCode)
             {
                 var responseString = await response.Content.ReadAsStringAsync();
-                DebugLog.WriteLine("Success: " + responseString);
+                DebugLog.WriteLine("[LogEvent] Success: " + responseString);
             }
             else
             {
-                DebugLog.WriteLine($"Error: {response.StatusCode}, {await response.Content.ReadAsStringAsync()}");
+                DebugLog.WriteLine($"[LogEvent] Error: {response.StatusCode}, {await response.Content.ReadAsStringAsync()}");
             }
-
-
         }
         private void CheckRules(string pluginName)
         {

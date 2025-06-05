@@ -35,17 +35,28 @@
 
   <Target Name="CopyPluginsAfterPublish" AfterTargets="PublishPlugins">
     <ItemGroup>
-      <!-- Get all DLL in publish dir of each plugin -->
       <PluginPublishFiles Include="..\%(PluginProjects.Identity)\bin\$(Configuration)\net8.0-windows\win-x64\publish\win-x64\**\*.dll">
         <PluginName>%(PluginProjects.Identity)</PluginName>
       </PluginPublishFiles>
-
-      <!-- Remove main DLL -->
-      <PluginPublishFiles Remove="..\**\$(MainProjectDll)" />
     </ItemGroup>
 
-    <Copy SourceFiles="@(PluginPublishFiles)" DestinationFiles="@(PluginPublishFiles->'$(PublishDir)%(PluginName)\\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+    <ItemGroup>
+      <MainDllFiles Include="@(PluginPublishFiles)" Condition="'%(Filename)%(Extension)' == '%(PluginName).dll'" />
+    </ItemGroup>
 
-    <Message Text="Copied ALL plugin DLLs to $(PublishDir), excluding $(MainProjectDll)" Importance="high" />
+    <ItemGroup>
+      <DependencyDllFiles Include="@(PluginPublishFiles)" Condition="'%(Filename)%(Extension)' != '%(PluginName).dll'" />
+    </ItemGroup>
+
+    <Copy
+      SourceFiles="@(MainDllFiles)"
+      DestinationFiles="@(MainDllFiles->'$(PublishDir)dll\\%(PluginName)\\%(Filename)%(Extension)')"
+      SkipUnchangedFiles="true" />
+
+    <Copy
+      SourceFiles="@(DependencyDllFiles)"
+      DestinationFiles="@(DependencyDllFiles->'$(PublishDir)dll\\%(PluginName)\\libs\\%(Filename)%(Extension)')"
+      SkipUnchangedFiles="true" />
   </Target>
+
 </Project>

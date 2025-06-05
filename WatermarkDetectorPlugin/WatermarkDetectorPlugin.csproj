@@ -5,18 +5,22 @@
     <UseWPF>false</UseWPF>
     <ImplicitUsings>enable</ImplicitUsings>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+  <PropertyGroup>
+    <RootDir>$([System.IO.Path]::GetFullPath('$(SolutionDir)..\..'))</RootDir>
+    <MainProjectBuildDir>$(RootDir)\AgileInspect\bin\$(Configuration)\net8.0-windows\$(RuntimeIdentifier)</MainProjectBuildDir>
+    <PluginOutputDir>$(RootDir)\WatermarkDetectorPlugin\bin\$(Configuration)\net8.0-windows\dll\WatermarkDetectorPlugin</PluginOutputDir>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <DebugType>embedded</DebugType>
-    <OutputPath>bin\Debug\net8.0-windows\win-x64\</OutputPath>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <DebugType>embedded</DebugType>
-    <OutputPath>bin\Release\net8.0-windows\win-x64\</OutputPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -39,26 +43,17 @@
   </ItemGroup>
 
   <Target Name="CopyPluginWithDependencies" AfterTargets="Build">
-    <PropertyGroup>
-      <PluginRootDir>..\AgileInspect\dll\WatermarkDetectorPlugin</PluginRootDir>
-    </PropertyGroup>
-
-    <Copy
-      SourceFiles="$(TargetPath)"
-      DestinationFolder="$(PluginRootDir)"
-      SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(PluginOutputDir)" SkipUnchangedFiles="true" />
 
     <ItemGroup>
       <DependencyFiles Include="@(ReferenceCopyLocalPaths)" />
     </ItemGroup>
-    <Copy
-      SourceFiles="@(DependencyFiles)"
-      DestinationFolder="$(PluginRootDir)\libs"
-      SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(DependencyFiles)" DestinationFolder="$(PluginOutputDir)\libs" SkipUnchangedFiles="true" />
 
     <ItemGroup>
-      <FilesToDelete Include="$(PluginRootDir)\libs\AgileInspect*" />
+      <FilesToDelete Include="$(PluginOutputDir)\libs\*AgileInspect*.dll" />
     </ItemGroup>
     <Delete Files="@(FilesToDelete)" />
   </Target>
+
 </Project>

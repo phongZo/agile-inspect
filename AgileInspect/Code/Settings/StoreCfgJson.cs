@@ -22,7 +22,6 @@ namespace AgileInspect
     }
     public class RuleConditionQueueConfig
     {
-        public string ServerUrl { get; set; } = "https://a320-171-240-159-247.ngrok-free.app";
         public int Interval { get; set; } = 10;
     }
     public class LogRotation

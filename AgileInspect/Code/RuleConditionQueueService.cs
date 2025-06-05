@@ -117,7 +117,7 @@ public class RuleConditionQueueService
     {
         try
         {
-            string url = StoreCfgJson.Instance.RuleConditionQueueConfig.ServerUrl;
+            string url = StoreCfgJson.Instance.ServerUrl;
             DebugLog.WriteLine($"[TrySendToServerAsync] URL: {url}");
 
             using var client = new HttpClient();
