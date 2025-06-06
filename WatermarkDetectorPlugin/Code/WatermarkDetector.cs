@@ -1,6 +1,5 @@
 ﻿using Compunet.YoloSharp;
 using Compunet.YoloSharp.Data;
-using Compunet.YoloSharp.Plotting;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
@@ -45,8 +44,9 @@ namespace WatermarkDetectorPlugin
         {
             try
             {
-                string dllDir = Path.Combine(AppContext.BaseDirectory, $"dll\\{pluginName}");
-                string screenshotDir = Path.Combine(dllDir, "screenshot");
+                string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AgileInspect");
+
+                string screenshotDir = Path.Combine(folder, "screenshot");
                 Directory.CreateDirectory(screenshotDir);
 
                 string fileName = $"screenshot_{DateTime.Now:yyyyMMdd_HHmmss}.png";
@@ -55,12 +55,6 @@ namespace WatermarkDetectorPlugin
                 CapturePrimaryScreen(tempImagePath);
                 PluginContext.Log(pluginName, $"Captured screenshot: {tempImagePath}");
 
-                string outputFolder = Path.Combine(screenshotDir, "result");
-                Directory.CreateDirectory(outputFolder);
-
-                string outputPath = Path.Combine(outputFolder, fileName);
-
-                await Predictor.PredictAndSaveAsync(tempImagePath, outputPath);
                 YoloResult<Detection> result = await Predictor.DetectAsync(tempImagePath);
 
                 bool isOn = result.Count > 0;
