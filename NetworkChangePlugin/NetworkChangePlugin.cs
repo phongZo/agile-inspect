@@ -17,7 +17,7 @@ namespace NetworkChangePlugin
 
         public void SetParameters(string eventParamsJson, string triggerType, string triggerParamsJson)
         {
-            var setting = StoreCfgJson.Instance.EventSetting ?? new EventSetting();
+            var setting = StoreCfgJson.Instance.eventSetting ?? new EventSetting();
 
             var parsedEventParams = !string.IsNullOrWhiteSpace(eventParamsJson)
                 ? JsonSerializer.Deserialize<EventParams>(eventParamsJson)
@@ -27,34 +27,34 @@ namespace NetworkChangePlugin
                 ? JsonSerializer.Deserialize<TriggerParams>(triggerParamsJson)
                 : null;
 
-            setting.EventParams = parsedEventParams ?? setting.EventParams;
-            setting.TriggerType = !string.IsNullOrWhiteSpace(triggerType) ? triggerType : setting.TriggerType;
-            setting.TriggerParams = parsedTriggerParams ?? setting.TriggerParams;
+            setting.eventParams = parsedEventParams ?? setting.eventParams;
+            setting.triggerType = !string.IsNullOrWhiteSpace(triggerType) ? triggerType : setting.triggerType;
+            setting.triggerParams = parsedTriggerParams ?? setting.triggerParams;
 
-            StoreCfgJson.Instance.EventSetting = setting;
+            StoreCfgJson.Instance.eventSetting = setting;
             PluginContext.Log(Name, $"Parameters is set ");
 
         }
 
         public void Start()
         {
-            var setting = StoreCfgJson.Instance.EventSetting ?? new EventSetting();
-            var triggerType = setting.TriggerType;
+            var setting = StoreCfgJson.Instance.eventSetting ?? new EventSetting();
+            var triggerType = setting.triggerType;
 
             PluginContext.Log(Name, $"{Name} started.");
-            PluginContext.Log(Name, $"{Name}: TriggerType : {triggerType}");
+            PluginContext.Log(Name, $"{Name}: triggerType : {triggerType}");
 
             if (triggerType.Equals("RealTime", StringComparison.OrdinalIgnoreCase))
             {
                 // OK, run interval
             }
-            else if (triggerType.Equals("Interval", StringComparison.OrdinalIgnoreCase))
+            else if (triggerType.Equals("interval", StringComparison.OrdinalIgnoreCase))
             {
-                PluginContext.Log(Name, $"{Name}: TriggerType 'Interval' is not implemented, fallback to RealTime.");
+                PluginContext.Log(Name, $"{Name}: triggerType 'interval' is not implemented, fallback to RealTime.");
             }
             else
             {
-                PluginContext.Log(Name, $"{Name}: Unknown TriggerType '{triggerType}, plugin will not start.");
+                PluginContext.Log(Name, $"{Name}: Unknown triggerType '{triggerType}, plugin will not start.");
                 return;
             }
             NetworkAddressChangeWatcher.Instance.StartWatcher();

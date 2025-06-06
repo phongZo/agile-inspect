@@ -1,4 +1,5 @@
 ﻿using AgileInspect.Code.PluginContracts;
+using AgileInspect.Code.Settings;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,7 +13,7 @@ namespace AgileInspect.Code
     public class PluginManager
     {
         private readonly List<IAppPlugin> Plugins = new();
-        public AppCallbackHandler AppCallbackHandler {  get; set; } = new AppCallbackHandler();
+        public AppCallbackHandler AppCallbackHandler { get; set; } = new AppCallbackHandler();
         public void LoadPlugins(string dir)
         {
             var rootPluginDir = Path.Combine(dir, "dll");
@@ -25,15 +26,28 @@ namespace AgileInspect.Code
                 return;
             }
 
-            var settings = StoreCfgJson.Instance.EventConfig.EventSettings;
-
+            var settings = StoreCfgJson.Instance.eventConfig.eventSettings;
             var subDirs = Directory.GetDirectories(rootPluginDir);
 
             foreach (var subDir in subDirs)
             {
-                var folderName = Path.GetFileName(subDir);
-                var dllFiles = Directory.GetFiles(subDir, $"{folderName}.dll");
+                var pluginDirName = Path.GetFileName(subDir);
+                var eventType = StoreCfgLoader.mapPluginNameToEventType(pluginDirName);
 
+                if (string.IsNullOrEmpty(eventType))
+                {
+                    DebugLog.WriteLine($"Skipped plugin folder (unmapped name): {pluginDirName}");
+                    continue;
+                }
+
+                var setting = settings.FirstOrDefault(s => s.eventType == eventType);
+                if (setting == null)
+                {
+                    DebugLog.WriteLine($"Skipped plugin (not in EventSettings): {eventType}");
+                    continue;
+                }
+
+                var dllFiles = Directory.GetFiles(subDir, $"{pluginDirName}.dll");
                 if (dllFiles.Length == 0)
                     continue;
 
@@ -51,23 +65,14 @@ namespace AgileInspect.Code
                         {
                             if (Activator.CreateInstance(type) is IAppPlugin plugin)
                             {
-                                string pluginName = plugin.Name;
-
-                                var setting = settings.FirstOrDefault(s => s.EventType == pluginName);
-                                if (setting == null)
-                                {
-                                    DebugLog.WriteLine($"Skipped plugin (not in EventSettings): {pluginName}");
-                                    continue;
-                                }
-
-                                string eventParamsJson = JsonSerializer.Serialize(setting.EventParams);
-                                string triggerParamsJson = JsonSerializer.Serialize(setting.TriggerParams);
+                                string eventParamsJson = JsonSerializer.Serialize(setting.eventParams);
+                                string triggerParamsJson = JsonSerializer.Serialize(setting.triggerParams);
 
                                 plugin.Initialize();
-                                plugin.SetParameters(eventParamsJson, setting.TriggerType, triggerParamsJson);
+                                plugin.SetParameters(eventParamsJson, setting.triggerType, triggerParamsJson);
 
                                 Plugins.Add(plugin);
-                                DebugLog.WriteLine($"Loaded plugin: {pluginName} from {dll}");
+                                DebugLog.WriteLine($"Loaded plugin: {plugin.Name} as {eventType} from {dll}");
                             }
                         }
                     }
@@ -78,7 +83,6 @@ namespace AgileInspect.Code
                 }
             }
         }
-
 
         public void StartAll()
         {

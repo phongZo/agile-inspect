@@ -11,19 +11,19 @@ namespace AgileInspect
             Instance = this;
         }
         #endregion
-        public RuleConditionQueueConfig RuleConditionQueueConfig { get; set; } = new RuleConditionQueueConfig();
-        public LogRotation LogRotation { get; set; } = new LogRotation();
-        public EventConfig EventConfig { get; set; } = new EventConfig();
-        public RuleConfig RuleConfig { get; set; } = new RuleConfig();
-        public string CustomerID { get; set; } = "60f773a842963f002e73a25b";
-        public string ServerUrl { get; set; } = "https://a320-171-240-159-247.ngrok-free.app";
-        public string Hash { get; set; } = "60f773a842963f002e73a25b";
-        public string DeployType { get; set; } = "Serverless";
+        public string customerID { get; set; } = "60f773a842963f002e73a25b";
+        public string serverUrl { get; set; } = "https://a320-171-240-159-247.ngrok-free.app";
+        public string hash { get; set; } = "60f773a842963f002e73a25b";
+        public string deployType { get; set; } = "serverless";
+        public LogRotation logRotation { get; set; } = new LogRotation();
+        public EventConfig eventConfig { get; set; } = new EventConfig();
+        public RuleConfig ruleConfig { get; set; } = new RuleConfig();
+        public RuleConditionQueueConfig ruleConditionQueueConfig { get; set; } = new RuleConditionQueueConfig();
 
     }
     public class RuleConditionQueueConfig
     {
-        public int Interval { get; set; } = 10;
+        public int interval { get; set; } = 10;
     }
     public class LogRotation
     {
@@ -33,31 +33,43 @@ namespace AgileInspect
     }
     public class EventConfig
     {
-        public List<EventSetting> EventSettings { get; set; } = new();
-        public string SettingHash = "abc";
-        public int SettingPullInterval = 30000;
+        public string settingHash { get; set; } = "abc";
+        public int settingPullInterval { get; set; } = 30000;
+        public List<EventSetting> eventSettings { get; set; } = new();
     }
     public class EventSetting
     {
-        public string EventType { get; set; } // Plugin Name
-        public object EventParams { get; set; }
-        public string TriggerType { get; set; } // Interval or Realtime
-        public object TriggerParams { get; set; }
+        public string eventType { get; set; } // Plugin Name
+        public EventParams eventParams { get; set; }
+        public string triggerType { get; set; } // interval or Realtime
+        public TriggerParams triggerParams { get; set; }
+    }
+    public class EventParams
+    {
+        public string[] paths { get; set; } = [];
+        public string[] filters { get; set; } = [];
+        public string[] services { get; set; } = [];
+
+    }
+
+    public class TriggerParams
+    {
+        public int interval { get; set; }
     }
     public class RuleConfig
     {
-        public List<RuleSetting> RuleSettings { get; set; } = new();
+        public List<RuleSetting> ruleSettings { get; set; } = new();
     }
     public class RuleSetting
     {
-        public List<string> Plugins { get; set; } = new();
-        public List<Condition> Conditions { get; set; } = new();
-        public string Action { get; set; } = "None";
+        public List<string> plugins { get; set; } = new();
+        public List<Condition> conditions { get; set; } = new();
+        public string action { get; set; } = "none";
     }
 
     public class Condition
     {
-        public string Field { get; set; }
-        public string Expected { get; set; }
+        public string field { get; set; }
+        public string expected { get; set; }
     }
 }

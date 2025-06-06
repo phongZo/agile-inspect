@@ -18,7 +18,7 @@ namespace AgileInspect
                 string logFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\AgileInspect\\";
                 string logFilePath = Path.Combine(logFolder, "log.txt");
 
-                LogRotation logRotation = StoreCfgJson.Instance.LogRotation;
+                LogRotation logRotation = StoreCfgJson.Instance.logRotation;
                 FileInfo logFileInfo = new FileInfo(logFilePath);
 
                 if (logFileInfo.Exists && logFileInfo.Length > logRotation.size)

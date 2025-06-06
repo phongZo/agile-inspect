@@ -16,8 +16,8 @@ namespace ServiceDetectorPlugin.Code
 
         public void CheckServices()
         {
-            var setting = StoreCfgJson.Instance.EventSetting ?? new EventSetting();
-            List<string> services = setting.EventParams.Services.ToList();
+            var setting = StoreCfgJson.Instance.eventSetting ?? new EventSetting();
+            List<string> services = setting.eventParams.services.ToList();
 
             if (services.Count == 0)
             {

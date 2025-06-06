@@ -36,11 +36,11 @@ namespace FileChangePlugin
                 IsScanning = true;
 
                 var cfg = StoreCfgJson.Instance;
-                var eventSetting = cfg.EventSetting;
+                var eventSetting = cfg.eventSetting;
 
-                var eventParams = eventSetting.EventParams;
-                string[] scanDirs = eventParams?.Paths;
-                string[] filters = eventParams?.Filters;
+                var eventParams = eventSetting.eventParams;
+                string[] scanDirs = eventParams?.paths;
+                string[] filters = eventParams?.filters;
 
                 if (scanDirs == null || scanDirs.Length == 0)
                 {
@@ -243,8 +243,8 @@ namespace FileChangePlugin
         {
             List<string> matchedFiles = new List<string>();
 
-            var eventParams = StoreCfgJson.Instance.EventSetting.EventParams as EventParams;
-            string[] filters = eventParams?.Filters;
+            var eventParams = StoreCfgJson.Instance.eventSetting.eventParams as EventParams;
+            string[] filters = eventParams?.filters;
 
             if (filters == null || filters.Length == 0)
             {

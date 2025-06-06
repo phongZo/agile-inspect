@@ -42,7 +42,7 @@ public class RuleConditionQueueService
         var entry = new
         {
             Plugins = plugins,
-            Conditions = matchedConditions.Select(c => new { c.Field, c.Expected })
+            Conditions = matchedConditions.Select(c => new { c.field, c.expected })
         };
 
         lock (_lock)
@@ -117,7 +117,7 @@ public class RuleConditionQueueService
     {
         try
         {
-            string url = StoreCfgJson.Instance.ServerUrl;
+            string url = StoreCfgJson.Instance.serverUrl;
             DebugLog.WriteLine($"[TrySendToServerAsync] URL: {url}");
 
             using var client = new HttpClient();

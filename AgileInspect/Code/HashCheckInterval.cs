@@ -2,8 +2,8 @@
 using AgileInspect.Code.Settings.Response;
 using Newtonsoft.Json;
 using System;
-using System.Linq;
 using System.Net.Http;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,8 +26,8 @@ namespace AgileInspect
             if (_isRunning) return;
 
             // get in config
-            _intervalMs = StoreCfgJson.Instance.EventConfig.SettingPullInterval > 0
-                    ? StoreCfgJson.Instance.EventConfig.SettingPullInterval
+            _intervalMs = StoreCfgJson.Instance.eventConfig.settingPullInterval > 0
+                    ? StoreCfgJson.Instance.eventConfig.settingPullInterval
                     : _intervalMs; _timer = new Timer(async _ => await GetHash(), null, 0, _intervalMs);
 
             _isRunning = true;
@@ -53,8 +53,8 @@ namespace AgileInspect
             try
             {
                 using var client = new HttpClient();
-                var query = "customerId=" + StoreCfgJson.Instance.CustomerID + "&clientName=" + MachineName.Instance.Name + "&os=windows" + "&version=" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
-                var url = StoreCfgJson.Instance.ServerUrl + "/client/my-hash?" + query;
+                var query = "customerId=" + StoreCfgJson.Instance.customerID + "&clientName=" + MachineName.Instance.Name + "&os=windows" + "&version=" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
+                var url = StoreCfgJson.Instance.serverUrl + "/client/my-hash?" + query;
                 HttpResponseMessage response = await client.GetAsync(url);
                 string data = await response.Content.ReadAsStringAsync();
                 if (response.IsSuccessStatusCode)
@@ -72,7 +72,7 @@ namespace AgileInspect
                             },
                         };
                         responseData = JsonConvert.DeserializeObject<HashData>(data, jsonSerializerSettings);
-                        if (responseData.data != null && responseData.data.hash != StoreCfgJson.Instance.Hash)
+                        if (responseData.data != null && responseData.data.hash != StoreCfgJson.Instance.hash)
                         {
                             await GetSetting(responseData.data.hash);
                         }
@@ -99,8 +99,8 @@ namespace AgileInspect
             try
             {
                 using var client = new HttpClient();
-                var query = "customerId=" + StoreCfgJson.Instance.CustomerID + "&clientName=" + MachineName.Instance.Name + "&os=windows" + "&version=" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
-                var url = StoreCfgJson.Instance.ServerUrl + "/client/my-settings?" + query;
+                var query = "customerId=" + StoreCfgJson.Instance.customerID + "&clientName=" + MachineName.Instance.Name + "&os=windows" + "&version=" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
+                var url = StoreCfgJson.Instance.serverUrl + "/client/my-settings?" + query;
                 HttpResponseMessage response = await client.GetAsync(url);
                 string data = await response.Content.ReadAsStringAsync();
                 if (response.IsSuccessStatusCode)
@@ -120,21 +120,35 @@ namespace AgileInspect
                         responseData = JsonConvert.DeserializeObject<SettingData>(data, jsonSerializerSettings);
 
                         var serverEventConfig = responseData?.data;
-                        var currentEventConfig = StoreCfgJson.Instance.EventConfig;
+                        var currentEventConfig = StoreCfgJson.Instance.eventConfig;
 
-                        if (serverEventConfig != null && serverEventConfig.settingHash != currentEventConfig.SettingHash)
+                        if (serverEventConfig != null)
                         {
-                            currentEventConfig.EventSettings = serverEventConfig.eventSettings.ToList();
-                            currentEventConfig.SettingPullInterval = serverEventConfig.settingPullInterval;
-                            currentEventConfig.SettingHash = serverEventConfig.settingHash;
+                            DebugLog.WriteLine($"[HashCheckInterval] [GetSetting] serverHash: {serverEventConfig.settingHash}, localHash: {currentEventConfig.settingHash}");
 
-                            StoreCfgLoader.Save();
-                            DebugLog.WriteLine("[HashCheckInterval] [GetSetting] UPDATE new EventConfig from server.");
+                            if (serverEventConfig.settingHash != currentEventConfig.settingHash)
+                            {
+                                DebugLog.WriteLine("[HashCheckInterval] [GetSetting] Detected new config hash, applying update...");
+
+                                currentEventConfig.eventSettings = [.. serverEventConfig.eventSettings];
+                                currentEventConfig.settingPullInterval = serverEventConfig.settingPullInterval;
+                                currentEventConfig.settingHash = serverEventConfig.settingHash;
+
+                                CleanUpEventSetting(currentEventConfig);
+                                StoreCfgLoader.Save();
+
+                                DebugLog.WriteLine("[HashCheckInterval] [GetSetting] UPDATED EventConfig from server.");
+                            }
+                            else
+                            {
+                                DebugLog.WriteLine("[HashCheckInterval] [GetSetting] Hash unchanged. Skipped updating EventConfig.");
+                            }
                         }
                         else
                         {
-                            DebugLog.WriteLine("[HashCheckInterval] [GetSetting] settingHash unchanged, bypass update EventConfig");
+                            DebugLog.WriteLine("[HashCheckInterval] [GetSetting] Server event config is null. Skipped.");
                         }
+
                     }
                     catch (Exception ex)
                     {
@@ -147,6 +161,49 @@ namespace AgileInspect
             catch (Exception ex)
             {
                 DebugLog.WriteLine($"API error: {ex.Message}");
+            }
+        }
+        public static void CleanUpEventSetting(EventConfig config)
+        {
+            if (config?.eventSettings == null) return;
+
+            foreach (var setting in config.eventSettings)
+            {
+                CleanObject(setting.eventParams);
+                CleanObject(setting.triggerParams);
+            }
+        }
+
+        private static void CleanObject(object obj)
+        {
+            if (obj == null) return;
+
+            var props = obj.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            foreach (var prop in props)
+            {
+                var value = prop.GetValue(obj);
+
+                if (value is System.Collections.ICollection collection && collection.Count == 0)
+                {
+                    prop.SetValue(obj, null);
+                    continue;
+                }
+
+                if (prop.PropertyType == typeof(string) && string.IsNullOrEmpty((string)value))
+                {
+                    prop.SetValue(obj, null);
+                    continue;
+                }
+
+                if (prop.PropertyType.IsValueType)
+                {
+                    continue;
+                }
+
+                if (prop.PropertyType.IsClass)
+                {
+                    CleanObject(value);
+                }
             }
         }
     }

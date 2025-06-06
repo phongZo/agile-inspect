@@ -1,5 +1,6 @@
 ﻿using Compunet.YoloSharp;
 using Compunet.YoloSharp.Data;
+using Compunet.YoloSharp.Plotting;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
@@ -44,7 +45,7 @@ namespace WatermarkDetectorPlugin
         {
             try
             {
-                string dllDir = Path.Combine(AppContext.BaseDirectory, pluginName);
+                string dllDir = Path.Combine(AppContext.BaseDirectory, $"dll\\{pluginName}");
                 string screenshotDir = Path.Combine(dllDir, "screenshot");
                 Directory.CreateDirectory(screenshotDir);
 
@@ -59,7 +60,7 @@ namespace WatermarkDetectorPlugin
 
                 string outputPath = Path.Combine(outputFolder, fileName);
 
-                //await Predictor.PredictAndSaveAsync(tempImagePath, outputPath);
+                await Predictor.PredictAndSaveAsync(tempImagePath, outputPath);
                 YoloResult<Detection> result = await Predictor.DetectAsync(tempImagePath);
 
                 bool isOn = result.Count > 0;

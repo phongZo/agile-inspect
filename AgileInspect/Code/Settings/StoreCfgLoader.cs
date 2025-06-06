@@ -1,10 +1,11 @@
 ﻿using System;
 using System.IO;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace AgileInspect.Code.Settings
 {
-    internal class StoreCfgLoader
+    public class StoreCfgLoader
     {
         private const string ConfigFileName = "store.cfg";
 
@@ -49,7 +50,8 @@ namespace AgileInspect.Code.Settings
 
                 var options = new JsonSerializerOptions
                 {
-                    WriteIndented = true
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
                 };
 
                 string json = JsonSerializer.Serialize(StoreCfgJson.Instance, options);
@@ -61,6 +63,32 @@ namespace AgileInspect.Code.Settings
             {
                 DebugLog.WriteLine($"Failed to save store config: {ex.Message}");
             }
+        }
+
+        public static string mapPluginNameToEventType(string pluginName)
+        {
+            if (pluginName == "WatermarkDetectorPlugin")
+            {
+                return "watermark";
+            }
+            else if (pluginName == "ServiceDetectorPlugin")
+            {
+                return "service_changed";
+            }
+            else if (pluginName == "FileChangePlugin")
+            {
+                return "file_changed";
+            }
+            else if (pluginName == "NetworkChangePlugin")
+            {
+                return "network_change";
+            }
+            else if (pluginName == "BrightnessChangePlugin")
+            {
+                return "brightness_change";
+            }
+            else
+                return "";
         }
     }
 }

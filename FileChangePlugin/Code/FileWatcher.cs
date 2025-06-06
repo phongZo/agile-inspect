@@ -175,7 +175,7 @@ namespace FileChangePlugin
                 // Dir
                 var trackedDir = GetTrackedDir(scanDir);
                 if (trackedDir == null) return;
-                
+
                 if (Directory.Exists(e.FullPath))
                 {
                     PluginContext.Log(Name, $"[FileWatcher] Directory Created: {e.FullPath}");
@@ -235,11 +235,11 @@ namespace FileChangePlugin
             if (string.IsNullOrWhiteSpace(path))
                 return false;
 
-            var eventParams = StoreCfgJson.Instance.EventSetting.EventParams;
-            if (eventParams?.Paths == null || eventParams.Paths.Length == 0)
+            var eventParams = StoreCfgJson.Instance.eventSetting.eventParams;
+            if (eventParams?.paths == null || eventParams.paths.Length == 0)
                 return false;
 
-            var scanDirs = new HashSet<string>(eventParams.Paths, StringComparer.OrdinalIgnoreCase);
+            var scanDirs = new HashSet<string>(eventParams.paths, StringComparer.OrdinalIgnoreCase);
 
             var directoriesInPath = new List<string>();
             var currentPath = path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
@@ -254,13 +254,13 @@ namespace FileChangePlugin
 
         public bool IsDetectedExtension(string filePath)
         {
-            var eventParams = StoreCfgJson.Instance.EventSetting.EventParams;
-            if (eventParams?.Filters == null || eventParams.Filters.Length == 0)
+            var eventParams = StoreCfgJson.Instance.eventSetting.eventParams;
+            if (eventParams?.filters == null || eventParams.filters.Length == 0)
                 return false;
 
             string ext = Path.GetExtension(filePath);
 
-            var extensions = eventParams.Filters
+            var extensions = eventParams.filters
                 .Select(f => f.StartsWith("*.") ? f.Substring(1) : f)
                 .ToArray();
 

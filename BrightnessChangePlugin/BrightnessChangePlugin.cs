@@ -19,7 +19,7 @@ namespace BrightnessChangePlugin
 
         public void SetParameters(string eventParamsJson, string triggerType, string triggerParamsJson)
         {
-            var setting = StoreCfgJson.Instance.EventSetting ?? new EventSetting();
+            var setting = StoreCfgJson.Instance.eventSetting ?? new EventSetting();
 
             var parsedEventParams = !string.IsNullOrWhiteSpace(eventParamsJson)
                 ? JsonSerializer.Deserialize<EventParams>(eventParamsJson)
@@ -29,25 +29,25 @@ namespace BrightnessChangePlugin
                 ? JsonSerializer.Deserialize<TriggerParams>(triggerParamsJson)
                 : null;
 
-            setting.EventParams = parsedEventParams ?? setting.EventParams;
-            setting.TriggerType = !string.IsNullOrWhiteSpace(triggerType) ? triggerType : setting.TriggerType;
-            setting.TriggerParams = parsedTriggerParams ?? setting.TriggerParams;
+            setting.eventParams = parsedEventParams ?? setting.eventParams;
+            setting.triggerType = !string.IsNullOrWhiteSpace(triggerType) ? triggerType : setting.triggerType;
+            setting.triggerParams = parsedTriggerParams ?? setting.triggerParams;
 
-            StoreCfgJson.Instance.EventSetting = setting;
+            StoreCfgJson.Instance.eventSetting = setting;
 
             PluginContext.Log(Name, $"Parameters is set ");
         }
 
         public void Start()
         {
-            var setting = StoreCfgJson.Instance.EventSetting ?? new EventSetting();
-            var triggerType = setting.TriggerType;
-            var interval = setting.TriggerParams.Interval;
+            var setting = StoreCfgJson.Instance.eventSetting ?? new EventSetting();
+            var triggerType = setting.triggerType;
+            var interval = setting.triggerParams.interval;
 
             PluginContext.Log(Name, "Start");
-            PluginContext.Log(Name, $"TriggerType: {triggerType}");
+            PluginContext.Log(Name, $"triggerType: {triggerType}");
 
-            if (triggerType.Equals("Interval", StringComparison.OrdinalIgnoreCase))
+            if (triggerType.Equals("interval", StringComparison.OrdinalIgnoreCase))
             {
                 _brightnessTimerService = new AsyncTimerService(interval * 1000, CheckBrightnessTimerCallbackAsync);
                 _brightnessTimerService.Start();
@@ -58,7 +58,7 @@ namespace BrightnessChangePlugin
             }
             else
             {
-                PluginContext.Log(Name, $"[Brightness] Unsupported TriggerType '{triggerType}', plugin will not start.");
+                PluginContext.Log(Name, $"[Brightness] Unsupported triggerType '{triggerType}', plugin will not start.");
                 return;
             }
         }
@@ -74,7 +74,7 @@ namespace BrightnessChangePlugin
 
         private async Task CheckBrightnessTimerCallbackAsync()
         {
-            PluginContext.Log(Name, "[CheckBrightness] Interval hit");
+            PluginContext.Log(Name, "[CheckBrightness] interval hit");
             await Task.Run(() => BrightnessChangeWatcher.Instance.GetCurrentBrightness());
         }
     }

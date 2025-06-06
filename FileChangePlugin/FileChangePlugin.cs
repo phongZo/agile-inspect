@@ -21,15 +21,15 @@ namespace FileChangePlugin
 
         public void Start()
         {
-            var setting = StoreCfgJson.Instance.EventSetting ?? new EventSetting();
-            var triggerType = setting.TriggerType;
-            var intervalSeconds = setting.TriggerParams.Interval;
-            var scanDirs = setting.EventParams?.Paths;
+            var setting = StoreCfgJson.Instance.eventSetting ?? new EventSetting();
+            var triggerType = setting.triggerType;
+            var intervalSeconds = setting.triggerParams.interval;
+            var scanDirs = setting.eventParams?.paths;
 
             PluginContext.Log(Name, "Start");
-            PluginContext.Log(Name, $"TriggerType: {triggerType}");
+            PluginContext.Log(Name, $"triggerType: {triggerType}");
 
-            if (triggerType.Equals("Interval", StringComparison.OrdinalIgnoreCase))
+            if (triggerType.Equals("interval", StringComparison.OrdinalIgnoreCase))
             {
                 _scanTimer = new AsyncTimerService(intervalSeconds * 1000, FileScannerTimerCallback);
                 _scanTimer.Start();
@@ -41,18 +41,18 @@ namespace FileChangePlugin
                 {
                     if (Directory.Exists(dir))
                     {
-                        PluginContext.Log(Name,$"[FileWatcher] Start watching directory: {dir}");
+                        PluginContext.Log(Name, $"[FileWatcher] Start watching directory: {dir}");
                         FileWatcher.Instance.StartWatching(dir);
                     }
                     else
                     {
-                        PluginContext.Log(Name,($"[FileWatcher] Directory does not exist: {dir}"));
+                        PluginContext.Log(Name, ($"[FileWatcher] Directory does not exist: {dir}"));
                     }
                 }
             }
             else
             {
-                PluginContext.Log(Name, $"[Trigger] Unsupported TriggerType '{triggerType}, plugin will not start.");
+                PluginContext.Log(Name, $"[Trigger] Unsupported triggerType '{triggerType}, plugin will not start.");
                 return;
             }
         }
@@ -68,7 +68,7 @@ namespace FileChangePlugin
 
         public void SetParameters(string eventParamsJson, string triggerType, string triggerParamsJson)
         {
-            var setting = StoreCfgJson.Instance.EventSetting ?? new EventSetting();
+            var setting = StoreCfgJson.Instance.eventSetting ?? new EventSetting();
 
             var parsedEventParams = !string.IsNullOrWhiteSpace(eventParamsJson)
                 ? JsonSerializer.Deserialize<EventParams>(eventParamsJson)
@@ -78,18 +78,18 @@ namespace FileChangePlugin
                 ? JsonSerializer.Deserialize<TriggerParams>(triggerParamsJson)
                 : null;
 
-            setting.EventParams = parsedEventParams ?? setting.EventParams;
-            setting.TriggerType = !string.IsNullOrWhiteSpace(triggerType) ? triggerType : setting.TriggerType;
-            setting.TriggerParams = parsedTriggerParams ?? setting.TriggerParams;
+            setting.eventParams = parsedEventParams ?? setting.eventParams;
+            setting.triggerType = !string.IsNullOrWhiteSpace(triggerType) ? triggerType : setting.triggerType;
+            setting.triggerParams = parsedTriggerParams ?? setting.triggerParams;
 
-            StoreCfgJson.Instance.EventSetting = setting;
+            StoreCfgJson.Instance.eventSetting = setting;
 
             PluginContext.Log(Name, $"Parameters is set ");
         }
 
         private async Task FileScannerTimerCallback()
         {
-            PluginContext.Log(Name, "[LogRotate] Interval hit");
+            PluginContext.Log(Name, "[LogRotate] interval hit");
             try
             {
                 await Task.Run(() => FileScanner.Instance.HandleScan());

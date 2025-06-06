@@ -10,35 +10,25 @@
         }
         #endregion
 
-        public LogRotation LogRotation { get; set; } = new LogRotation();
-        public EventSetting EventSetting { get; set; } = new EventSetting();
+        public EventSetting eventSetting { get; set; } = new EventSetting();
 
-    }
-
-    public class LogRotation
-    {
-        public bool enable { get; set; } = true;
-        public int size { get; set; } = 10 * 1024 * 1024;
-        public int rotate { get; set; } = 5;
     }
 
     public class EventSetting
     {
-        public EventParams EventParams { get; set; } = new EventParams();
-        public string TriggerType { get; set; } = "Interval";
-        public TriggerParams TriggerParams { get; set; } = new TriggerParams();
+        public EventParams eventParams { get; set; } = new EventParams();
+        public string triggerType { get; set; } = "interval";
+        public TriggerParams triggerParams { get; set; } = new TriggerParams();
     }
 
     public class EventParams
     {
-        public string[] Paths { get; set; } = [];
-        public string[] Filters { get; set; } = [];
+        public string[] paths { get; set; } = [];
+        public string[] filters { get; set; } = [];
     }
 
     public class TriggerParams
     {
-        public int Interval { get; set; } = 30;
+        public int interval { get; set; } = 30;
     }
-
-
 }

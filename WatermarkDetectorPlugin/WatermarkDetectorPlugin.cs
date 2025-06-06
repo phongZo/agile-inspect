@@ -27,42 +27,42 @@ namespace WatermarkDetectorPlugin
 
         public void SetParameters(string eventParamsJson, string triggerType, string triggerParamsJson)
         {
-            var setting = StoreCfgJson.Instance.EventSetting ?? new EventSetting();
+            var setting = StoreCfgJson.Instance.eventSetting ?? new EventSetting();
 
             if (!string.IsNullOrWhiteSpace(eventParamsJson))
             {
                 var parsedEventParams = JsonSerializer.Deserialize<EventParams>(eventParamsJson);
-                if (parsedEventParams != null) setting.EventParams = parsedEventParams;
+                if (parsedEventParams != null) setting.eventParams = parsedEventParams;
             }
 
             if (!string.IsNullOrWhiteSpace(triggerType))
             {
-                setting.TriggerType = triggerType;
+                setting.triggerType = triggerType;
             }
 
             if (!string.IsNullOrWhiteSpace(triggerParamsJson))
             {
                 var parsedTriggerParams = JsonSerializer.Deserialize<TriggerParams>(triggerParamsJson);
-                if (parsedTriggerParams != null) setting.TriggerParams = parsedTriggerParams;
+                if (parsedTriggerParams != null) setting.triggerParams = parsedTriggerParams;
             }
 
-            StoreCfgJson.Instance.EventSetting = setting;
+            StoreCfgJson.Instance.eventSetting = setting;
 
             PluginContext.Log(Name, $"Parameters is set ");
         }
 
         public void Start()
         {
-            var setting = StoreCfgJson.Instance.EventSetting ?? new EventSetting();
-            var triggerType = setting.TriggerType;
-            var intervalSeconds = setting.TriggerParams.Interval;
+            var setting = StoreCfgJson.Instance.eventSetting ?? new EventSetting();
+            var triggerType = setting.triggerType;
+            var intervalSeconds = setting.triggerParams.interval;
 
             PluginContext.Log(Name, "Start");
-            PluginContext.Log(Name, $"TriggerType: {triggerType}");
+            PluginContext.Log(Name, $"triggerType: {triggerType}");
 
-            if (!triggerType.Equals("Interval", StringComparison.OrdinalIgnoreCase))
+            if (!triggerType.Equals("interval", StringComparison.OrdinalIgnoreCase))
             {
-                PluginContext.Log(Name, $"Unsupported TriggerType '{triggerType}', fallback to Interval");
+                PluginContext.Log(Name, $"Unsupported triggerType '{triggerType}', fallback to interval");
             }
 
             _watermarkDetectorTimer = new AsyncTimerService(intervalSeconds * 1000, WatermarkDetectorCallback);
@@ -79,7 +79,7 @@ namespace WatermarkDetectorPlugin
         }
         private async Task WatermarkDetectorCallback()
         {
-            PluginContext.Log(Name, "Interval hit");
+            PluginContext.Log(Name, "interval hit");
 
             try
             {

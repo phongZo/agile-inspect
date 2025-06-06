@@ -1,4 +1,5 @@
 ﻿using AgileInspect.Code.PluginContracts;
+using AgileInspect.Code.Settings;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,7 +34,6 @@ namespace AgileInspect
 
                 if (dict == null) return;
                 logEvent(pluginName, dict);
-                //bool updated = false;
                 bool updated = true;
 
                 foreach (var kvp in dict)
@@ -44,7 +44,6 @@ namespace AgileInspect
                     if (!_latestFields.ContainsKey(key) || _latestFields[key] != value)
                     {
                         _latestFields[key] = value;
-                        //updated = true;
                     }
                 }
 
@@ -59,23 +58,7 @@ namespace AgileInspect
                 OnLog(pluginName, $"OnDetectionResult error: {ex}");
             }
         }
-        private string mapPluginNameToEventType(string pluginName)
-        {
-            if (pluginName == "WatermarkDetectorPlugin")
-            {
-                return "watermark";
-            }
-            else if (pluginName == "ServiceDetectorPlugin")
-            {
-                return "service_changed";
-            }
-            else if (pluginName == "FileChangePlugin")
-            {
-                return "file_changed";
-            }
-            else
-                return "";
-        }
+
         private async void logEvent(string pluginName, Dictionary<string, JsonElement> json)
         {
             using var client = new HttpClient();
@@ -83,9 +66,9 @@ namespace AgileInspect
             // Create the SaveEvent object
             var saveEvent = new SaveEvent
             {
-                eventType = mapPluginNameToEventType(pluginName),
+                eventType = StoreCfgLoader.mapPluginNameToEventType(pluginName),
                 clientName = MachineName.Instance.Name,
-                customerId = StoreCfgJson.Instance.CustomerID,
+                customerId = StoreCfgJson.Instance.customerID,
                 data = json
             };
             // Serialize the object to JSON
@@ -94,7 +77,7 @@ namespace AgileInspect
             var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
             // Send POST request
-            var response = await client.PostAsync(StoreCfgJson.Instance.ServerUrl + "/event-log/create", content);
+            var response = await client.PostAsync(StoreCfgJson.Instance.serverUrl + "/event-log/create", content);
 
             // Optionally read the response
             if (response.IsSuccessStatusCode)
@@ -109,25 +92,25 @@ namespace AgileInspect
         }
         private void CheckRules(string pluginName)
         {
-            var ruleSettings = StoreCfgJson.Instance.RuleConfig?.RuleSettings;
+            var ruleSettings = StoreCfgJson.Instance.ruleConfig?.ruleSettings;
             if (ruleSettings == null || ruleSettings.Count == 0) return;
 
             foreach (var rule in ruleSettings)
             {
-                if (rule.Plugins == null || !rule.Plugins.Any(p => p.Equals(pluginName, StringComparison.OrdinalIgnoreCase)))
+                if (rule.plugins == null || !rule.plugins.Any(p => p.Equals(pluginName, StringComparison.OrdinalIgnoreCase)))
                     continue;
 
                 List<string> failedConditions = new();
                 bool isMatched = true;
 
-                foreach (var cond in rule.Conditions)
+                foreach (var cond in rule.conditions)
                 {
-                    string key = cond.Field.ToLowerInvariant();
-                    string expected = cond.Expected.ToLowerInvariant();
+                    string key = cond.field.ToLowerInvariant();
+                    string expected = cond.expected.ToLowerInvariant();
 
                     if (!_latestFields.TryGetValue(key, out var actualValue) || actualValue != expected)
                     {
-                        failedConditions.Add($"{cond.Field}: expected '{expected}', actual '{actualValue ?? "null"}'");
+                        failedConditions.Add($"{cond.field}: expected '{expected}', actual '{actualValue ?? "null"}'");
                         isMatched = false;
                     }
                 }
@@ -135,20 +118,20 @@ namespace AgileInspect
                 if (!isMatched)
                 {
                     string failedStr = string.Join("; ", failedConditions);
-                    OnLog(pluginName, $"[RULE NOT MATCHED] Plugins: [{string.Join(", ", rule.Plugins)}] | Failed: {failedStr}");
+                    OnLog(pluginName, $"[RULE NOT MATCHED] Plugins: [{string.Join(", ", rule.plugins)}] | Failed: {failedStr}");
                     continue;
                 }
 
-                string conditionStr = string.Join(", ", rule.Conditions.Select(c => $"{c.Field}={c.Expected}"));
-                switch (rule.Action)
+                string conditionStr = string.Join(", ", rule.conditions.Select(c => $"{c.field}={c.expected}"));
+                switch (rule.action)
                 {
                     case "SendToServer":
-                        OnLog(pluginName, $"[RULE MATCH] Action: '{rule.Action}' | Conditions: {conditionStr}");
+                        OnLog(pluginName, $"[RULE MATCH] Action: '{rule.action}' | Conditions: {conditionStr}");
                         //RuleConditionQueueService.Instance.EnqueueMatchedConditions(rule.Plugins,rule.Conditions);
                         break;
 
                     default:
-                        OnLog(pluginName, $"[RULE] Unknown action '{rule.Action}' | Conditions: {conditionStr}");
+                        OnLog(pluginName, $"[RULE] Unknown action '{rule.action}' | Conditions: {conditionStr}");
                         break;
                 }
             }
