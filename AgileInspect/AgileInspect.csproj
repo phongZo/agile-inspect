@@ -42,21 +42,25 @@
 
     <ItemGroup>
       <MainDllFiles Include="@(PluginPublishFiles)" Condition="'%(Filename)%(Extension)' == '%(PluginName).dll'" />
-    </ItemGroup>
-
-    <ItemGroup>
       <DependencyDllFiles Include="@(PluginPublishFiles)" Condition="'%(Filename)%(Extension)' != '%(PluginName).dll'" />
     </ItemGroup>
 
+    <!-- Copy Main DLL -->
     <Copy
       SourceFiles="@(MainDllFiles)"
       DestinationFiles="@(MainDllFiles->'$(PublishDir)dll\\%(PluginName)\\%(Filename)%(Extension)')"
       SkipUnchangedFiles="true" />
 
+    <!-- Copy Dependency DLLs -->
     <Copy
       SourceFiles="@(DependencyDllFiles)"
       DestinationFiles="@(DependencyDllFiles->'$(PublishDir)dll\\%(PluginName)\\libs\\%(Filename)%(Extension)')"
       SkipUnchangedFiles="true" />
-  </Target>
 
+    <!-- Delete copied AgileInspect*.dll in libs folder -->
+    <ItemGroup>
+      <AgileInspectDllsToDelete Include="$(PublishDir)dll\**\libs\*AgileInspect*.dll" />
+    </ItemGroup>
+    <Delete Files="@(AgileInspectDllsToDelete)" />
+  </Target>
 </Project>
