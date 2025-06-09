@@ -76,14 +76,34 @@ namespace AgileInspect
                             },
                         };
                         responseData = JsonConvert.DeserializeObject<HashData>(data, jsonSerializerSettings);
-                        if (responseData.data != null && responseData.data.hash != StoreCfgJson.Instance.hash)
+
+                        if (responseData.data != null)
                         {
-                            await GetSetting(responseData.data.hash);
+                            var serverHash = responseData.data.hash;
+                            var currentHash = StoreCfgJson.Instance.hash;
+
+                            if (serverHash != currentHash)
+                            {
+                                DebugLog.WriteLine($"[GetHash] Detected new hash from server: {serverHash}. Current hash: {currentHash}");
+
+                                StoreCfgJson.Instance.hash = serverHash;
+                                StoreCfgLoader.Save();//save hash
+
+                                await GetSetting();
+                            }
+                            else
+                            {
+                                DebugLog.WriteLine($"[GetHash] Hash unchanged. Skipping GetSetting(). Hash: {serverHash}");
+                            }
+                        }
+                        else
+                        {
+                            DebugLog.WriteLine("[GetHash] Response data is null.");
                         }
                     }
                     catch (Exception ex)
                     {
-                        DebugLog.WriteLine("\nFAILED TO DESERIALIZE JSON in GetURLContents");
+                        DebugLog.WriteLine("\nFAILED TO DESERIALIZE JSON in GetHash");
                         DebugLog.WriteLine(ex.Message);
                     }
                 }
@@ -91,14 +111,14 @@ namespace AgileInspect
                 {
                     DebugLog.WriteLine($"[GetHash] Error: {response.StatusCode}, {data}");
                 }
-
             }
             catch (Exception ex)
             {
-                DebugLog.WriteLine($"API error: {ex.Message}");
+                DebugLog.WriteLine($"[GetHash] API error: {ex.Message}");
             }
         }
-        private async Task GetSetting(string hash)
+
+        private async Task GetSetting()
         {
             try
             {
@@ -127,31 +147,22 @@ namespace AgileInspect
 
                         if (serverEventConfig != null)
                         {
-                            DebugLog.WriteLine($"[HashCheckInterval] [GetSetting] serverHash: {serverEventConfig.settingHash}, localHash: {currentEventConfig.settingHash}");
+                            DebugLog.WriteLine("[HashCheckInterval] [GetSetting] Detected new config hash, applying update...");
 
-                            if (serverEventConfig.settingHash != currentEventConfig.settingHash)
-                            {
-                                DebugLog.WriteLine("[HashCheckInterval] [GetSetting] Detected new config hash, applying update...");
+                            currentEventConfig.eventSettings = [.. serverEventConfig.eventSettings];
+                            currentEventConfig.settingPullInterval = serverEventConfig.settingPullInterval;
+                            currentEventConfig.settingHash = serverEventConfig.settingHash;
 
-                                currentEventConfig.eventSettings = [.. serverEventConfig.eventSettings];
-                                currentEventConfig.settingPullInterval = serverEventConfig.settingPullInterval;
-                                currentEventConfig.settingHash = serverEventConfig.settingHash;
+                            CleanUpEventSetting(currentEventConfig);
+                            StoreCfgLoader.Save();
+                            StoreCfgLoader.Load();
 
-                                CleanUpEventSetting(currentEventConfig);
-                                StoreCfgLoader.Save();
-                                StoreCfgLoader.Load();
+                            PluginManager.Instance.LoadPlugins();
+                            PluginManager.Instance.StopAll();
+                            PluginManager.Instance.StartAll();
+                            IsConfigUpdated = true;
 
-                                PluginManager.Instance.LoadPlugins();
-                                PluginManager.Instance.StopAll();
-                                PluginManager.Instance.StartAll();
-                                IsConfigUpdated = true;
-
-                                DebugLog.WriteLine("[HashCheckInterval] [GetSetting] EventConfig updated from server. Restarting required plugins.");
-                            }
-                            else
-                            {
-                                DebugLog.WriteLine("[HashCheckInterval] [GetSetting] Hash unchanged. Skipped updating EventConfig.");
-                            }
+                            DebugLog.WriteLine("[HashCheckInterval] [GetSetting] EventConfig updated from server. Restarting required plugins.");
                         }
                         else
                         {
