@@ -19,19 +19,22 @@ namespace AgileInspect
         private Timer _timer;
         private int _intervalMs = 3000; // default 3 seconds
         private bool _isRunning;
-
+        private static readonly HttpClient client = new HttpClient();
+        public bool IsConfigUpdated = false;
         private HashCheckInterval() { }
 
-        public void Start()
+        public void Start(bool skipImmediate = false)
         {
             DebugLog.WriteLine("[HashCheckInterval] Start HashCheckInterval");
             if (_isRunning) return;
 
-            // get in config
             _intervalMs = StoreCfgJson.Instance.eventConfig.settingPullInterval > 0
-                    ? StoreCfgJson.Instance.eventConfig.settingPullInterval
-                    : _intervalMs; _timer = new Timer(async _ => await GetHash(), null, 0, _intervalMs);
+                ? StoreCfgJson.Instance.eventConfig.settingPullInterval
+                : _intervalMs;
 
+            var delay = skipImmediate ? _intervalMs : 0;
+
+            _timer = new Timer(async _ => await GetHash(), null, delay, _intervalMs);
             _isRunning = true;
         }
 
@@ -50,11 +53,10 @@ namespace AgileInspect
             }
         }
 
-        private async Task GetHash()
+        public async Task GetHash()
         {
             try
             {
-                using var client = new HttpClient();
                 var query = "customerId=" + StoreCfgJson.Instance.customerID + "&clientName=" + MachineName.Instance.Name + "&os=windows" + "&version=" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
                 var url = StoreCfgJson.Instance.serverUrl + "/client/my-hash?" + query;
                 HttpResponseMessage response = await client.GetAsync(url);
@@ -100,7 +102,6 @@ namespace AgileInspect
         {
             try
             {
-                using var client = new HttpClient();
                 var query = "customerId=" + StoreCfgJson.Instance.customerID + "&clientName=" + MachineName.Instance.Name + "&os=windows" + "&version=" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
                 var url = StoreCfgJson.Instance.serverUrl + "/client/my-settings?" + query;
                 HttpResponseMessage response = await client.GetAsync(url);
@@ -143,6 +144,7 @@ namespace AgileInspect
                                 PluginManager.Instance.LoadPlugins();
                                 PluginManager.Instance.StopAll();
                                 PluginManager.Instance.StartAll();
+                                IsConfigUpdated = true;
 
                                 DebugLog.WriteLine("[HashCheckInterval] [GetSetting] EventConfig updated from server. Restarting required plugins.");
                             }

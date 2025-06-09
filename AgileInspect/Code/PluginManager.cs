@@ -21,6 +21,8 @@ namespace AgileInspect.Code
         #endregion
         private readonly List<IAppPlugin> Plugins = new();
         public AppCallbackHandler AppCallbackHandler { get; set; } = new AppCallbackHandler();
+
+        private readonly List<IAppPlugin> _startedPlugins = new List<IAppPlugin>();
         public void LoadPlugins()
         {
             string pluginsDir = AppDomain.CurrentDomain.BaseDirectory;
@@ -97,9 +99,15 @@ namespace AgileInspect.Code
         {
             foreach (var plugin in Plugins)
             {
+                if (_startedPlugins.Contains(plugin))
+                {
+                    continue;
+                }
+
                 try
                 {
                     plugin.Start();
+                    _startedPlugins.Add(plugin);
                 }
                 catch (Exception ex)
                 {
@@ -108,17 +116,24 @@ namespace AgileInspect.Code
             }
         }
 
+
         public void StopAll()
         {
             foreach (var plugin in Plugins)
             {
+                if (!_startedPlugins.Contains(plugin))
+                {
+                    continue;
+                }
+
                 try
                 {
                     plugin.Stop();
+                    _startedPlugins.Remove(plugin);
                 }
                 catch (Exception ex)
                 {
-                    DebugLog.WriteLine($"Failed to stop plugin {plugin.GetType().FullName}: {ex.Message}");
+                    DebugLog.WriteLine($"Failed to stop plugin {plugin.Name}: {ex.Message}");
                 }
             }
         }

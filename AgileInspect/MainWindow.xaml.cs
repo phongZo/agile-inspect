@@ -21,7 +21,7 @@ namespace AgileInspect
             InitializeComponent();
         }
 
-        private void Window_Loaded(object sender, RoutedEventArgs e)
+        private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
             Hide();
             Instance = this;
@@ -33,15 +33,21 @@ namespace AgileInspect
             if (string.Equals(StoreCfgJson.Instance.deployType, "server", StringComparison.OrdinalIgnoreCase))
             {
                 DebugLog.Write("deployType is server - start HashCheckInterval.");
-                HashCheckInterval.Instance.Start();
+                await HashCheckInterval.Instance.GetHash();
+                if (!HashCheckInterval.Instance.IsConfigUpdated)
+                {
+                    PluginManager.Instance.LoadPlugins();
+                    PluginManager.Instance.StartAll();
+                }
+                HashCheckInterval.Instance.Start(skipImmediate: true);
             }
             else
             {
                 DebugLog.Write("deployType is serverless - skip HashCheckInterval.");
-
                 PluginManager.Instance.LoadPlugins();
                 PluginManager.Instance.StartAll();
             }
+
             /*
             // set timer
             _ruleConditionQueueTimerService = new AsyncTimerService(StoreCfgJson.Instance.ruleConditionQueueConfig.interval * 1000, async () =>
@@ -50,6 +56,8 @@ namespace AgileInspect
 			});
             _ruleConditionQueueTimerService.Start();
 			*/
+
+            DebugLog.Write("[EventQueueService] Start EventQueueTimer");
             _eventQueueTimerService = new AsyncTimerService(StoreCfgJson.Instance.eventQueueConfig.interval * 1000, async () =>
             {
                 await EventQueueService.Instance.SendQueueAsync();

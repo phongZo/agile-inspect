@@ -14,15 +14,6 @@ namespace WatermarkDetectorPlugin
         public void Initialize()
         {
             PluginContext.Log(Name, $"Initialize");
-            string resourceName = "WatermarkDetectorPlugin.Model.best.onnx";
-            using var modelStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName);
-            if (modelStream == null)
-            {
-                PluginContext.Log(Name, $"Model resource '{resourceName}' not found.");
-                return;
-            }
-
-            WatermarkDetector = new WatermarkDetector(modelStream);
         }
 
         public void SetParameters(string eventParamsJson, string triggerType, string triggerParamsJson)
@@ -56,6 +47,16 @@ namespace WatermarkDetectorPlugin
             var setting = StoreCfgJson.Instance.eventSetting ?? new EventSetting();
             var triggerType = setting.triggerType;
             var intervalSeconds = setting.triggerParams.interval;
+
+            string resourceName = "WatermarkDetectorPlugin.Model.best.onnx";
+            using var modelStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName);
+            if (modelStream == null)
+            {
+                PluginContext.Log(Name, $"Model resource '{resourceName}' not found.");
+                return;
+            }
+
+            WatermarkDetector = new WatermarkDetector(modelStream);
 
             PluginContext.Log(Name, "Start");
             PluginContext.Log(Name, $"triggerType: {triggerType}");
