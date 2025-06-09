@@ -131,7 +131,6 @@ namespace AgileInspect
                             if (serverEventConfig.settingHash != currentEventConfig.settingHash)
                             {
                                 DebugLog.WriteLine("[HashCheckInterval] [GetSetting] Detected new config hash, applying update...");
-                                bool isIntervalChanged = currentEventConfig.settingPullInterval != serverEventConfig.settingPullInterval;
 
                                 currentEventConfig.eventSettings = [.. serverEventConfig.eventSettings];
                                 currentEventConfig.settingPullInterval = serverEventConfig.settingPullInterval;
@@ -145,11 +144,6 @@ namespace AgileInspect
                                 PluginManager.Instance.StopAll();
                                 PluginManager.Instance.StartAll();
 
-                                if (isIntervalChanged)
-                                {
-                                    UpdateInterval(currentEventConfig.settingPullInterval * 1000);
-                                    DebugLog.WriteLine("[HashCheckInterval] [GetSetting] UPDATED timer interval.");
-                                }
                                 DebugLog.WriteLine("[HashCheckInterval] [GetSetting] EventConfig updated from server. Restarting required plugins.");
                             }
                             else
