@@ -1,4 +1,5 @@
-﻿using AgileInspect.Code.Settings;
+﻿using AgileInspect.Code;
+using AgileInspect.Code.Settings;
 using AgileInspect.Code.Settings.Response;
 using Newtonsoft.Json;
 using System;
@@ -13,6 +14,7 @@ namespace AgileInspect
     {
         private static HashCheckInterval _instance;
         public static HashCheckInterval Instance => _instance ??= new HashCheckInterval();
+        public PluginManager PluginManager { get; private set; } = new PluginManager();
 
         private Timer _timer;
         private int _intervalMs = 3000; // default 3 seconds
@@ -129,6 +131,7 @@ namespace AgileInspect
                             if (serverEventConfig.settingHash != currentEventConfig.settingHash)
                             {
                                 DebugLog.WriteLine("[HashCheckInterval] [GetSetting] Detected new config hash, applying update...");
+                                bool isIntervalChanged = currentEventConfig.settingPullInterval != serverEventConfig.settingPullInterval;
 
                                 currentEventConfig.eventSettings = [.. serverEventConfig.eventSettings];
                                 currentEventConfig.settingPullInterval = serverEventConfig.settingPullInterval;
@@ -136,8 +139,18 @@ namespace AgileInspect
 
                                 CleanUpEventSetting(currentEventConfig);
                                 StoreCfgLoader.Save();
+                                StoreCfgLoader.Load();
 
-                                DebugLog.WriteLine("[HashCheckInterval] [GetSetting] UPDATED EventConfig from server.");
+                                PluginManager.Instance.LoadPlugins();
+                                PluginManager.Instance.StopAll();
+                                PluginManager.Instance.StartAll();
+
+                                if (isIntervalChanged)
+                                {
+                                    UpdateInterval(currentEventConfig.settingPullInterval * 1000);
+                                    DebugLog.WriteLine("[HashCheckInterval] [GetSetting] UPDATED timer interval.");
+                                }
+                                DebugLog.WriteLine("[HashCheckInterval] [GetSetting] EventConfig updated from server. Restarting required plugins.");
                             }
                             else
                             {

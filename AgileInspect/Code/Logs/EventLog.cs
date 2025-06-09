@@ -21,7 +21,7 @@ namespace AgileInspect
                 Directory.CreateDirectory(folder);
                 Permission.Instance.ResetPermissionRoamingDirectory();
 
-                Filestream = new FileStream(Path.Combine(folder, "eventlog.txt"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
+                Filestream = new FileStream(Path.Combine(folder, "agileinspect_event_log.txt"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
                 StreamWriter = new StreamWriter(Filestream) { AutoFlush = true };
                 Console.SetError(StreamWriter);
 
@@ -29,7 +29,7 @@ namespace AgileInspect
             }
             catch (Exception e)
             {
-                Console.WriteLine("UNABLE TO WRITE eventlog.TXT");
+                Console.WriteLine("UNABLE TO WRITE agileinspect_event_log.TXT");
                 Console.WriteLine(e.Message);
                 CanWrite = false;
             }

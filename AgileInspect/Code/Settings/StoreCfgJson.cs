@@ -19,7 +19,12 @@ namespace AgileInspect
         public EventConfig eventConfig { get; set; } = new EventConfig();
         public RuleConfig ruleConfig { get; set; } = new RuleConfig();
         public RuleConditionQueueConfig ruleConditionQueueConfig { get; set; } = new RuleConditionQueueConfig();
+        public EventQueueConfig eventQueueConfig { get; set; } = new EventQueueConfig();
 
+    }
+    public class EventQueueConfig
+    {
+        public int interval { get; set; } = 10;
     }
     public class RuleConditionQueueConfig
     {

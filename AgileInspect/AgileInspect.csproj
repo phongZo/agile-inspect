@@ -11,6 +11,7 @@
 
     <DebugType>none</DebugType>
     <MainProjectDll>AgileInspect.dll</MainProjectDll>
+    <RootDir>$([System.IO.Path]::GetFullPath('$(SolutionDir)..'))\</RootDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DebugType>embedded</DebugType>
@@ -46,21 +47,32 @@
     </ItemGroup>
 
     <!-- Copy Main DLL -->
-    <Copy
-      SourceFiles="@(MainDllFiles)"
-      DestinationFiles="@(MainDllFiles->'$(PublishDir)dll\\%(PluginName)\\%(Filename)%(Extension)')"
-      SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(MainDllFiles)" DestinationFiles="@(MainDllFiles->'$(PublishDir)dll\\%(PluginName)\\%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
 
     <!-- Copy Dependency DLLs -->
-    <Copy
-      SourceFiles="@(DependencyDllFiles)"
-      DestinationFiles="@(DependencyDllFiles->'$(PublishDir)dll\\%(PluginName)\\libs\\%(Filename)%(Extension)')"
-      SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(DependencyDllFiles)" DestinationFiles="@(DependencyDllFiles->'$(PublishDir)dll\\%(PluginName)\\libs\\%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
 
     <!-- Delete copied AgileInspect*.dll in libs folder -->
     <ItemGroup>
       <AgileInspectDllsToDelete Include="$(PublishDir)dll\**\libs\*AgileInspect*.dll" />
     </ItemGroup>
     <Delete Files="@(AgileInspectDllsToDelete)" />
+  </Target>
+
+  <Target Name="CopyStoreCfgAfterBuild" AfterTargets="Build">
+    <Copy SourceFiles="$(RootDir)store.cfg" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true" />
+  </Target>
+
+  <Target Name="CopyStoreCfgAfterPublish" AfterTargets="Publish">
+    <Copy SourceFiles="$(RootDir)store.cfg" DestinationFolder="$(PublishDir)" SkipUnchangedFiles="true" />
+  </Target>
+  <Target Name="RemoveEmptyLibFolders" AfterTargets="CopyPluginsAfterPublish">
+    <!-- Delete all 'libs' folders that no longer contain any files (including sub-folders) -->
+    <Exec Command="
+    powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+      Get-ChildItem -Directory -Path '$(PublishDir)dll' -Recurse -Filter libs ^| ^
+      Where-Object { -not (Get-ChildItem -File -Path $_.FullName) } ^| ^
+      Remove-Item -Recurse
+  " />
   </Target>
 </Project>

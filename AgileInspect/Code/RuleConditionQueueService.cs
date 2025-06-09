@@ -12,6 +12,7 @@ public class RuleConditionQueueService
 {
     #region Singleton
     public static RuleConditionQueueService Instance { get; private set; }
+
     public RuleConditionQueueService()
     {
         Instance = this;

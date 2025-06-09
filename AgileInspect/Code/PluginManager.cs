@@ -12,11 +12,20 @@ namespace AgileInspect.Code
 {
     public class PluginManager
     {
+        #region Singleton
+        public static PluginManager Instance { get; set; }
+        public PluginManager()
+        {
+            Instance = this;
+        }
+        #endregion
         private readonly List<IAppPlugin> Plugins = new();
         public AppCallbackHandler AppCallbackHandler { get; set; } = new AppCallbackHandler();
-        public void LoadPlugins(string dir)
+        public void LoadPlugins()
         {
-            var rootPluginDir = Path.Combine(dir, "dll");
+            string pluginsDir = AppDomain.CurrentDomain.BaseDirectory;
+
+            var rootPluginDir = Path.Combine(pluginsDir, "dll");
 
             PluginContext.SetCallback(AppCallbackHandler.Instance);
 
@@ -106,7 +115,6 @@ namespace AgileInspect.Code
                 try
                 {
                     plugin.Stop();
-                    DebugLog.WriteLine($"Stopped plugin: {plugin.GetType().FullName}");
                 }
                 catch (Exception ex)
                 {
