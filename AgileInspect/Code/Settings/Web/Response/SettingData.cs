@@ -1,4 +1,4 @@
-﻿namespace AgileInspect.Code.Settings.Response
+﻿namespace AgileInspect.Code.Settings.Web.Response
 {
     class SettingData
     {

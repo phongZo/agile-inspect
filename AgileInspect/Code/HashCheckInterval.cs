@@ -1,6 +1,7 @@
 ﻿using AgileInspect.Code;
 using AgileInspect.Code.Settings;
-using AgileInspect.Code.Settings.Response;
+using AgileInspect.Code.Settings.Web;
+using AgileInspect.Code.Settings.Web.Response;
 using Newtonsoft.Json;
 using System;
 using System.Net.Http;
@@ -19,7 +20,6 @@ namespace AgileInspect
         private Timer _timer;
         private int _intervalMs = 3000; // default 3 seconds
         private bool _isRunning;
-        private static readonly HttpClient client = new HttpClient();
         public bool IsConfigUpdated = false;
         private HashCheckInterval() { }
 
@@ -57,10 +57,16 @@ namespace AgileInspect
         {
             try
             {
-                var query = "customerId=" + StoreCfgJson.Instance.customerID + "&clientName=" + MachineName.Instance.Name + "&os=windows" + "&version=" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
+                var query = "customerId=" + StoreCfgJson.Instance.customerID +
+                    "&clientName=" + MachineName.Instance.Name +
+                    "&os=windows" +
+                    "&version=" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
+
                 var url = StoreCfgJson.Instance.serverUrl + "/client/my-hash?" + query;
-                HttpResponseMessage response = await client.GetAsync(url);
+
+                var response = await SignedHttpClient.Instance.SendSignedRequestAsync(HttpMethod.Get, url);
                 string data = await response.Content.ReadAsStringAsync();
+
                 if (response.IsSuccessStatusCode)
                 {
                     HashData responseData = new HashData();
@@ -124,7 +130,8 @@ namespace AgileInspect
             {
                 var query = "customerId=" + StoreCfgJson.Instance.customerID + "&clientName=" + MachineName.Instance.Name + "&os=windows" + "&version=" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
                 var url = StoreCfgJson.Instance.serverUrl + "/client/my-settings?" + query;
-                HttpResponseMessage response = await client.GetAsync(url);
+
+                var response = await SignedHttpClient.Instance.SendSignedRequestAsync(HttpMethod.Get, url);
                 string data = await response.Content.ReadAsStringAsync();
                 if (response.IsSuccessStatusCode)
                 {
