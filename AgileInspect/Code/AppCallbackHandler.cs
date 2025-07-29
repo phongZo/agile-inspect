@@ -50,7 +50,7 @@ namespace AgileInspect
                 if (updated)
                 {
                     OnLog(pluginName, $"[CHECK RULE] Start.");
-                    CheckRules(pluginName);
+                    //CheckRules(pluginName);
                 }
             }
             catch (Exception ex)

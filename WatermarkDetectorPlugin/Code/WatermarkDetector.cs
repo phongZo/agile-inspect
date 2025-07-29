@@ -1,5 +1,4 @@
 ﻿using Compunet.YoloSharp;
-using Compunet.YoloSharp.Data;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
@@ -19,6 +18,7 @@ namespace WatermarkDetectorPlugin
 
         private readonly YoloPredictor Predictor;
         string pluginName = "WatermarkDetectorPlugin";
+        byte[] imageData = null;
 
         public WatermarkDetector(Stream modelStream)
         {
@@ -44,26 +44,16 @@ namespace WatermarkDetectorPlugin
         {
             try
             {
-                string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AgileInspect");
-
-                string screenshotDir = Path.Combine(folder, "screenshot");
-                Directory.CreateDirectory(screenshotDir);
-
-                string fileName = $"screenshot_{DateTime.Now:yyyyMMdd_HHmmss}.png";
-                string tempImagePath = Path.Combine(screenshotDir, fileName);
-
-                CapturePrimaryScreen(tempImagePath);
-                PluginContext.Log(pluginName, $"Captured screenshot: {tempImagePath}");
-
-                YoloResult<Detection> result = await Predictor.DetectAsync(tempImagePath);
+                using var bitmap = CapturePrimaryScreen();
+                imageData = ConvertBitmapToBytes(bitmap);
+                var result = await Predictor.DetectAsync(imageData);
 
                 bool isOn = result.Count > 0;
-
-                PluginContext.Log(pluginName, $"[WatermarkDetector] Done: {fileName} | Watermark detected: {(isOn ? "on" : "off")}");
+                PluginContext.Log(pluginName, $"[WatermarkDetector] Watermark detected: {(isOn ? "on" : "off")}");
 
                 var resultObj = new Dictionary<string, object>
                 {
-                    { "watermark", isOn ? "on" : "off" },
+                    { "visible", isOn ? true : false },
                 };
                 string jsonResult = JsonSerializer.Serialize(resultObj);
                 PluginContext.SendDetectionResult(pluginName, jsonResult);
@@ -74,17 +64,25 @@ namespace WatermarkDetectorPlugin
             }
         }
 
-        public static void CapturePrimaryScreen(string savePath)
+        public static Bitmap CapturePrimaryScreen()
         {
             var screenWidth = GetSystemMetrics(SystemMetric.SM_CXSCREEN);
             var screenHeight = GetSystemMetrics(SystemMetric.SM_CYSCREEN);
 
-            using var bmp = new Bitmap(screenWidth, screenHeight);
-            using var g = Graphics.FromImage(bmp);
-            g.CopyFromScreen(0, 0, 0, 0, bmp.Size);
-            bmp.Save(savePath, ImageFormat.Png);
-        }
+            var bmp = new Bitmap(screenWidth, screenHeight);
+            using (var g = Graphics.FromImage(bmp))
+            {
+                g.CopyFromScreen(0, 0, 0, 0, bmp.Size);
+            }
 
+            return bmp;
+        }
+        public static byte[] ConvertBitmapToBytes(Bitmap bitmap)
+        {
+            using var ms = new MemoryStream();
+            bitmap.Save(ms, ImageFormat.Png);
+            return ms.ToArray();
+        }
         [DllImport("user32.dll")]
         private static extern bool GetCursorPos(out Point lpPoint);
 

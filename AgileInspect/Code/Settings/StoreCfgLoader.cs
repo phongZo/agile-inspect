@@ -71,9 +71,13 @@ namespace AgileInspect.Code.Settings
             {
                 return "watermark";
             }
-            else if (pluginName == "ServiceDetectorPlugin")
+            else if (pluginName == "ProcessMonitorPlugin")
             {
-                return "service_changed";
+                return "process_monitor";
+            }
+            else if (pluginName == "ServiceMonitorPlugin")
+            {
+                return "service_monitor";
             }
             else if (pluginName == "FileChangePlugin")
             {

@@ -22,7 +22,7 @@
 
   <!--Plugin list -->
   <ItemGroup>
-    <PluginProjects Include="FileChangePlugin;NetworkChangePlugin;BrightnessChangePlugin;WatermarkDetectorPlugin;ServiceDetectorPlugin" />
+    <PluginProjects Include="FileChangePlugin;NetworkChangePlugin;BrightnessChangePlugin;WatermarkDetectorPlugin;ProcessMonitorPlugin;ServiceMonitorPlugin" />
   </ItemGroup>
 
   <Target Name="BuildPlugins" AfterTargets="Build">
@@ -58,7 +58,7 @@
     </ItemGroup>
     <Delete Files="@(AgileInspectDllsToDelete)" />
   </Target>
-
+  <!--
   <Target Name="CopyStoreCfgAfterBuild" AfterTargets="Build">
     <Copy SourceFiles="$(RootDir)store.cfg" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true" />
   </Target>
@@ -66,6 +66,7 @@
   <Target Name="CopyStoreCfgAfterPublish" AfterTargets="Publish">
     <Copy SourceFiles="$(RootDir)store.cfg" DestinationFolder="$(PublishDir)" SkipUnchangedFiles="true" />
   </Target>
+  -->
   <Target Name="RemoveEmptyLibFolders" AfterTargets="CopyPluginsAfterPublish">
     <!-- Delete all 'libs' folders that no longer contain any files (including sub-folders) -->
     <Exec Command="

@@ -1,4 +1,5 @@
-﻿namespace AgileInspect {
+﻿namespace ProcessMonitorPlugin
+{
     public class AsyncTimerService : IDisposable
     {
         private readonly System.Timers.Timer _timer;
@@ -27,7 +28,7 @@
             }
             catch (Exception ex)
             {
-                DebugLog.WriteLine($"[AsyncTimerService] Error: {ex}");
+                PluginContext.Log(GetType().Namespace, $"[AsyncTimerService] Error: {ex}");
             }
             finally
             {
@@ -52,5 +53,4 @@
             _timer?.Dispose();
         }
     }
-
 }

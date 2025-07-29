@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0-windows</TargetFramework>
@@ -12,7 +12,7 @@
   <PropertyGroup>
     <RootDir>$([System.IO.Path]::GetFullPath('$(SolutionDir)..'))</RootDir>
     <MainProjectBuildDir>$(RootDir)\AgileInspect\bin\$(Configuration)\net8.0-windows\$(RuntimeIdentifier)</MainProjectBuildDir>
-    <PluginOutputDir>$(RootDir)\AgileInspect\bin\$(Configuration)\net8.0-windows\$(RuntimeIdentifier)\dll\ServiceDetectorPlugin</PluginOutputDir>
+    <PluginOutputDir>$(RootDir)\AgileInspect\bin\$(Configuration)\net8.0-windows\$(RuntimeIdentifier)\dll\ServiceMonitorPlugin</PluginOutputDir>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
@@ -24,9 +24,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AgileInspect\AgileInspect.csproj" />
+    <PackageReference Include="System.ServiceProcess.ServiceController" Version="9.0.7" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\AgileInspect\AgileInspect.csproj" />
+  </ItemGroup>
   <Target Name="CopyPluginWithDependencies" AfterTargets="Build">
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(PluginOutputDir)" SkipUnchangedFiles="true" />
 

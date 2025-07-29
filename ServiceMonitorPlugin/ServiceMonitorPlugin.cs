@@ -1,16 +1,17 @@
 ﻿using AgileInspect.Code.PluginContracts;
-using ServiceDetectorPlugin.Code;
+using ServiceMonitoringPlugin.Code;
+using ServiceMonitorPlugin.Code;
 using System.Text.Json;
 
-namespace ServiceDetectorPlugin
+namespace ServiceMonitorPlugin
 {
-    public class ServiceDetectorPlugin : IServiceDetectorPlugin
+    public class ServiceMonitorPlugin : IServiceMonitorPlugin
     {
         private AsyncTimerService _serviceDetectorTimer;
-        public ServiceDetector ServiceDetector { get; set; } = new ServiceDetector();
+        public ServiceMonitor ServiceDetector { get; set; } = new ServiceMonitor();
         public StoreCfgJson StoreCfgJson { get; set; } = new StoreCfgJson();
 
-        public string Name => "ServiceDetectorPlugin";
+        public string Name => "ServiceMonitoringPlugin";
 
         public void Initialize()
         {
@@ -79,7 +80,7 @@ namespace ServiceDetectorPlugin
         private async Task CheckServiceTimersAsync()
         {
             PluginContext.Log(Name, "[CheckService] interval hit");
-            await Task.Run(() => ServiceDetector.Instance.CheckServices());
+            await Task.Run(() => ServiceMonitor.Instance.CheckServices());
         }
 
     }

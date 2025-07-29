@@ -1,4 +1,4 @@
-﻿namespace ServiceDetectorPlugin
+﻿namespace ServiceMonitoringPlugin.Code
 {
     public class AsyncTimerService : IDisposable
     {
@@ -28,7 +28,7 @@
             }
             catch (Exception ex)
             {
-                PluginContext.Log(GetType().Namespace,$"[AsyncTimerService] Error: {ex}");
+                PluginContext.Log(GetType().Namespace, $"[AsyncTimerService] Error: {ex}");
             }
             finally
             {

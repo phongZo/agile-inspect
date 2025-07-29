@@ -26,7 +26,10 @@
     public interface IWatermarkDetectorPlugin : IAppPlugin
     {
     }
-    public interface IServiceDetectorPlugin : IAppPlugin
+    public interface IProcessMonitorPlugin : IAppPlugin
+    {
+    }
+    public interface IServiceMonitorPlugin : IAppPlugin
     {
     }
 }
