@@ -11,6 +11,25 @@ namespace AgileInspect
             Instance = this;
         }
         #endregion
+        public static void SetCurrentStoreConfig(StoreCfgJson config)
+        {
+            Instance ??= new StoreCfgJson();
+
+            Instance.customerID = config.customerID;
+            Instance.serverUrl = config.serverUrl;
+            Instance.hash = config.hash;
+            Instance.deployType = config.deployType;
+
+            Instance.logRotation = config.logRotation ?? new LogRotation();
+            Instance.eventConfig = config.eventConfig ?? new EventConfig();
+            Instance.ruleConfig = config.ruleConfig ?? new RuleConfig();
+            Instance.ruleConditionQueueConfig = config.ruleConditionQueueConfig ?? new RuleConditionQueueConfig();
+            Instance.eventQueueConfig = config.eventQueueConfig ?? new EventQueueConfig();
+        }
+        public static StoreCfgJson GetCurrentStoreConfig()
+        {
+            return Instance;
+        }
         public string customerID { get; set; } = "60f773a842963f002e73a25b";
         public string serverUrl { get; set; } = "https://a320-171-240-159-247.ngrok-free.app";
         public string hash { get; set; } = "60f773a842963f002e73a25b";
@@ -53,8 +72,8 @@ namespace AgileInspect
     {
         public string[] paths { get; set; } = [];
         public string[] filters { get; set; } = [];
+        public string[] processes { get; set; } = [];
         public string[] services { get; set; } = [];
-
     }
 
     public class TriggerParams

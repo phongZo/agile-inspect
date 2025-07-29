@@ -21,6 +21,7 @@ namespace AgileInspect
         private int _intervalMs = 3000; // default 3 seconds
         private bool _isRunning;
         public bool IsConfigUpdated = false;
+        private string _serverHash = null;
         private HashCheckInterval() { }
 
         public void Start(bool skipImmediate = false)
@@ -85,21 +86,18 @@ namespace AgileInspect
 
                         if (responseData.data != null)
                         {
-                            var serverHash = responseData.data.hash;
+                            _serverHash = responseData.data.hash;
                             var currentHash = StoreCfgJson.Instance.hash;
 
-                            if (serverHash != currentHash)
+                            if (_serverHash != currentHash)
                             {
-                                DebugLog.WriteLine($"[GetHash] Detected new hash from server: {serverHash}. Current hash: {currentHash}");
-
-                                StoreCfgJson.Instance.hash = serverHash;
-                                StoreCfgLoader.Save();//save hash
+                                DebugLog.WriteLine($"[GetHash] Detected new hash from server: {_serverHash}. Current hash: {currentHash}");
 
                                 await GetSetting();
                             }
                             else
                             {
-                                DebugLog.WriteLine($"[GetHash] Hash unchanged. Skipping GetSetting(). Hash: {serverHash}");
+                                DebugLog.WriteLine($"[GetHash] Hash unchanged. Skipping GetSetting(). Hash: {_serverHash}");
                             }
                         }
                         else
@@ -154,6 +152,8 @@ namespace AgileInspect
 
                         if (serverEventConfig != null)
                         {
+                            var currentConfig = StoreCfgLoader.Instance.Get();
+
                             DebugLog.WriteLine("[HashCheckInterval] [GetSetting] Detected new config hash, applying update...");
 
                             currentEventConfig.eventSettings = [.. serverEventConfig.eventSettings];
@@ -161,8 +161,11 @@ namespace AgileInspect
                             currentEventConfig.settingHash = serverEventConfig.settingHash;
 
                             CleanUpEventSetting(currentEventConfig);
-                            StoreCfgLoader.Save();
-                            StoreCfgLoader.Load();
+                            currentConfig.eventConfig = currentEventConfig;
+                            DebugLog.WriteLine("[HashCheckInterval] [GetSetting] EventConfig updated from server. Restarting required plugins.");
+
+                            // SAVE to file and set current config again
+                            StoreCfgLoader.Instance.Save(currentConfig);
 
                             PluginManager.Instance.LoadPlugins();
                             PluginManager.Instance.StopAll();

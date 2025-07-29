@@ -7,6 +7,11 @@ namespace AgileInspect.Code.Settings
 {
     public class StoreCfgLoader
     {
+        #region Singleton
+
+        public static readonly StoreCfgLoader Instance = new();
+        private StoreCfgLoader() { }
+        #endregion
         private const string ConfigFileName = "store.cfg";
 
         public static void Load()
@@ -24,24 +29,24 @@ namespace AgileInspect.Code.Settings
                 }
 
                 string json = File.ReadAllText(configPath);
-                var options = new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                };
-
-                StoreCfgJson.Instance = JsonSerializer.Deserialize<StoreCfgJson>(json, options)
-                                        ?? new StoreCfgJson();
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var cfg = JsonSerializer.Deserialize<StoreCfgJson>(json, options) ?? new StoreCfgJson();
+                StoreCfgJson.SetCurrentStoreConfig(cfg);
 
                 DebugLog.WriteLine($"Loaded store config from {configPath}");
             }
             catch (Exception ex)
             {
                 DebugLog.WriteLine($"Failed to load store config: {ex.Message}");
+                var defaultConfig = new StoreCfgJson();
+                StoreCfgJson.SetCurrentStoreConfig(defaultConfig);
+                DebugLog.WriteLine($"Fallback defaut store config success");
+
                 StoreCfgJson.Instance = new StoreCfgJson(); // fallback
             }
         }
 
-        public static void Save()
+        public void Save(StoreCfgJson config)
         {
             try
             {
@@ -54,8 +59,10 @@ namespace AgileInspect.Code.Settings
                     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
                 };
 
-                string json = JsonSerializer.Serialize(StoreCfgJson.Instance, options);
+                string json = JsonSerializer.Serialize(config, options);
                 File.WriteAllText(configPath, json);
+
+                StoreCfgJson.SetCurrentStoreConfig(config);
 
                 DebugLog.WriteLine($"Saved store config to {configPath}");
             }
@@ -64,7 +71,10 @@ namespace AgileInspect.Code.Settings
                 DebugLog.WriteLine($"Failed to save store config: {ex.Message}");
             }
         }
-
+        public StoreCfgJson Get()
+        {
+            return StoreCfgJson.GetCurrentStoreConfig();
+        }
         public static string mapPluginNameToEventType(string pluginName)
         {
             if (pluginName == "WatermarkDetectorPlugin")

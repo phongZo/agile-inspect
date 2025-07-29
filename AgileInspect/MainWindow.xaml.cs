@@ -40,6 +40,13 @@ namespace AgileInspect
                     PluginManager.Instance.StartAll();
                 }
                 HashCheckInterval.Instance.Start(skipImmediate: true);
+
+                DebugLog.Write("[EventQueueService] Start EventQueueTimer");
+                _eventQueueTimerService = new AsyncTimerService(StoreCfgJson.Instance.eventQueueConfig.interval * 1000, async () =>
+                {
+                    await EventQueueService.Instance.SendQueueAsync();
+                });
+                _eventQueueTimerService.Start();
             }
             else
             {
@@ -57,12 +64,12 @@ namespace AgileInspect
             _ruleConditionQueueTimerService.Start();
 			*/
 
-            DebugLog.Write("[EventQueueService] Start EventQueueTimer");
-            _eventQueueTimerService = new AsyncTimerService(StoreCfgJson.Instance.eventQueueConfig.interval * 1000, async () =>
-            {
-                await EventQueueService.Instance.SendQueueAsync();
-            });
-            _eventQueueTimerService.Start();
+            //DebugLog.Write("[EventQueueService] Start EventQueueTimer");
+            //_eventQueueTimerService = new AsyncTimerService(StoreCfgJson.Instance.eventQueueConfig.interval * 1000, async () =>
+            //{
+            //    await EventQueueService.Instance.SendQueueAsync();
+            //});
+            //_eventQueueTimerService.Start();
 
         }
     }
