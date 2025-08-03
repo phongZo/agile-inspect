@@ -3,13 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36109.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AgileInspect", "AgileInspect.csproj", "{08AD6EE8-0138-45AC-B4B7-24E4B89F80CA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AgileInspect", "AgileInspect.csproj", "{08AD6EE8-0138-45AC-B4B7-24E4B89F80CA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WatermarkDetectorPlugin", "..\WatermarkDetectorPlugin\WatermarkDetectorPlugin.csproj", "{A087DA84-6CCE-4A14-88D6-E39EF84057AD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WatermarkDetectorPlugin", "..\WatermarkDetectorPlugin\WatermarkDetectorPlugin.csproj", "{A087DA84-6CCE-4A14-88D6-E39EF84057AD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessMonitorPlugin", "..\ProcessMonitorPlugin\ProcessMonitorPlugin.csproj", "{25784D5F-CAE9-4A2C-81BE-3F2A74F45D6A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProcessMonitorPlugin", "..\ProcessMonitorPlugin\ProcessMonitorPlugin.csproj", "{25784D5F-CAE9-4A2C-81BE-3F2A74F45D6A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceMonitorPlugin", "..\ServiceMonitorPlugin\ServiceMonitorPlugin.csproj", "{03CE061E-A2F8-4E3B-879F-999887C95459}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceMonitorPlugin", "..\ServiceMonitorPlugin\ServiceMonitorPlugin.csproj", "{03CE061E-A2F8-4E3B-879F-999887C95459}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InputMonitorPlugin", "..\InputMonitorPlugin\InputMonitorPlugin.csproj", "{CDF63005-F35E-4FD5-B06C-DE4E27C197CE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{03CE061E-A2F8-4E3B-879F-999887C95459}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{03CE061E-A2F8-4E3B-879F-999887C95459}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{03CE061E-A2F8-4E3B-879F-999887C95459}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CDF63005-F35E-4FD5-B06C-DE4E27C197CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CDF63005-F35E-4FD5-B06C-DE4E27C197CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CDF63005-F35E-4FD5-B06C-DE4E27C197CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CDF63005-F35E-4FD5-B06C-DE4E27C197CE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

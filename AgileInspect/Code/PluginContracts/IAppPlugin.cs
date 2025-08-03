@@ -32,4 +32,7 @@
     public interface IServiceMonitorPlugin : IAppPlugin
     {
     }
+    public interface IInputMonitorPlugin : IAppPlugin
+    {
+    }
 }

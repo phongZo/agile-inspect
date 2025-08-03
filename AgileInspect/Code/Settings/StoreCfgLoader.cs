@@ -85,6 +85,10 @@ namespace AgileInspect.Code.Settings
             {
                 return "process_monitor";
             }
+            else if (pluginName == "InputMonitorPlugin")
+            {
+                return "input_monitor";
+            }
             else if (pluginName == "ServiceMonitorPlugin")
             {
                 return "service_monitor";
