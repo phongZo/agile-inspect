@@ -27,10 +27,7 @@ namespace InputMonitorPlugin.Code
                 bool isScreenSaverActive = IsScreenSaverActive();
                 string currentState = isScreenSaverActive ? "activated" : "deactivated";
 
-                if (!lastState.HasValue || lastState.Value != isScreenSaverActive)
-                {
-                    PluginContext.Log(pluginName, $"[InputMonitor] Screen saver: {currentState}");
-                }
+                PluginContext.Log(pluginName, $"[InputMonitor] Screen saver: {currentState}");
 
                 lastState = isScreenSaverActive;
                 result["status"] = currentState;

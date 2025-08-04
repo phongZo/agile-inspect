@@ -1,4 +1,4 @@
-﻿namespace InputMonitorPlugin
+﻿namespace InputMonitorPlugin.Code
 {
     public class AsyncTimerService : IDisposable
     {

@@ -1,4 +1,4 @@
-﻿namespace ProcessMonitorPlugin
+﻿namespace ProcessMonitorPlugin.Code
 {
     public class AsyncTimerService : IDisposable
     {

@@ -1,4 +1,4 @@
-﻿namespace ServiceMonitoringPlugin.Code
+﻿namespace ServiceMonitorPlugin.Code
 {
     public class AsyncTimerService : IDisposable
     {
