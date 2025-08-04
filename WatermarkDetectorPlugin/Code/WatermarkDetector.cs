@@ -44,19 +44,39 @@ namespace WatermarkDetectorPlugin
         {
             try
             {
-                using var bitmap = CapturePrimaryScreen();
-                imageData = ConvertBitmapToBytes(bitmap);
-                var result = await Predictor.DetectAsync(imageData);
-
-                bool isOn = result.Count > 0;
-                PluginContext.Log(pluginName, $"[WatermarkDetector] Watermark detected: {(isOn ? "on" : "off")}");
-
-                var resultObj = new Dictionary<string, object>
+                Bitmap bitmap;
+                try
                 {
-                    { "visible", isOn ? true : false },
-                };
-                string jsonResult = JsonSerializer.Serialize(resultObj);
-                PluginContext.SendDetectionResult(pluginName, jsonResult);
+                    bitmap = CapturePrimaryScreen();
+                }
+                catch (Exception ex)
+                {
+                    PluginContext.Log(pluginName, $"[WatermarkDetector] Watermark detected: off");
+                    var resultObj = new Dictionary<string, object>
+                    {
+                        { "visible", false },
+                    };
+                    string jsonResult = JsonSerializer.Serialize(resultObj);
+                    PluginContext.SendDetectionResult(pluginName, jsonResult);
+                    return;
+                }
+
+                using (bitmap)
+                {
+                    imageData = ConvertBitmapToBytes(bitmap);
+                    var result = await Predictor.DetectAsync(imageData);
+
+                    bool isOn = result.Count > 0;
+                    PluginContext.Log(pluginName, $"[WatermarkDetector] Watermark detected: {(isOn ? "on" : "off")}");
+
+                    var resultObj = new Dictionary<string, object>
+                    {
+                        { "visible", isOn ? true : false },
+                    };
+                    string jsonResult = JsonSerializer.Serialize(resultObj);
+                    PluginContext.SendDetectionResult(pluginName, jsonResult);
+                }
+
             }
             catch (Exception ex)
             {
