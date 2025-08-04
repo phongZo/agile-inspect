@@ -74,6 +74,7 @@ namespace AgileInspect
         public string[] filters { get; set; } = [];
         public string[] processes { get; set; } = [];
         public string[] services { get; set; } = [];
+        public int activeTime { get; set; }
     }
 
     public class TriggerParams

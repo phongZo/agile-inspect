@@ -31,6 +31,7 @@
 
     public class EventParams
     {
+        public int activeTime { get; set; } = 60;
     }
 
     public class TriggerParams
