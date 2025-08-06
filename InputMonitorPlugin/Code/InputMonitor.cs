@@ -51,26 +51,7 @@ namespace InputMonitorPlugin.Code
             string jsonResult = JsonSerializer.Serialize(result);
             //PluginContext.SendDetectionResult(pluginName, jsonResult);
         }
-        #region Windows API Imports
-
-        [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        private static extern bool SystemParametersInfo(int uAction, int uParam, ref bool lpvParam, int flags);
-        [DllImport("user32.dll")]
-        private static extern bool GetLastInputInfo(ref LASTINPUTINFO plii);
-        [DllImport("kernel32.dll")]
-        private static extern uint GetTickCount();
-        [StructLayout(LayoutKind.Sequential)]
-        private struct LASTINPUTINFO
-        {
-            public static readonly int SizeOf = Marshal.SizeOf(typeof(LASTINPUTINFO));
-            [MarshalAs(UnmanagedType.U4)]
-            public int cbSize;
-            [MarshalAs(UnmanagedType.U4)]
-            public uint dwTime;
-        }
-
-        #endregion
-
+        
         private const int SPI_GETSCREENSAVERRUNNING = 0x0072;
         private const int SPI_GETSCREENSAVERACTIVE = 0x0010;
 
@@ -115,5 +96,25 @@ namespace InputMonitorPlugin.Code
 
             return 0;
         }
+
+        #region Windows API Imports
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        private static extern bool SystemParametersInfo(int uAction, int uParam, ref bool lpvParam, int flags);
+        [DllImport("user32.dll")]
+        private static extern bool GetLastInputInfo(ref LASTINPUTINFO plii);
+        [DllImport("kernel32.dll")]
+        private static extern uint GetTickCount();
+        [StructLayout(LayoutKind.Sequential)]
+        private struct LASTINPUTINFO
+        {
+            public static readonly int SizeOf = Marshal.SizeOf(typeof(LASTINPUTINFO));
+            [MarshalAs(UnmanagedType.U4)]
+            public int cbSize;
+            [MarshalAs(UnmanagedType.U4)]
+            public uint dwTime;
+        }
+
+        #endregion
     }
 }
