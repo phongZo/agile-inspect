@@ -27,19 +27,21 @@ namespace InputMonitorPlugin.Code
             {
                 bool isScreenSaverEnabled = IsScreenSaverEnabled();
                 bool isActive = false;
+                string currentState;
                 if (isScreenSaverEnabled)
                 {
                     bool isScreenSaverActive = IsScreenSaverActive();
                     isActive = isScreenSaverActive;
+                    currentState = isActive ? "activated" : "deactivated";
+                    PluginContext.Log(pluginName, $"[InputMonitor] Screen saver: {currentState}");
                 }
                 else
                 {
                     uint idleTime = GetIdleTime();
                     isActive = idleTime >= activeTime;
+                    currentState = isActive ? "logged" : "unlogged";
+                    PluginContext.Log(pluginName, $"[InputMonitor] idle time: {currentState}");
                 }
-                string currentState = isActive ? "activated" : "deactivated";
-
-                PluginContext.Log(pluginName, $"[InputMonitor] Screen saver: {currentState}");
 
                 lastState = isActive;
                 result["status"] = currentState;
