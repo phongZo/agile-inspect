@@ -105,6 +105,10 @@ namespace AgileInspect.Code.Settings
             {
                 return "brightness_change";
             }
+            else if (pluginName == "ResolutionDetectorPlugin")
+            {
+                return "resolution";
+            }
             else
                 return "";
         }

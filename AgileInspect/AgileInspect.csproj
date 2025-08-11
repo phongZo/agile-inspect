@@ -22,7 +22,7 @@
 
   <!--Plugin list -->
   <ItemGroup>
-    <PluginProjects Include="WatermarkDetectorPlugin;ProcessMonitorPlugin;ServiceMonitorPlugin;InputMonitorPlugin" />
+    <PluginProjects Include="WatermarkDetectorPlugin;ProcessMonitorPlugin;ServiceMonitorPlugin;InputMonitorPlugin;ResolutionDetectorPlugin" />
   </ItemGroup>
 
   <Target Name="BuildPlugins" AfterTargets="Build">

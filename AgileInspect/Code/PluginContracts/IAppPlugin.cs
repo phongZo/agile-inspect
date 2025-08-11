@@ -35,4 +35,7 @@
     public interface IInputMonitorPlugin : IAppPlugin
     {
     }
+    public interface IResolutionDetectorPlugin : IAppPlugin
+    {
+    }
 }
