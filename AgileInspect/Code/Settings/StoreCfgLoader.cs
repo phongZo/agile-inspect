@@ -109,6 +109,10 @@ namespace AgileInspect.Code.Settings
             {
                 return "resolution";
             }
+            else if (pluginName == "DpiDetectorPlugin")
+            {
+                return "dpi";
+            }
             else
                 return "";
         }

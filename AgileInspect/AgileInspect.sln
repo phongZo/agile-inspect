@@ -13,7 +13,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceMonitorPlugin", "..\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InputMonitorPlugin", "..\InputMonitorPlugin\InputMonitorPlugin.csproj", "{CDF63005-F35E-4FD5-B06C-DE4E27C197CE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ResolutionDetectorPlugin", "..\ResolutionDetectorPlugin\ResolutionDetectorPlugin.csproj", "{3A1C56ED-233F-4FD8-9E6E-608DB381E575}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResolutionDetectorPlugin", "..\ResolutionDetectorPlugin\ResolutionDetectorPlugin.csproj", "{3A1C56ED-233F-4FD8-9E6E-608DB381E575}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DpiDetectorPlugin", "..\DpiDetectorPlugin\DpiDetectorPlugin.csproj", "{9DB3D23C-231F-4FC4-A75F-5BAA9107659B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{3A1C56ED-233F-4FD8-9E6E-608DB381E575}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3A1C56ED-233F-4FD8-9E6E-608DB381E575}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3A1C56ED-233F-4FD8-9E6E-608DB381E575}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9DB3D23C-231F-4FC4-A75F-5BAA9107659B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9DB3D23C-231F-4FC4-A75F-5BAA9107659B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9DB3D23C-231F-4FC4-A75F-5BAA9107659B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9DB3D23C-231F-4FC4-A75F-5BAA9107659B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

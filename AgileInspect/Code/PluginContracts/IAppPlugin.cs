@@ -38,4 +38,7 @@
     public interface IResolutionDetectorPlugin : IAppPlugin
     {
     }
+    public interface IDpiDetectorPlugin : IAppPlugin
+    {
+    }
 }
