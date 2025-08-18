@@ -7,7 +7,6 @@ namespace BrightnessChangePlugin
     public class BrightnessChangePlugin : IBrightnessChangePlugin
     {
         private AsyncTimerService _brightnessTimerService;
-        public Permission Permission { get; set; } = new Permission();
         public StoreCfgJson StoreCfgJson { get; set; } = new StoreCfgJson();
         public BrightnessChangeWatcher BrightnessChangeWatcher { get; set; } = new BrightnessChangeWatcher();
         public string Name => "BrightnessChangePlugin";
