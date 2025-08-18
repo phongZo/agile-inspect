@@ -17,7 +17,6 @@ namespace ResolutionDetectorPlugin
             PluginContext.Log(Name, $"Initialize");
         }
 
-
         public void Start()
         {
 
@@ -30,22 +29,19 @@ namespace ResolutionDetectorPlugin
 
             if (triggerType.Equals("interval", StringComparison.OrdinalIgnoreCase))
             {
-                // OK, run interval
+                _timer = new AsyncTimerService(interval * 1000, CheckServiceTimersAsync);
+                _timer.Start();
             }
             else if (triggerType.Equals("realtime", StringComparison.OrdinalIgnoreCase))
             {
-                PluginContext.Log(Name, $"{Name}: realtime trigger not implemented, fallback to interval.");
+                ResolutionDetector.Instance.StartWatcher();
             }
             else
             {
                 PluginContext.Log(Name, $"{Name}: Unsupport trigger type '{triggerType}, plugin will not start.");
                 return;
             }
-
-            _timer = new AsyncTimerService(interval * 1000, CheckServiceTimersAsync);
-            _timer.Start();
         }
-
 
         public void Stop()
         {
@@ -53,6 +49,7 @@ namespace ResolutionDetectorPlugin
             _timer?.Stop();
             _timer?.Dispose();
             _timer = null;
+            ResolutionDetector.Instance.StopWatcher();
         }
 
         public void SetParameters(string eventParamsJson, string triggerType, string triggerParamsJson)
@@ -79,7 +76,7 @@ namespace ResolutionDetectorPlugin
         private async Task CheckServiceTimersAsync()
         {
             PluginContext.Log(Name, "[CheckService] interval hit");
-            await Task.Run(() => ResolutionDetector.Instance.CheckServices());
+            await Task.Run(() => ResolutionDetector.Instance.GetCurrentResolution());
         }
     }
 }
