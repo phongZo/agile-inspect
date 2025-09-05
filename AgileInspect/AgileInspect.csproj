@@ -26,13 +26,14 @@
     <DebugType>embedded</DebugType>
   </PropertyGroup>
 
-  <ItemGroup>
-  </ItemGroup>
-
   <Target Name="CopyPluginWithDependencies" AfterTargets="Build">
     <Message Importance="high" Text="TargetPath: $(TargetPath)" />
     <Message Importance="high" Text="PluginOutputDir: $(PluginOutputDir)" />
 
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(PluginOutputDir)" SkipUnchangedFiles="true" />
   </Target>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
 </Project>
