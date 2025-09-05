@@ -1,6 +1,6 @@
 ﻿using AgileInspect.Code;
 using AgileInspect.Code.Settings;
-using AgileMark.Code.Plugins.PluginContracts;
+using AgileInspect.Code.Plugins.PluginContracts;
 
 namespace AgileInspect
 {
