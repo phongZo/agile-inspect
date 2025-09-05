@@ -1,8 +1,5 @@
 ﻿using AgileInspect.Code;
 using AgileInspect.Code.PluginContracts;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
 
 namespace AgileInspect
@@ -10,14 +7,10 @@ namespace AgileInspect
     public class AppCallbackHandler : IAppCallback
     {
         #region Singleton
-        public static AppCallbackHandler Instance { get; set; }
-        public AppCallbackHandler()
-        {
-            Instance = this;
-        }
+        public static readonly AppCallbackHandler Instance = new AppCallbackHandler();
+
+        private AppCallbackHandler() { }
         #endregion
-        private RuleConditionQueueService RuleConditionQueueService { get; set; } = new RuleConditionQueueService();
-        private EventQueueService EventQueueService { get; set; } = new EventQueueService();
 
         private readonly Dictionary<string, string> _latestFields = new();
 
@@ -49,7 +42,7 @@ namespace AgileInspect
 
                 if (updated)
                 {
-                    OnLog(pluginName, $"[CHECK RULE] Start.");
+                    //OnLog(pluginName, $"[CHECK RULE] Start.");
                     //CheckRules(pluginName);
                 }
             }

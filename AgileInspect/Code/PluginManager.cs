@@ -1,9 +1,5 @@
 ﻿using AgileInspect.Code.PluginContracts;
 using AgileInspect.Code.Settings;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
 using System.Text.Json;
@@ -13,22 +9,20 @@ namespace AgileInspect.Code
     public class PluginManager
     {
         #region Singleton
-        public static PluginManager Instance { get; set; }
-        public PluginManager()
-        {
-            Instance = this;
-        }
-        #endregion
-        private readonly List<IAppPlugin> Plugins = new();
-        public AppCallbackHandler AppCallbackHandler { get; set; } = new AppCallbackHandler();
+        private static readonly PluginManager _instance = new();
+        public static PluginManager Instance => _instance;
 
-        private readonly List<IAppPlugin> _startedPlugins = new List<IAppPlugin>();
+        private PluginManager() { }
+        #endregion
+        private readonly List<IAppPlugin> Plugins = [];
+
+        private readonly List<string> _startedPlugins = [];
         public void LoadPlugins()
         {
-            string pluginsDir = AppDomain.CurrentDomain.BaseDirectory;
 
-            var rootPluginDir = Path.Combine(pluginsDir, "dll");
-
+            string exePath = Environment.ProcessPath!;
+            string baseDir = Path.GetDirectoryName(exePath)!;
+            string rootPluginDir = Path.Combine(baseDir, "inspect", "dll");
             PluginContext.SetCallback(AppCallbackHandler.Instance);
 
             if (!Directory.Exists(rootPluginDir))
@@ -43,7 +37,7 @@ namespace AgileInspect.Code
             foreach (var subDir in subDirs)
             {
                 var pluginDirName = Path.GetFileName(subDir);
-                var eventType = StoreCfgLoader.mapPluginNameToEventType(pluginDirName);
+                var eventType = StoreCfgLoader.Instance.MapPluginNameToEventType(pluginDirName);
 
                 if (string.IsNullOrEmpty(eventType))
                 {
@@ -99,7 +93,7 @@ namespace AgileInspect.Code
         {
             foreach (var plugin in Plugins)
             {
-                if (_startedPlugins.Contains(plugin))
+                if (_startedPlugins.Contains(plugin.Name))
                 {
                     continue;
                 }
@@ -107,7 +101,7 @@ namespace AgileInspect.Code
                 try
                 {
                     plugin.Start();
-                    _startedPlugins.Add(plugin);
+                    _startedPlugins.Add(plugin.Name);
                 }
                 catch (Exception ex)
                 {
@@ -116,12 +110,11 @@ namespace AgileInspect.Code
             }
         }
 
-
         public void StopAll()
         {
             foreach (var plugin in Plugins)
             {
-                if (!_startedPlugins.Contains(plugin))
+                if (!_startedPlugins.Contains(plugin.Name))
                 {
                     continue;
                 }
@@ -129,16 +122,17 @@ namespace AgileInspect.Code
                 try
                 {
                     plugin.Stop();
-                    _startedPlugins.Remove(plugin);
+                    _startedPlugins.Remove(plugin.Name);
                 }
                 catch (Exception ex)
                 {
                     DebugLog.WriteLine($"Failed to stop plugin {plugin.Name}: {ex.Message}");
                 }
             }
+
+            Plugins.Clear();
         }
 
-        public IEnumerable<T> GetPluginsOfType<T>() where T : IAppPlugin => Plugins.OfType<T>();
     }
 
     public class PluginLoadContext : AssemblyLoadContext

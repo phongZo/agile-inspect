@@ -32,13 +32,4 @@
     public interface IServiceMonitorPlugin : IAppPlugin
     {
     }
-    public interface IInputMonitorPlugin : IAppPlugin
-    {
-    }
-    public interface IResolutionDetectorPlugin : IAppPlugin
-    {
-    }
-    public interface IDpiDetectorPlugin : IAppPlugin
-    {
-    }
 }

@@ -1,16 +1,10 @@
-﻿using System.Collections.Generic;
-
-namespace AgileInspect
+﻿namespace AgileInspect
 {
     public class StoreCfgJson
     {
         #region Singleton
-        public static StoreCfgJson Instance { get; set; }
-        public StoreCfgJson()
-        {
-            Instance = this;
-        }
-        #endregion
+        public static StoreCfgJson Instance { get; private set; } = new StoreCfgJson();
+
         public static void SetCurrentStoreConfig(StoreCfgJson config)
         {
             Instance ??= new StoreCfgJson();
@@ -30,10 +24,11 @@ namespace AgileInspect
         {
             return Instance;
         }
+        #endregion
         public string customerID { get; set; } = "60f773a842963f002e73a25b";
         public string serverUrl { get; set; } = "https://a320-171-240-159-247.ngrok-free.app";
         public string hash { get; set; } = "60f773a842963f002e73a25b";
-        public string deployType { get; set; } = "serverless";
+        public string deployType { get; set; } = "server";
         public LogRotation logRotation { get; set; } = new LogRotation();
         public EventConfig eventConfig { get; set; } = new EventConfig();
         public RuleConfig ruleConfig { get; set; } = new RuleConfig();
@@ -72,9 +67,9 @@ namespace AgileInspect
     {
         public string[] paths { get; set; } = [];
         public string[] filters { get; set; } = [];
-        public string[] processes { get; set; } = [];
         public string[] services { get; set; } = [];
-        public int activeTime { get; set; }
+        public string[] processes { get; set; } = [];
+
     }
 
     public class TriggerParams

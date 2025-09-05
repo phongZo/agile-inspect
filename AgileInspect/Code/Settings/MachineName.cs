@@ -1,20 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace AgileInspect
+﻿namespace AgileInspect
 {
     public class MachineName
     {
-         #region Singleton
-        public static MachineName Instance { get; set; }
-        public MachineName()
-        {
-            Instance = this;
-        }
+        #region Singleton
+        private static readonly MachineName _instance = new MachineName();
 
+        public static MachineName Instance => _instance;
+
+        private MachineName()
+        {
+
+        }
         #endregion
 
         public string Name { get; private set; }

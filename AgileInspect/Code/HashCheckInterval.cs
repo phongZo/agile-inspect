@@ -3,26 +3,24 @@ using AgileInspect.Code.Settings;
 using AgileInspect.Code.Settings.Web;
 using AgileInspect.Code.Settings.Web.Response;
 using Newtonsoft.Json;
-using System;
-using System.Net.Http;
 using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace AgileInspect
 {
     public class HashCheckInterval
     {
+        #region Singleton
+
         private static HashCheckInterval _instance;
         public static HashCheckInterval Instance => _instance ??= new HashCheckInterval();
-        public PluginManager PluginManager { get; private set; } = new PluginManager();
+        private HashCheckInterval() { }
+        #endregion
 
         private Timer _timer;
         private int _intervalMs = 3000; // default 3 seconds
         private bool _isRunning;
         public bool IsConfigUpdated = false;
         private string _serverHash = null;
-        private HashCheckInterval() { }
 
         public void Start(bool skipImmediate = false)
         {
@@ -64,7 +62,7 @@ namespace AgileInspect
                     "&version=" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
 
                 var url = StoreCfgJson.Instance.serverUrl + "/client/my-hash?" + query;
-
+                DebugLog.WriteLine($"[GetHash] Getting HASH from server ...");
                 var response = await SignedHttpClient.Instance.SendSignedRequestAsync(HttpMethod.Get, url);
                 string data = await response.Content.ReadAsStringAsync();
 
@@ -128,7 +126,7 @@ namespace AgileInspect
             {
                 var query = "customerId=" + StoreCfgJson.Instance.customerID + "&clientName=" + MachineName.Instance.Name + "&os=windows" + "&version=" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
                 var url = StoreCfgJson.Instance.serverUrl + "/client/my-settings?" + query;
-
+                DebugLog.WriteLine($"[HashCheckInterval] [GetSetting] Getting SETTING from server ... ");
                 var response = await SignedHttpClient.Instance.SendSignedRequestAsync(HttpMethod.Get, url);
                 string data = await response.Content.ReadAsStringAsync();
                 if (response.IsSuccessStatusCode)
@@ -152,9 +150,11 @@ namespace AgileInspect
 
                         if (serverEventConfig != null)
                         {
+                            DebugLog.WriteLine("[HashCheckInterval] [GetSetting] Detected new config hash, applying update...");
+                            // GET current config
                             var currentConfig = StoreCfgLoader.Instance.Get();
 
-                            DebugLog.WriteLine("[HashCheckInterval] [GetSetting] Detected new config hash, applying update...");
+                            currentConfig.hash = _serverHash;
 
                             currentEventConfig.eventSettings = [.. serverEventConfig.eventSettings];
                             currentEventConfig.settingPullInterval = serverEventConfig.settingPullInterval;
@@ -162,17 +162,16 @@ namespace AgileInspect
 
                             CleanUpEventSetting(currentEventConfig);
                             currentConfig.eventConfig = currentEventConfig;
-                            DebugLog.WriteLine("[HashCheckInterval] [GetSetting] EventConfig updated from server. Restarting required plugins.");
 
                             // SAVE to file and set current config again
                             StoreCfgLoader.Instance.Save(currentConfig);
 
-                            PluginManager.Instance.LoadPlugins();
+                            DebugLog.WriteLine("[HashCheckInterval] [GetSetting] EventConfig updated from server. Restarting required plugins.");
+
                             PluginManager.Instance.StopAll();
+                            PluginManager.Instance.LoadPlugins();
                             PluginManager.Instance.StartAll();
                             IsConfigUpdated = true;
-
-                            DebugLog.WriteLine("[HashCheckInterval] [GetSetting] EventConfig updated from server. Restarting required plugins.");
                         }
                         else
                         {

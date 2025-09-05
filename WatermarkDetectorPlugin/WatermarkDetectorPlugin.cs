@@ -1,6 +1,7 @@
 ﻿using AgileInspect.Code.PluginContracts;
 using System.Reflection;
 using System.Text.Json;
+using WatermarkDetectorPlugin.Code.Settings.Web;
 
 namespace WatermarkDetectorPlugin
 {
@@ -8,7 +9,6 @@ namespace WatermarkDetectorPlugin
     {
         private AsyncTimerService _watermarkDetectorTimer;
         public StoreCfgJson StoreCfgJson { get; set; } = new StoreCfgJson();
-        public WatermarkDetector WatermarkDetector { get; set; } = new WatermarkDetector();
         public string Name => "WatermarkDetectorPlugin";
 
         public void Initialize()
@@ -45,7 +45,7 @@ namespace WatermarkDetectorPlugin
         public void Start()
         {
             var setting = StoreCfgJson.Instance.eventSetting ?? new EventSetting();
-            var triggerType = setting.triggerType;
+            var triggerType = setting.triggerType?.ToLowerInvariant();
             var intervalSeconds = setting.triggerParams.interval;
 
             string resourceName = "WatermarkDetectorPlugin.Model.best.onnx";
@@ -56,26 +56,35 @@ namespace WatermarkDetectorPlugin
                 return;
             }
 
-            WatermarkDetector = new WatermarkDetector(modelStream);
+            WatermarkDetector.Init(modelStream);
 
             PluginContext.Log(Name, "Start");
             PluginContext.Log(Name, $"triggerType: {triggerType}");
 
-            if (!triggerType.Equals("interval", StringComparison.OrdinalIgnoreCase))
+            switch (triggerType)
             {
-                PluginContext.Log(Name, $"Unsupported triggerType '{triggerType}', fallback to interval");
+                case "interval":
+                    _watermarkDetectorTimer = new AsyncTimerService(intervalSeconds * 1000, WatermarkDetectorCallback);
+                    _watermarkDetectorTimer.Start();
+                    break;
+
+                case "network_changed":
+                    NetworkAddressChangeWatcher.Instance.StartWatcher();
+                    break;
+
+                default:
+                    PluginContext.Log(Name, $"Unsupported triggerType '{triggerType}', fallback to interval");
+                    _watermarkDetectorTimer = new AsyncTimerService(intervalSeconds * 1000, WatermarkDetectorCallback);
+                    _watermarkDetectorTimer.Start();
+                    break;
             }
-
-            _watermarkDetectorTimer = new AsyncTimerService(intervalSeconds * 1000, WatermarkDetectorCallback);
-
-            _watermarkDetectorTimer.Start();
         }
 
         public void Stop()
         {
             _watermarkDetectorTimer?.Stop();
             _watermarkDetectorTimer?.Dispose();
-
+            NetworkAddressChangeWatcher.Instance.StopWatcher();
             PluginContext.Log(Name, "Stopped");
         }
         private async Task WatermarkDetectorCallback()
@@ -84,7 +93,7 @@ namespace WatermarkDetectorPlugin
 
             try
             {
-                await WatermarkDetector.ProcessAsync();
+                await WatermarkDetector.Instance.ProcessAsync();
             }
             catch (Exception ex)
             {

@@ -1,12 +1,8 @@
-﻿using System;
-using System.Threading.Tasks;
-using System.Timers;
-
-namespace AgileInspect
+﻿namespace AgileInspect
 {
     public class AsyncTimerService : IDisposable
     {
-        private readonly Timer _timer;
+        private readonly System.Timers.Timer _timer;
         private readonly Func<Task> _action;
         private bool _isProcessing = false;
         private readonly bool _runImmediately;
@@ -16,7 +12,7 @@ namespace AgileInspect
             _action = action ?? throw new ArgumentNullException(nameof(action));
             _runImmediately = runImmediately;
 
-            _timer = new Timer(intervalMs);
+            _timer = new System.Timers.Timer(intervalMs);
             _timer.Elapsed += async (sender, e) => await TimerElapsedAsync();
             _timer.AutoReset = true;
         }

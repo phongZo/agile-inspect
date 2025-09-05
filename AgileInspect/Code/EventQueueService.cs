@@ -1,22 +1,17 @@
 ﻿using AgileInspect.Code.Settings;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Net.Http;
+using AgileInspect.Code.Settings.Web;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace AgileInspect.Code
 {
     public class EventQueueService
     {
         #region Singleton
-        public static EventQueueService Instance { get; private set; }
+        public static readonly EventQueueService Instance = new EventQueueService();
 
-        public EventQueueService()
+        private EventQueueService()
         {
-            Instance = this;
             _filePath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "AgileInspect",
@@ -37,20 +32,21 @@ namespace AgileInspect.Code
         #endregion
 
         private readonly object _lock = new();
-        string _filePath;
+        private readonly string _filePath;
+
         public void Enqueue(string pluginName, Dictionary<string, JsonElement> json)
         {
-
             var saveEvent = new SaveEvent
             {
-                eventType = StoreCfgLoader.mapPluginNameToEventType(pluginName),
+                eventType = StoreCfgLoader.Instance.MapPluginNameToEventType(pluginName),
                 clientName = MachineName.Instance.Name,
                 customerId = StoreCfgJson.Instance.customerID,
-                data = json
+                data = json,
+                createdAt = DateTime.UtcNow
             };
 
-            var serialized = JsonSerializer.Serialize(saveEvent, new JsonSerializerOptions { WriteIndented = true });
-            EventLog.WriteLine(serialized);
+            var serialized = JsonSerializer.Serialize(saveEvent);
+            EventLog.Write(serialized);
 
             lock (_lock)
             {
@@ -59,76 +55,66 @@ namespace AgileInspect.Code
                 try
                 {
                     var content = File.ReadAllText(_filePath);
-                    queue = JsonSerializer.Deserialize<List<JsonElement>>(content) ?? new List<JsonElement>();
+                    queue = JsonSerializer.Deserialize<List<JsonElement>>(content) ?? new();
                 }
                 catch
                 {
-                    queue = new List<JsonElement>();
+                    queue = new();
                 }
 
                 using var doc = JsonDocument.Parse(serialized);
                 queue.Add(doc.RootElement.Clone());
 
                 var updatedContent = JsonSerializer.Serialize(queue, new JsonSerializerOptions { WriteIndented = true });
-                File.WriteAllText(_filePath, updatedContent);
+                SafeWriteToFile(_filePath, updatedContent);
 
                 DebugLog.WriteLine($"[EventQueueService] [Enqueue] Event added to queue. Total: {queue.Count}");
             }
-
         }
 
         public async Task SendQueueAsync()
         {
-            List<JsonElement> originalQueue;
+            List<JsonElement> queue;
 
             lock (_lock)
             {
-                if (!File.Exists(_filePath))
-                {
-                    DebugLog.WriteLine("[SendQueueAsync] Queue file does not exist.");
-                    return;
-                }
-
+                if (!File.Exists(_filePath)) return;
                 var content = File.ReadAllText(_filePath);
-                if (string.IsNullOrWhiteSpace(content))
-                {
-                    //DebugLog.WriteLine("[SendQueueAsync] Queue is empty, nothing to send.");
-                    return;
-                }
+                if (string.IsNullOrWhiteSpace(content)) return;
 
-                originalQueue = JsonSerializer.Deserialize<List<JsonElement>>(content) ?? [];
+                queue = JsonSerializer.Deserialize<List<JsonElement>>(content) ?? new();
             }
 
-            if (originalQueue.Count == 0)
-            {
-                //DebugLog.WriteLine("[SendQueueAsync] Queue is empty, nothing to send.");
-                return;
-            }
+            if (queue.Count == 0) return;
 
-            var newQueue = new List<JsonElement>();
-
-            foreach (var item in originalQueue)
+            for (int i = 0; i < queue.Count; i++)
             {
-                var json = item.GetRawText();
-                DebugLog.WriteLine($"[EventQueueService] [SendQueueAsync] Sending JSON: {json}");
+                var item = queue[i];
+                string json = item.GetRawText();
+
+                DebugLog.WriteLine("[EventQueueService] [SendQueueAsync] Try to send to server...");
 
                 bool success = await TrySendToServerAsync(json);
+
+                // save file when send success 1 queue
                 if (success)
                 {
                     DebugLog.WriteLine("[EventQueueService] [SendQueueAsync] Send success.");
+
+                    lock (_lock)
+                    {
+                        queue.RemoveAt(i);
+                        i--;
+
+                        var updatedContent = JsonSerializer.Serialize(queue, new JsonSerializerOptions { WriteIndented = true });
+                        SafeWriteToFile(_filePath, updatedContent);
+                        DebugLog.WriteLine($"[EventQueueService] [SendQueueAsync] Queue updated. Remaining: {queue.Count}");
+                    }
                 }
                 else
                 {
-                    DebugLog.WriteLine("[EventQueueService] [SendQueueAsync] Send failed. Will retry next time.");
-                    newQueue.Add(item); // Keep to retry at next interval hit
+                    DebugLog.WriteLine($"[EventQueueService] [SendQueueAsync] Send failed. Keeping item in queue. Remaining: {queue.Count}");
                 }
-            }
-
-            lock (_lock)
-            {
-                var updatedContent = JsonSerializer.Serialize(newQueue, new JsonSerializerOptions { WriteIndented = true });
-                File.WriteAllText(_filePath, updatedContent);
-                DebugLog.WriteLine($"[EventQueueService] [SendQueueAsync] Updated queue. Remaining: {newQueue.Count}");
             }
         }
 
@@ -136,16 +122,15 @@ namespace AgileInspect.Code
         {
             try
             {
-                using var client = new HttpClient();
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
+                var url = StoreCfgJson.Instance.serverUrl + "/event-log/create";
 
-                // Send POST request
-                var response = await client.PostAsync(StoreCfgJson.Instance.serverUrl + "/event-log/create", content);
+                var response = await SignedHttpClient.Instance.SendSignedRequestAsync(HttpMethod.Post, url, content);
 
                 if (response.IsSuccessStatusCode)
                 {
                     var responseString = await response.Content.ReadAsStringAsync();
-                    DebugLog.WriteLine("[EventQueueService] [TrySendToServerAsync] Success: " + responseString);
+                    DebugLog.WriteLine("[EventQueueService] [TrySendToServerAsync] Success");
                     return true;
                 }
                 else
@@ -162,5 +147,18 @@ namespace AgileInspect.Code
             }
         }
 
+        private void SafeWriteToFile(string filePath, string content)
+        {
+            try
+            {
+                var tmpPath = filePath + ".tmp";
+                File.WriteAllText(tmpPath, content);
+                File.Replace(tmpPath, filePath, null);
+            }
+            catch (Exception ex)
+            {
+                DebugLog.WriteLine($"[EventQueueService] [SafeWriteToFile] Error writing to file: {ex.Message}");
+            }
+        }
     }
 }

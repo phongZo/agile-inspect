@@ -1,21 +1,16 @@
 ﻿using AgileInspect;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 public class RuleConditionQueueService
 {
     #region Singleton
-    public static RuleConditionQueueService Instance { get; private set; }
+    private static readonly RuleConditionQueueService _instance = new RuleConditionQueueService();
 
-    public RuleConditionQueueService()
+    public static RuleConditionQueueService Instance => _instance;
+
+    private RuleConditionQueueService()
     {
-        Instance = this;
         _filePath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "AgileInspect",

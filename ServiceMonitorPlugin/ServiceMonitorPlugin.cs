@@ -1,4 +1,5 @@
 ﻿using AgileInspect.Code.PluginContracts;
+using ServiceMonitoringPlugin.Code;
 using ServiceMonitorPlugin.Code;
 using System.Text.Json;
 

@@ -1,20 +1,24 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0-windows</TargetFramework>
     <UseWPF>false</UseWPF>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <RuntimeIdentifier>win-x86</RuntimeIdentifier>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <OutputPath>bin\$(Configuration)\</OutputPath>
   </PropertyGroup>
 
   <PropertyGroup>
     <RootDir>$([System.IO.Path]::GetFullPath('$(SolutionDir)..'))</RootDir>
-    <MainProjectBuildDir>$(RootDir)\AgileInspect\bin\$(Configuration)\net8.0-windows\$(RuntimeIdentifier)</MainProjectBuildDir>
-    <PluginOutputDir>$(RootDir)\AgileInspect\bin\$(Configuration)\net8.0-windows\$(RuntimeIdentifier)\dll\ServiceMonitorPlugin</PluginOutputDir>
+    <PluginOutputDir>$(RootDir)\AgileMark\bin\$(Configuration)\net8.0-windows\$(RuntimeIdentifier)\inspect\dll\ServiceMonitorPlugin</PluginOutputDir>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Remove="Model\**" />
+    <EmbeddedResource Remove="Model\**" />
+    <None Remove="Model\**" />
+  </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <DebugType>embedded</DebugType>
   </PropertyGroup>
@@ -30,6 +34,7 @@
   <ItemGroup>
     <ProjectReference Include="..\AgileInspect\AgileInspect.csproj" />
   </ItemGroup>
+
   <Target Name="CopyPluginWithDependencies" AfterTargets="Build">
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(PluginOutputDir)" SkipUnchangedFiles="true" />
 
@@ -43,4 +48,5 @@
     </ItemGroup>
     <Delete Files="@(FilesToDelete)" />
   </Target>
+
 </Project>

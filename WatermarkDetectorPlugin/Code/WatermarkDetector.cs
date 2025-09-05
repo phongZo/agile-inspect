@@ -8,26 +8,45 @@ namespace WatermarkDetectorPlugin
 {
     public class WatermarkDetector
     {
-        #region Singleton
-        public static WatermarkDetector Instance { get; set; }
-        public WatermarkDetector()
+        private static WatermarkDetector _instance;
+        private static readonly object _lock = new();
+
+        public static WatermarkDetector Instance
         {
-            Instance = this;
+            get
+            {
+                if (_instance == null)
+                    throw new InvalidOperationException("WatermarkDetector has not been initialized.");
+                return _instance;
+            }
         }
-        #endregion
+
+        public static void Init(Stream modelStream)
+        {
+            if (_instance != null) return;
+
+            lock (_lock)
+            {
+                if (_instance == null)
+                {
+                    _instance = new WatermarkDetector(modelStream);
+                }
+            }
+        }
 
         private readonly YoloPredictor Predictor;
-        string pluginName = "WatermarkDetectorPlugin";
+        private readonly string pluginName = "WatermarkDetectorPlugin";
         byte[] imageData = null;
 
-        public WatermarkDetector(Stream modelStream)
+        private WatermarkDetector(Stream modelStream)
         {
-            // Copy stream into a temporary file to be passed to predictor
+            // Copy stream into a temporary file
             string tempPath = Path.GetTempFileName();
             using (var file = File.OpenWrite(tempPath))
             {
                 modelStream.CopyTo(file);
             }
+
             var config = new YoloConfiguration
             {
                 Confidence = 0.8f,
@@ -37,6 +56,7 @@ namespace WatermarkDetectorPlugin
             {
                 Configuration = config
             };
+
             Predictor = new YoloPredictor(tempPath, options);
         }
 
@@ -44,39 +64,19 @@ namespace WatermarkDetectorPlugin
         {
             try
             {
-                Bitmap bitmap;
-                try
+                using var bitmap = CapturePrimaryScreen();
+                imageData = ConvertBitmapToBytes(bitmap);
+                var result = await Predictor.DetectAsync(imageData);
+
+                bool isOn = result.Count > 0;
+                PluginContext.Log(pluginName, $"[WatermarkDetector] Watermark detected: {(isOn ? "on" : "off")}");
+
+                var resultObj = new Dictionary<string, object>
                 {
-                    bitmap = CapturePrimaryScreen();
-                }
-                catch (Exception ex)
-                {
-                    PluginContext.Log(pluginName, $"[WatermarkDetector] Watermark detected: off");
-                    var resultObj = new Dictionary<string, object>
-                    {
-                        { "visible", false },
-                    };
-                    string jsonResult = JsonSerializer.Serialize(resultObj);
-                    PluginContext.SendDetectionResult(pluginName, jsonResult);
-                    return;
-                }
-
-                using (bitmap)
-                {
-                    imageData = ConvertBitmapToBytes(bitmap);
-                    var result = await Predictor.DetectAsync(imageData);
-
-                    bool isOn = result.Count > 0;
-                    PluginContext.Log(pluginName, $"[WatermarkDetector] Watermark detected: {(isOn ? "on" : "off")}");
-
-                    var resultObj = new Dictionary<string, object>
-                    {
-                        { "visible", isOn ? true : false },
-                    };
-                    string jsonResult = JsonSerializer.Serialize(resultObj);
-                    PluginContext.SendDetectionResult(pluginName, jsonResult);
-                }
-
+                    { "visible", isOn ? true : false },
+                };
+                string jsonResult = JsonSerializer.Serialize(resultObj);
+                PluginContext.SendDetectionResult(pluginName, jsonResult);
             }
             catch (Exception ex)
             {
@@ -103,6 +103,8 @@ namespace WatermarkDetectorPlugin
             bitmap.Save(ms, ImageFormat.Png);
             return ms.ToArray();
         }
+
+
         [DllImport("user32.dll")]
         private static extern bool GetCursorPos(out Point lpPoint);
 

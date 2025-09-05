@@ -4,23 +4,14 @@
     <TargetFramework>net8.0-windows</TargetFramework>
     <UseWPF>false</UseWPF>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <RuntimeIdentifier>win-x86</RuntimeIdentifier>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <OutputPath>bin\$(Configuration)\</OutputPath>
   </PropertyGroup>
 
   <PropertyGroup>
     <RootDir>$([System.IO.Path]::GetFullPath('$(SolutionDir)..'))</RootDir>
-    <MainProjectBuildDir>$(RootDir)\AgileInspect\bin\$(Configuration)\net8.0-windows\$(RuntimeIdentifier)</MainProjectBuildDir>
-    <PluginOutputDir>$(RootDir)\AgileInspect\bin\$(Configuration)\net8.0-windows\$(RuntimeIdentifier)\dll\ProcessMonitorPlugin</PluginOutputDir>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <DebugType>embedded</DebugType>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <DebugType>embedded</DebugType>
+    <PluginOutputDir>$(RootDir)\AgileMark\bin\$(Configuration)\net8.0-windows\$(RuntimeIdentifier)\inspect\dll\ProcessMonitorPlugin</PluginOutputDir>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,11 +19,13 @@
     <EmbeddedResource Remove="Model\**" />
     <None Remove="Model\**" />
   </ItemGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="System.Drawing.Common" Version="9.0.5" />
-    <PackageReference Include="YoloSharp" Version="6.0.3" />
-  </ItemGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\AgileInspect\AgileInspect.csproj" />

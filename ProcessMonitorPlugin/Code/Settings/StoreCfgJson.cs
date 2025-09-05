@@ -31,6 +31,7 @@
 
     public class EventParams
     {
+        public string[] services { get; set; } = [];
         public string[] processes { get; set; } = [];
 
     }

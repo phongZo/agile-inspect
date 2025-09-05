@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Security.AccessControl;
+﻿using System.Security.AccessControl;
 using System.Security.Principal;
 
 namespace AgileInspect.Code
@@ -9,11 +6,12 @@ namespace AgileInspect.Code
     public class Permission
     {
         #region Singleton
-        public static Permission Instance { get; set; }
+        private static readonly Permission _instance = new Permission();
 
-        public Permission()
+        public static Permission Instance => _instance;
+
+        private Permission()
         {
-            Instance = this;
         }
         #endregion
 
@@ -49,7 +47,7 @@ namespace AgileInspect.Code
             }
             catch (Exception)
             {
-               
+
             }
         }
 
@@ -91,7 +89,7 @@ namespace AgileInspect.Code
             }
             catch (Exception)
             {
-                
+
             }
         }
 
@@ -143,7 +141,7 @@ namespace AgileInspect.Code
                 }
                 catch
                 {
-                    
+
                 }
             }
 

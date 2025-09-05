@@ -1,74 +1,38 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
-    <UseWPF>true</UseWPF>
-
-    <PublishSingleFile>true</PublishSingleFile>
-    <SelfContained>true</SelfContained>
-    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
-    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
-
-    <DebugType>none</DebugType>
-    <MainProjectDll>AgileInspect.dll</MainProjectDll>
-    <RootDir>$([System.IO.Path]::GetFullPath('$(SolutionDir)..'))\</RootDir>
+    <UseWPF>false</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RuntimeIdentifier>win-x86</RuntimeIdentifier>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <Configurations>Debug;Release;inspect</Configurations>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+
+  <PropertyGroup>
+    <RootDir>$([System.IO.Path]::GetFullPath('$(SolutionDir)..'))</RootDir>
+    <PluginOutputDir>$(RootDir)\AgileMark\bin\$(Configuration)\net8.0-windows\$(RuntimeIdentifier)\inspect</PluginOutputDir>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <DebugType>embedded</DebugType>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <DebugType>embedded</DebugType>
   </PropertyGroup>
 
-  <!--Plugin list -->
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='inspect|AnyCPU'">
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+
   <ItemGroup>
-    <PluginProjects Include="WatermarkDetectorPlugin;ProcessMonitorPlugin;ServiceMonitorPlugin;InputMonitorPlugin;ResolutionDetectorPlugin;DpiDetectorPlugin;BrightnessChangePlugin" />
   </ItemGroup>
 
-  <Target Name="BuildPlugins" AfterTargets="Build">
-    <MSBuild Projects="@(PluginProjects->'..\\%(Identity)\\%(Identity).csproj')" Targets="Build" />
-  </Target>
+  <Target Name="CopyPluginWithDependencies" AfterTargets="Build">
+    <Message Importance="high" Text="TargetPath: $(TargetPath)" />
+    <Message Importance="high" Text="PluginOutputDir: $(PluginOutputDir)" />
 
-  <!-- Publish plugin -->
-  <Target Name="PublishPlugins" AfterTargets="Publish">
-    <MSBuild Projects="@(PluginProjects->'..\\%(Identity)\\%(Identity).csproj')" Targets="Publish" Properties="SelfContained=false;PublishSingleFile=false" />
-  </Target>
-
-  <Target Name="CopyPluginsAfterPublish" AfterTargets="PublishPlugins">
-    <ItemGroup>
-      <PluginPublishFiles Include="..\%(PluginProjects.Identity)\bin\$(Configuration)\net8.0-windows\win-x64\publish\win-x64\**\*.dll">
-        <PluginName>%(PluginProjects.Identity)</PluginName>
-      </PluginPublishFiles>
-    </ItemGroup>
-
-    <ItemGroup>
-      <MainDllFiles Include="@(PluginPublishFiles)" Condition="'%(Filename)%(Extension)' == '%(PluginName).dll'" />
-      <DependencyDllFiles Include="@(PluginPublishFiles)" Condition="'%(Filename)%(Extension)' != '%(PluginName).dll'" />
-    </ItemGroup>
-
-    <!-- Copy Main DLL -->
-    <Copy SourceFiles="@(MainDllFiles)" DestinationFiles="@(MainDllFiles->'$(PublishDir)dll\\%(PluginName)\\%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
-
-    <!-- Copy Dependency DLLs -->
-    <Copy SourceFiles="@(DependencyDllFiles)" DestinationFiles="@(DependencyDllFiles->'$(PublishDir)dll\\%(PluginName)\\libs\\%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
-
-    <!-- Delete copied AgileInspect*.dll in libs folder -->
-    <ItemGroup>
-      <AgileInspectDllsToDelete Include="$(PublishDir)dll\**\libs\*AgileInspect*.dll" />
-    </ItemGroup>
-    <Delete Files="@(AgileInspectDllsToDelete)" />
-  </Target>
-  <!--
-  <Target Name="CopyStoreCfgAfterBuild" AfterTargets="Build">
-    <Copy SourceFiles="$(RootDir)store.cfg" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true" />
-  </Target>
-
-  <Target Name="CopyStoreCfgAfterPublish" AfterTargets="Publish">
-    <Copy SourceFiles="$(RootDir)store.cfg" DestinationFolder="$(PublishDir)" SkipUnchangedFiles="true" />
-  </Target>
-  -->
-  <Target Name="RemoveEmptyLibFolders" AfterTargets="CopyPluginsAfterPublish">
-    <!-- Delete all 'libs' folders that no longer contain any files (including sub-folders) -->
-    <Exec Command="&#xD;&#xA;    powershell -NoProfile -ExecutionPolicy Bypass -Command ^&#xD;&#xA;      Get-ChildItem -Directory -Path '$(PublishDir)dll' -Recurse -Filter libs ^| ^&#xD;&#xA;      Where-Object { -not (Get-ChildItem -File -Path $_.FullName) } ^| ^&#xD;&#xA;      Remove-Item -Recurse&#xD;&#xA;  " />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(PluginOutputDir)" SkipUnchangedFiles="true" />
   </Target>
 </Project>

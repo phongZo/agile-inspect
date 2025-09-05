@@ -18,8 +18,9 @@ namespace ServiceMonitorPlugin.Code
         {
             var setting = StoreCfgJson.Instance.eventSetting ?? new EventSetting();
             var services = setting.eventParams.services?.ToList() ?? new List<string>();
+            var processes = setting.eventParams.processes?.ToList() ?? new List<string>();
 
-            if (services.Count == 0)
+            if (processes.Count == 0 && services.Count == 0)
             {
                 PluginContext.Log(pluginName, "No services or processes specified for monitoring.");
                 return;
