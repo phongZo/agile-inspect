@@ -118,6 +118,8 @@ namespace AgileInspect.Code.Rules
                     "eq" => cmp == 0,
                     "gte" => cmp >= 0,
                     "lte" => cmp <= 0,
+                    "gt" => cmp > 0,
+                    "lt" => cmp < 0,
                     _ => false
                 };
             }
@@ -152,6 +154,8 @@ namespace AgileInspect.Code.Rules
                     case Constant.ACTION_SEND_TO_SERVER:
                         PluginContext.Log("RuleEngine", $"[RULE MATCH] Action: '{action.action}' | Conditions: {conditionStr}");
                         //RuleConditionQueueService.Instance.EnqueueMatchedConditions(rule.Plugins,rule.Conditions);
+                        break;
+                    case Constant.ACTION_AGILEMARK_UPDATE_SETTING:
                         break;
 
                     default:
