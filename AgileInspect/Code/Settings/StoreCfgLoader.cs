@@ -24,7 +24,7 @@ namespace AgileInspect.Code.Settings
         {
             string exePath = Environment.ProcessPath!;
             string baseDir = Path.GetDirectoryName(exePath)!;
-            return Path.Combine(baseDir, "inspect", ConfigFileName);
+            return Path.Combine(baseDir, ConfigFileName);
         }
 
         public StoreCfgJson Load()
