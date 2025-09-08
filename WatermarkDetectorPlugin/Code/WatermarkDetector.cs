@@ -1,4 +1,6 @@
-﻿using Compunet.YoloSharp;
+﻿using AgileInspect;
+using AgileInspect.Code.Rules;
+using Compunet.YoloSharp;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
@@ -71,6 +73,8 @@ namespace WatermarkDetectorPlugin
                 bool isOn = result.Count > 0;
                 PluginContext.Log(pluginName, $"[WatermarkDetector] Watermark detected: {(isOn ? "on" : "off")}");
 
+                RuleService.CheckRules(isOn, pluginName);
+
                 var resultObj = new Dictionary<string, object>
                 {
                     { "visible", isOn ? true : false },
@@ -103,7 +107,7 @@ namespace WatermarkDetectorPlugin
             bitmap.Save(ms, ImageFormat.Png);
             return ms.ToArray();
         }
-
+      
 
         [DllImport("user32.dll")]
         private static extern bool GetCursorPos(out Point lpPoint);

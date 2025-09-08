@@ -14,6 +14,15 @@ namespace AgileInspect.Code.Plugins
 
         private const string PluginFolderName = "inspect";
 
+        public static void Main(string[] args)
+        {
+            DebugLog.WriteLine($"[PluginManager] Starting Plugin Manager");
+
+            Instance.LoadAndRunPlugins();
+
+            DebugLog.WriteLine($"[PluginManager] Finished executing plugins");
+        }
+
         public void LoadAndRunPlugins()
         {
             string exePath = Environment.ProcessPath!;

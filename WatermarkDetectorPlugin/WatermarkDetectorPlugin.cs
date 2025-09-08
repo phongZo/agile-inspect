@@ -1,4 +1,5 @@
-﻿using AgileInspect.Code.PluginContracts;
+﻿using AgileInspect;
+using AgileInspect.Code.PluginContracts;
 using System.Reflection;
 using System.Text.Json;
 using WatermarkDetectorPlugin.Code.Settings.Web;

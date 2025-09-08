@@ -3,7 +3,11 @@ using AgileInspect.Code.Settings;
 using AgileInspect.Code.Settings.Web;
 using AgileInspect.Code.Settings.Web.Response;
 using Newtonsoft.Json;
+using System;
+using System.Net.Http;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AgileInspect
 {

@@ -1,4 +1,6 @@
-﻿namespace AgileInspect
+﻿using System;
+
+namespace AgileInspect
 {
     public class MachineName
     {

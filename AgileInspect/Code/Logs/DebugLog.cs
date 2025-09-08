@@ -1,5 +1,7 @@
 ﻿using AgileInspect.Code;
+using System;
 using System.Diagnostics;
+using System.IO;
 
 namespace AgileInspect
 {

@@ -1,4 +1,7 @@
-﻿namespace AgileInspect
+﻿using System;
+using System.Threading.Tasks;
+
+namespace AgileInspect
 {
     public class AsyncTimerService : IDisposable
     {

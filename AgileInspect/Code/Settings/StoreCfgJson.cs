@@ -1,4 +1,6 @@
-﻿namespace AgileInspect
+﻿using System.Collections.Generic;
+
+namespace AgileInspect
 {
     public class StoreCfgJson
     {
@@ -82,14 +84,21 @@
     }
     public class RuleSetting
     {
-        public List<string> plugins { get; set; } = new();
-        public List<Condition> conditions { get; set; } = new();
-        public string action { get; set; } = "none";
+        public List<List<Condition>> conditions { get; set; } = new();
+        public List<Action> actions { get; set; } = new();
     }
 
     public class Condition
     {
         public string field { get; set; }
-        public string expected { get; set; }
+        public Dictionary<string, string> fieldParams { get; set; } = new();
+        public string @operator { get; set; }   // eq, gte, lte, ...
+        public object value { get; set; }
+    }
+
+    public class Action
+    {
+        public string action { get; set; }
+        public Dictionary<string, object> @params { get; set; } = new();
     }
 }

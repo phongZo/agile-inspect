@@ -1,6 +1,11 @@
 ﻿using AgileInspect;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 public class RuleConditionQueueService
 {
@@ -33,26 +38,26 @@ public class RuleConditionQueueService
     private readonly object _lock = new();
     string _filePath;
 
-    public void EnqueueMatchedConditions(List<string> plugins, List<Condition> matchedConditions)
-    {
-        var entry = new
-        {
-            Plugins = plugins,
-            Conditions = matchedConditions.Select(c => new { c.field, c.expected })
-        };
+    //public void EnqueueMatchedConditions(List<string> plugins, List<Condition> matchedConditions)
+    //{
+    //    var entry = new
+    //    {
+    //        Plugins = plugins,
+    //        Conditions = matchedConditions.Select(c => new { c.field, c.expected })
+    //    };
 
-        lock (_lock)
-        {
-            var existing = File.ReadAllText(_filePath);
-            List<JsonElement> queue = JsonSerializer.Deserialize<List<JsonElement>>(existing);
+    //    lock (_lock)
+    //    {
+    //        var existing = File.ReadAllText(_filePath);
+    //        List<JsonElement> queue = JsonSerializer.Deserialize<List<JsonElement>>(existing);
 
-            var entryElement = JsonSerializer.SerializeToElement(entry);
-            queue.Add(entryElement);
+    //        var entryElement = JsonSerializer.SerializeToElement(entry);
+    //        queue.Add(entryElement);
 
-            var json = JsonSerializer.Serialize(queue, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(_filePath, json);
-        }
-    }
+    //        var json = JsonSerializer.Serialize(queue, new JsonSerializerOptions { WriteIndented = true });
+    //        File.WriteAllText(_filePath, json);
+    //    }
+    //}
 
     public async Task SendQueueAsync()
     {

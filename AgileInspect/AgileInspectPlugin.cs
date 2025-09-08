@@ -1,6 +1,8 @@
 ﻿using AgileInspect.Code;
 using AgileInspect.Code.Settings;
 using AgileInspect.Code.Plugins.PluginContracts;
+using System.Threading.Tasks;
+using System;
 
 namespace AgileInspect
 {
