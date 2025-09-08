@@ -1,4 +1,5 @@
 ﻿using AgileInspect.Code.Rules;
+using AgileInspect.Code.Settings;
 using Compunet.YoloSharp;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -71,7 +72,9 @@ namespace WatermarkDetectorPlugin
                     PluginContext.Log(pluginName, $"[WatermarkDetector] Watermark detected: {(isOn ? "on" : "off")}");
 
                     string value = isOn ? "ON" : "OFF";
-                    RuleService.CheckRules(value, pluginName);
+                    string eventType = StoreCfgLoader.mapPluginNameToEventType(pluginName);
+                    RuleService._latestStates[eventType] = value;
+                    RuleService.CheckRules();
 
                     var resultObj = new Dictionary<string, object>
                     {
