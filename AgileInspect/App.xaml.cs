@@ -9,7 +9,6 @@ namespace AgileInspect
     public partial class App : Application
     {
         public Permission Permission { get; set; } = new Permission();
-
         protected override void OnStartup(StartupEventArgs e)
         {
             DebugLog.Init();
