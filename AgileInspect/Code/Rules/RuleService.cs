@@ -22,7 +22,7 @@ namespace AgileInspect.Code.Rules
 
                     foreach (var condition in conditionGroup)
                     {
-                        if (!EvaluateCondition(condition, value, fieldName))
+                        if (!SatisfiedCondition(condition, value, fieldName))
                         {
                             groupMatched = false;
                             break;
@@ -31,15 +31,14 @@ namespace AgileInspect.Code.Rules
 
                     if (groupMatched)
                     {
-                        string conditionStr = string.Join(", ", conditionGroup.Select(c => $"{c.field} {c.@operator} {c.value}"));
                         ExecuteActions(rule.actions, pluginName, conditionGroup);
-                        return;
+                        continue;
                     }
                 }
             }
         }
 
-        private static bool EvaluateCondition(Condition condition, object value, string fieldName)
+        private static bool SatisfiedCondition(Condition condition, object value, string fieldName)
         {
             if (!string.Equals(condition.field, fieldName, StringComparison.OrdinalIgnoreCase))
                 return false;
