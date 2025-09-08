@@ -41,8 +41,12 @@ namespace AgileInspect.Code.Rules
             }
         }
 
-        public static void Save()
+        public static void Save(string key, object value)
         {
+            if (_latestStates.TryGetValue(key, out var oldValue) && Equals(oldValue, value))
+                return;
+            _latestStates[key] = value;
+
             try
             {
                 string basePath = AppDomain.CurrentDomain.BaseDirectory;

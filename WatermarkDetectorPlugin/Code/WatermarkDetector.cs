@@ -73,7 +73,7 @@ namespace WatermarkDetectorPlugin
 
                     string value = isOn ? "ON" : "OFF";
                     string eventType = StoreCfgLoader.mapPluginNameToEventType(pluginName);
-                    RuleService._latestStates[eventType] = value;
+                    RuleService.Save(eventType, value);
                     RuleService.CheckRules();
 
                     var resultObj = new Dictionary<string, object>
