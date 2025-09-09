@@ -4,6 +4,7 @@ using AgileInspect.Code.Settings.Web;
 using AgileInspect.Code.Settings.Web.Response;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Reflection;
 using System.Threading;
@@ -29,8 +30,8 @@ namespace AgileInspect
             DebugLog.WriteLine("[HashCheckInterval] Start HashCheckInterval");
             if (_isRunning) return;
 
-            _intervalMs = StoreCfgJson.Instance.eventConfig.settingPullInterval > 0
-                ? StoreCfgJson.Instance.eventConfig.settingPullInterval
+            _intervalMs = StoreCfgJson.Instance.settingPullInterval > 0
+                ? StoreCfgJson.Instance.settingPullInterval
                 : _intervalMs;
 
             var delay = skipImmediate ? _intervalMs : 0;
@@ -87,7 +88,7 @@ namespace AgileInspect
                         if (responseData.data != null)
                         {
                             _serverHash = responseData.data.hash;
-                            var currentHash = StoreCfgJson.Instance.hash;
+                            var currentHash = StoreCfgJson.Instance.settingHash;
 
                             if (_serverHash != currentHash)
                             {
@@ -147,21 +148,19 @@ namespace AgileInspect
                         };
                         responseData = JsonConvert.DeserializeObject<SettingData>(data, jsonSerializerSettings);
 
-                        var serverEventConfig = responseData?.data;
-                        var currentEventConfig = StoreCfgJson.Instance.eventConfig;
+                        var serverEventSettings = responseData?.data;
+                        var currentEventSettings = StoreCfgJson.Instance.eventSettings;
 
-                        if (serverEventConfig != null)
+                        if (currentEventSettings != null)
                         {
                             var currentConfig = StoreCfgLoader.Instance.Get();
 
                             DebugLog.WriteLine("[HashCheckInterval] [GetSetting] Detected new config hash, applying update...");
 
-                            currentEventConfig.eventSettings = [.. serverEventConfig.eventSettings];
-                            currentEventConfig.settingPullInterval = serverEventConfig.settingPullInterval;
-                            currentEventConfig.settingHash = serverEventConfig.settingHash;
+                            currentEventSettings = [.. serverEventSettings.eventSettings];
 
-                            CleanUpEventSetting(currentEventConfig);
-                            currentConfig.eventConfig = currentEventConfig;
+                            CleanUpEventSetting(currentEventSettings);
+                            currentConfig.eventSettings = currentEventSettings;
                             DebugLog.WriteLine("[HashCheckInterval] [GetSetting] EventConfig updated from server. Restarting required plugins.");
 
                             // SAVE to file and set current config again
@@ -193,11 +192,11 @@ namespace AgileInspect
                 DebugLog.WriteLine($"API error: {ex.Message}");
             }
         }
-        public static void CleanUpEventSetting(EventConfig config)
+        public static void CleanUpEventSetting(List<EventSetting> eventSettings)
         {
-            if (config?.eventSettings == null) return;
+            if (eventSettings == null) return;
 
-            foreach (var setting in config.eventSettings)
+            foreach (var setting in eventSettings)
             {
                 CleanObject(setting.eventParams);
                 CleanObject(setting.triggerParams);
