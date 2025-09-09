@@ -29,8 +29,8 @@ namespace AgileInspect
             DebugLog.WriteLine("[HashCheckInterval] Start HashCheckInterval");
             if (_isRunning) return;
 
-            _intervalMs = StoreCfgJson.Instance.eventConfig.settingPullInterval > 0
-                ? StoreCfgJson.Instance.eventConfig.settingPullInterval
+            _intervalMs = StoreCfgJson.Instance.settingPullInterval > 0
+                ? StoreCfgJson.Instance.settingPullInterval
                 : _intervalMs;
 
             var delay = skipImmediate ? _intervalMs : 0;
@@ -87,7 +87,7 @@ namespace AgileInspect
                         if (responseData.data != null)
                         {
                             _serverHash = responseData.data.hash;
-                            var currentHash = StoreCfgJson.Instance.hash;
+                            var currentHash = StoreCfgJson.Instance.settingHash;
 
                             if (_serverHash != currentHash)
                             {
@@ -157,8 +157,6 @@ namespace AgileInspect
                             DebugLog.WriteLine("[HashCheckInterval] [GetSetting] Detected new config hash, applying update...");
 
                             currentEventConfig.eventSettings = [.. serverEventConfig.eventSettings];
-                            currentEventConfig.settingPullInterval = serverEventConfig.settingPullInterval;
-                            currentEventConfig.settingHash = serverEventConfig.settingHash;
 
                             CleanUpEventSetting(currentEventConfig);
                             currentConfig.eventConfig = currentEventConfig;

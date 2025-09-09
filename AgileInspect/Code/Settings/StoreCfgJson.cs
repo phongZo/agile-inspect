@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace AgileInspect
 {
@@ -18,12 +17,12 @@ namespace AgileInspect
 
             Instance.customerID = config.customerID;
             Instance.serverUrl = config.serverUrl;
-            Instance.hash = config.hash;
+            Instance.settingHash = config.settingHash;
             Instance.deployType = config.deployType;
 
             Instance.logRotation = config.logRotation ?? new LogRotation();
             Instance.eventConfig = config.eventConfig ?? new EventConfig();
-            Instance.ruleConfig = config.ruleConfig ?? new RuleConfig();
+            Instance.rules = config.rules ?? new List<Rule>();
             Instance.ruleConditionQueueConfig = config.ruleConditionQueueConfig ?? new RuleConditionQueueConfig();
             Instance.eventQueueConfig = config.eventQueueConfig ?? new EventQueueConfig();
         }
@@ -33,11 +32,12 @@ namespace AgileInspect
         }
         public string customerID { get; set; } = "60f773a842963f002e73a25b";
         public string serverUrl { get; set; } = "https://a320-171-240-159-247.ngrok-free.app";
-        public string hash { get; set; } = "60f773a842963f002e73a25b";
+        public string settingHash { get; set; } = "60f773a842963f002e73a25b";
+        public int settingPullInterval { get; set; } = 30000;
         public string deployType { get; set; } = "serverless";
         public LogRotation logRotation { get; set; } = new LogRotation();
         public EventConfig eventConfig { get; set; } = new EventConfig();
-        public RuleConfig ruleConfig { get; set; } = new RuleConfig();
+        public List<Rule> rules { get; set; } = new();
         public RuleConditionQueueConfig ruleConditionQueueConfig { get; set; } = new RuleConditionQueueConfig();
         public EventQueueConfig eventQueueConfig { get; set; } = new EventQueueConfig();
 
@@ -58,8 +58,6 @@ namespace AgileInspect
     }
     public class EventConfig
     {
-        public string settingHash { get; set; } = "abc";
-        public int settingPullInterval { get; set; } = 30000;
         public List<EventSetting> eventSettings { get; set; } = new();
     }
     public class EventSetting
@@ -82,14 +80,11 @@ namespace AgileInspect
     {
         public int interval { get; set; }
     }
-    public class RuleConfig
+    public class Rule
     {
-        public List<RuleSetting> ruleSettings { get; set; } = new();
-    }
-    public class RuleSetting
-    {
+        public List<string> plugins { get; set; } = new();
         public List<List<Condition>> conditions { get; set; } = new();
-        public List<Action> actions { get; set; } = new();
+        public List<RuleAction> actions { get; set; } = new();
     }
 
     public class Condition
@@ -100,7 +95,7 @@ namespace AgileInspect
         public object value { get; set; }
     }
 
-    public class Action
+    public class RuleAction
     {
         public string action { get; set; }
         public Dictionary<string, object> @params { get; set; } = new();

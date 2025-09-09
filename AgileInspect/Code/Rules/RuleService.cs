@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 
 namespace AgileInspect.Code.Rules
@@ -21,7 +21,6 @@ namespace AgileInspect.Code.Rules
                 if (!File.Exists(lastStatePath))
                 {
                     DebugLog.WriteLine($"Last states file not found: {lastStatePath}");
-                    StoreCfgJson.Instance = new StoreCfgJson(); // fallback default
                     return;
                 }
 
@@ -36,8 +35,6 @@ namespace AgileInspect.Code.Rules
             {
                 DebugLog.WriteLine($"Failed to load last states: {ex.Message}");
                 DebugLog.WriteLine($"Fallback defaut last states success");
-
-                StoreCfgJson.Instance = new StoreCfgJson(); // fallback
             }
         }
 
@@ -70,10 +67,10 @@ namespace AgileInspect.Code.Rules
 
         public static void CheckRules()
         {
-            var ruleSettings = StoreCfgJson.Instance.ruleConfig?.ruleSettings;
-            if (ruleSettings == null || ruleSettings.Count == 0) return;
+            var rules = StoreCfgJson.Instance.rules;
+            if (rules == null || rules.Count == 0) return;
 
-            foreach (var rule in ruleSettings)
+            foreach (var rule in rules)
             {
                 foreach (var conditionGroup in rule.conditions)
                 {
@@ -143,7 +140,7 @@ namespace AgileInspect.Code.Rules
             };
         }
 
-        private static void ExecuteActions(List<Action> actions, List<Condition> conditionGroup)
+        private static void ExecuteActions(List<RuleAction> actions, List<Condition> conditionGroup)
         {
             string conditionStr = string.Join(", ", conditionGroup.Select(c => $"{c.field} {c.@operator} {c.value}"));
             foreach (var action in actions)
