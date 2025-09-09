@@ -21,7 +21,6 @@ namespace AgileInspect.Code.Rules
                 if (!File.Exists(lastStatePath))
                 {
                     DebugLog.WriteLine($"Last states file not found: {lastStatePath}");
-                    StoreCfgJson.Instance = new StoreCfgJson(); // fallback default
                     return;
                 }
 
@@ -35,9 +34,6 @@ namespace AgileInspect.Code.Rules
             catch (Exception ex)
             {
                 DebugLog.WriteLine($"Failed to load last states: {ex.Message}");
-                DebugLog.WriteLine($"Fallback defaut last states success");
-
-                StoreCfgJson.Instance = new StoreCfgJson(); // fallback
             }
         }
 
