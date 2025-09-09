@@ -103,37 +103,9 @@ namespace AgileInspect.Code.Settings
             {
                 return "watermark";
             }
-            else if (pluginName == "ProcessMonitorPlugin")
-            {
-                return "process_monitor";
-            }
-            else if (pluginName == "InputMonitorPlugin")
-            {
-                return "input_monitor";
-            }
-            else if (pluginName == "ServiceMonitorPlugin")
-            {
-                return "service_monitor";
-            }
-            else if (pluginName == "FileChangePlugin")
-            {
-                return "file_changed";
-            }
-            else if (pluginName == "NetworkChangePlugin")
-            {
-                return "network_change";
-            }
             else if (pluginName == "BrightnessChangePlugin")
             {
                 return "brightness_change";
-            }
-            else if (pluginName == "ResolutionDetectorPlugin")
-            {
-                return "resolution";
-            }
-            else if (pluginName == "DpiDetectorPlugin")
-            {
-                return "dpi";
             }
             else
                 return "";

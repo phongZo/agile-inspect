@@ -14,31 +14,10 @@
         void Stop();
         void SetParameters(string eventParamsJson, string triggerType, string triggerParamsJson);
     }
-    public interface IFileChangePlugin : IAppPlugin
-    {
-    }
-    public interface INetworkChangePlugin : IAppPlugin
-    {
-    }
     public interface IBrightnessChangePlugin : IAppPlugin
     {
     }
     public interface IWatermarkDetectorPlugin : IAppPlugin
-    {
-    }
-    public interface IProcessMonitorPlugin : IAppPlugin
-    {
-    }
-    public interface IServiceMonitorPlugin : IAppPlugin
-    {
-    }
-    public interface IInputMonitorPlugin : IAppPlugin
-    {
-    }
-    public interface IResolutionDetectorPlugin : IAppPlugin
-    {
-    }
-    public interface IDpiDetectorPlugin : IAppPlugin
     {
     }
 }
