@@ -29,7 +29,7 @@ namespace AgileInspect
             DebugLog.Write("", false);
             DebugLog.Write("--------AgileInspect Start-------");
             MachineName.Instance.UpdateName();
-            StoreCfgLoader.Load();
+            StoreCfgLoader.Instance.Load();
             if (string.Equals(StoreCfgJson.Instance.deployType, "server", StringComparison.OrdinalIgnoreCase))
             {
                 DebugLog.Write("deployType is server - start HashCheckInterval.");

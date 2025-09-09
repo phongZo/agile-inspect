@@ -12,37 +12,58 @@ namespace AgileInspect.Code.Settings
         public static readonly StoreCfgLoader Instance = new();
         private StoreCfgLoader() { }
         #endregion
-        private const string ConfigFileName = "store.cfg";
-
-        public static void Load()
+        private const string ConfigFileName = "inspect_store.cfg";
+        private string GetRoamingConfigPath()
         {
+            string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AgileInspect");
+            Directory.CreateDirectory(folder); // ensure folder exists
+            return Path.Combine(folder, ConfigFileName);
+        }
+
+        private string GetExeConfigPath()
+        {
+            string exePath = Environment.ProcessPath!;
+            string baseDir = Path.GetDirectoryName(exePath)!;
+            return Path.Combine(baseDir, ConfigFileName);
+        }
+
+        public StoreCfgJson Load()
+        {
+            string roamingPath = GetRoamingConfigPath();
+            string exePath = GetExeConfigPath();
+
             try
             {
-                string basePath = AppDomain.CurrentDomain.BaseDirectory;
-                string configPath = Path.Combine(basePath, ConfigFileName);
+                string configPath = File.Exists(roamingPath) ? roamingPath : exePath;
 
                 if (!File.Exists(configPath))
                 {
-                    DebugLog.WriteLine($"Config file not found: {configPath}");
-                    StoreCfgJson.Instance = new StoreCfgJson(); // fallback default
-                    return;
+                    DebugLog.WriteLine($"Config file not found at either location: {roamingPath}, {exePath}");
+
+                    var defaultConfig = new StoreCfgJson();
+                    Save(defaultConfig);
+                    StoreCfgJson.SetCurrentStoreConfig(defaultConfig);
+                    return defaultConfig;
                 }
 
                 string json = File.ReadAllText(configPath);
                 var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
                 var cfg = JsonSerializer.Deserialize<StoreCfgJson>(json, options) ?? new StoreCfgJson();
-                StoreCfgJson.SetCurrentStoreConfig(cfg);
 
+                StoreCfgJson.SetCurrentStoreConfig(cfg);
                 DebugLog.WriteLine($"Loaded store config from {configPath}");
+                return cfg;
             }
             catch (Exception ex)
             {
                 DebugLog.WriteLine($"Failed to load store config: {ex.Message}");
+
+                // fallback default config
                 var defaultConfig = new StoreCfgJson();
                 StoreCfgJson.SetCurrentStoreConfig(defaultConfig);
                 DebugLog.WriteLine($"Fallback defaut store config success");
 
-                StoreCfgJson.Instance = new StoreCfgJson(); // fallback
+                return defaultConfig;
             }
         }
 
