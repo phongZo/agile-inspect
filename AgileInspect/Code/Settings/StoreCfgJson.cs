@@ -21,7 +21,7 @@ namespace AgileInspect
             Instance.deployType = config.deployType;
 
             Instance.logRotation = config.logRotation ?? new LogRotation();
-            Instance.eventConfig = config.eventConfig ?? new EventConfig();
+            Instance.eventSettings = config.eventSettings ?? new List<EventSetting>();
             Instance.rules = config.rules ?? new List<Rule>();
             Instance.ruleConditionQueueConfig = config.ruleConditionQueueConfig ?? new RuleConditionQueueConfig();
             Instance.eventQueueConfig = config.eventQueueConfig ?? new EventQueueConfig();
@@ -36,7 +36,7 @@ namespace AgileInspect
         public int settingPullInterval { get; set; } = 30000;
         public string deployType { get; set; } = "serverless";
         public LogRotation logRotation { get; set; } = new LogRotation();
-        public EventConfig eventConfig { get; set; } = new EventConfig();
+        public List<EventSetting> eventSettings { get; set; } = new();
         public List<Rule> rules { get; set; } = new();
         public RuleConditionQueueConfig ruleConditionQueueConfig { get; set; } = new RuleConditionQueueConfig();
         public EventQueueConfig eventQueueConfig { get; set; } = new EventQueueConfig();
