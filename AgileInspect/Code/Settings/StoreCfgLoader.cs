@@ -67,6 +67,7 @@ namespace AgileInspect.Code.Settings
             }
         }
 
+
         public void Save(StoreCfgJson config)
         {
             try

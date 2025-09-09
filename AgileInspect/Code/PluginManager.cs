@@ -37,7 +37,7 @@ namespace AgileInspect.Code
                 return;
             }
 
-            var settings = StoreCfgJson.Instance.eventConfig.eventSettings;
+            var settings = StoreCfgJson.Instance.eventSettings;
             var subDirs = Directory.GetDirectories(rootPluginDir);
 
             foreach (var subDir in subDirs)
