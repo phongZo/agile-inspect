@@ -10,17 +10,23 @@ namespace AgileInspect.Code.Rules
     {
         public static Dictionary<string, object> _latestStates = new();
         private const string ConfigFileName = "event_last_state_log.json";
+        private static string GetRoamingConfigPath()
+        {
+            string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AgileInspect");
+            Directory.CreateDirectory(folder); // ensure folder exists
+            return Path.Combine(folder, ConfigFileName);
+        }
 
         public static void Load()
         {
             try
             {
-                string basePath = AppDomain.CurrentDomain.BaseDirectory;
-                string lastStatePath = Path.Combine(basePath, ConfigFileName);
+                string lastStatePath = GetRoamingConfigPath();
 
                 if (!File.Exists(lastStatePath))
                 {
-                    DebugLog.WriteLine($"Last states file not found: {lastStatePath}");
+                    File.Create(lastStatePath).Dispose();
+                    DebugLog.WriteLine($"Created new last states file at {lastStatePath}");
                     return;
                 }
 
@@ -34,7 +40,6 @@ namespace AgileInspect.Code.Rules
             catch (Exception ex)
             {
                 DebugLog.WriteLine($"Failed to load last states: {ex.Message}");
-                DebugLog.WriteLine($"Fallback defaut last states success");
             }
         }
 
@@ -46,8 +51,7 @@ namespace AgileInspect.Code.Rules
 
             try
             {
-                string basePath = AppDomain.CurrentDomain.BaseDirectory;
-                string lastStatePath = Path.Combine(basePath, ConfigFileName);
+                string lastStatePath = GetRoamingConfigPath();
 
                 var options = new JsonSerializerOptions
                 {
