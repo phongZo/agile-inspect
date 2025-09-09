@@ -43,7 +43,7 @@ public class RuleConditionQueueService
         var entry = new
         {
             Plugins = plugins,
-            Conditions = matchedConditions.Select(c => new { c.field, c.expected })
+            Conditions = matchedConditions.Select(c => new { c.field, c.value })
         };
 
         lock (_lock)

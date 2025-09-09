@@ -1,5 +1,4 @@
-﻿namespace ProcessMonitorPlugin
-{
+﻿namespace BrightnessChangePlugin {
     public class AsyncTimerService : IDisposable
     {
         private readonly System.Timers.Timer _timer;
@@ -53,4 +52,5 @@
             _timer?.Dispose();
         }
     }
+
 }

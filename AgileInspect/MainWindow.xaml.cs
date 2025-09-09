@@ -1,4 +1,5 @@
 ﻿using AgileInspect.Code;
+using AgileInspect.Code.Rules;
 using AgileInspect.Code.Settings;
 using System;
 using System.Windows;
@@ -30,6 +31,7 @@ namespace AgileInspect
             DebugLog.Write("--------AgileInspect Start-------");
             MachineName.Instance.UpdateName();
             StoreCfgLoader.Instance.Load();
+            RuleService.Load();
             if (string.Equals(StoreCfgJson.Instance.deployType, "server", StringComparison.OrdinalIgnoreCase))
             {
                 DebugLog.Write("deployType is server - start HashCheckInterval.");

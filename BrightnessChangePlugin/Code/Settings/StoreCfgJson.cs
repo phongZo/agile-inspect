@@ -1,4 +1,4 @@
-﻿namespace ServiceMonitorPlugin
+﻿namespace BrightnessChangePlugin
 {
     public class StoreCfgJson
     {
@@ -31,12 +31,10 @@
 
     public class EventParams
     {
-        public string[] services { get; set; } = [];
-
     }
 
     public class TriggerParams
     {
-        public int interval { get; set; } = 30;
+        public int interval { get; set; } = 10;
     }
 }

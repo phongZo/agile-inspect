@@ -22,7 +22,7 @@
 
   <!--Plugin list -->
   <ItemGroup>
-    <PluginProjects Include="WatermarkDetectorPlugin;ProcessMonitorPlugin;ServiceMonitorPlugin" />
+    <PluginProjects Include="WatermarkDetectorPlugin;BrightnessChangePlugin" />
   </ItemGroup>
 
   <Target Name="BuildPlugins" AfterTargets="Build">
@@ -69,11 +69,6 @@
   -->
   <Target Name="RemoveEmptyLibFolders" AfterTargets="CopyPluginsAfterPublish">
     <!-- Delete all 'libs' folders that no longer contain any files (including sub-folders) -->
-    <Exec Command="
-    powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-      Get-ChildItem -Directory -Path '$(PublishDir)dll' -Recurse -Filter libs ^| ^
-      Where-Object { -not (Get-ChildItem -File -Path $_.FullName) } ^| ^
-      Remove-Item -Recurse
-  " />
+    <Exec Command="&#xD;&#xA;    powershell -NoProfile -ExecutionPolicy Bypass -Command ^&#xD;&#xA;      Get-ChildItem -Directory -Path '$(PublishDir)dll' -Recurse -Filter libs ^| ^&#xD;&#xA;      Where-Object { -not (Get-ChildItem -File -Path $_.FullName) } ^| ^&#xD;&#xA;      Remove-Item -Recurse&#xD;&#xA;  " />
   </Target>
 </Project>
