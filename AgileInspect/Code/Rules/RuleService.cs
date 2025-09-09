@@ -25,7 +25,7 @@ namespace AgileInspect.Code.Rules
 
                 if (!File.Exists(lastStatePath))
                 {
-                    File.WriteAllText(lastStatePath, "{}");
+                    File.Create(lastStatePath).Dispose();
                     DebugLog.WriteLine($"Created new last states file at {lastStatePath}");
                     return;
                 }
