@@ -82,7 +82,6 @@ namespace AgileInspect
     }
     public class Rule
     {
-        public List<string> plugins { get; set; } = new();
         public List<List<Condition>> conditions { get; set; } = new();
         public List<RuleAction> actions { get; set; } = new();
     }
