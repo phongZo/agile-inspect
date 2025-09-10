@@ -49,18 +49,14 @@ namespace AgileInspect.Code
             }
             catch (Exception)
             {
-               
+
             }
         }
 
         public void ResetPermissionRoamingDirectory()
         {
-            string folder = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "FileChangePlugin"
-            );
-
-            ResetPermissionFolder(folder);
+            string Folder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\AgileInspect\\";
+            ResetPermissionFolder(Folder);
         }
 
         public void ResetPermissionFolder(string folder)
@@ -91,7 +87,7 @@ namespace AgileInspect.Code
             }
             catch (Exception)
             {
-                
+
             }
         }
 
@@ -143,7 +139,7 @@ namespace AgileInspect.Code
                 }
                 catch
                 {
-                    
+
                 }
             }
 

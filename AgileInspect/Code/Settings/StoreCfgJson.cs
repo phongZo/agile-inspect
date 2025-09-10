@@ -56,10 +56,7 @@ namespace AgileInspect
         public int size { get; set; } = 10 * 1024 * 1024;
         public int rotate { get; set; } = 5;
     }
-    public class EventConfig
-    {
-        public List<EventSetting> eventSettings { get; set; } = new();
-    }
+
     public class EventSetting
     {
         public string eventType { get; set; } // Plugin Name
@@ -73,7 +70,7 @@ namespace AgileInspect
         public string[] filters { get; set; } = [];
         public string[] processes { get; set; } = [];
         public string[] services { get; set; } = [];
-        public int activeTime { get; set; }
+        public int? activeTime { get; set; }
     }
 
     public class TriggerParams
@@ -82,7 +79,6 @@ namespace AgileInspect
     }
     public class Rule
     {
-        public List<string> plugins { get; set; } = new();
         public List<List<Condition>> conditions { get; set; } = new();
         public List<RuleAction> actions { get; set; } = new();
     }

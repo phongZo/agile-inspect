@@ -127,69 +127,57 @@ namespace AgileInspect
         {
             try
             {
-                var query = "customerId=" + StoreCfgJson.Instance.customerID + "&clientName=" + MachineName.Instance.Name + "&os=windows" + "&version=" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
-                var url = StoreCfgJson.Instance.serverUrl + "/client/my-settings?" + query;
+                var query = $"customerId={StoreCfgJson.Instance.customerID}" +
+                            $"&clientName={MachineName.Instance.Name}" +
+                            $"&os=windows&version={System.Reflection.Assembly.GetExecutingAssembly().GetName().Version}";
+                var url = $"{StoreCfgJson.Instance.serverUrl}/client/my-settings?{query}";
 
                 var response = await SignedHttpClient.Instance.SendSignedRequestAsync(HttpMethod.Get, url);
-                string data = await response.Content.ReadAsStringAsync();
-                if (response.IsSuccessStatusCode)
+                if (!response.IsSuccessStatusCode)
                 {
-                    SettingData responseData = new SettingData();
-                    try
-                    {
-                        var jsonSerializerSettings = new JsonSerializerSettings()
-                        {
-                            Error = (sender, errorEventArgs) =>
-                            {
-                                //You can use your "jsonString" here
-                                var error = errorEventArgs;
-                                Console.WriteLine(error);
-                            },
-                        };
-                        responseData = JsonConvert.DeserializeObject<SettingData>(data, jsonSerializerSettings);
-
-                        var serverEventSettings = responseData?.data;
-                        var currentEventSettings = StoreCfgJson.Instance.eventSettings;
-
-                        if (currentEventSettings != null)
-                        {
-                            var currentConfig = StoreCfgLoader.Instance.Get();
-
-                            DebugLog.WriteLine("[HashCheckInterval] [GetSetting] Detected new config hash, applying update...");
-
-                            currentEventSettings = [.. serverEventSettings.eventSettings];
-
-                            CleanUpEventSetting(currentEventSettings);
-                            currentConfig.eventSettings = currentEventSettings;
-                            DebugLog.WriteLine("[HashCheckInterval] [GetSetting] EventConfig updated from server. Restarting required plugins.");
-
-                            // SAVE to file and set current config again
-                            StoreCfgLoader.Instance.Save(currentConfig);
-
-                            PluginManager.Instance.LoadPlugins();
-                            PluginManager.Instance.StopAll();
-                            PluginManager.Instance.StartAll();
-                            IsConfigUpdated = true;
-
-                            DebugLog.WriteLine("[HashCheckInterval] [GetSetting] EventConfig updated from server. Restarting required plugins.");
-                        }
-                        else
-                        {
-                            DebugLog.WriteLine("[HashCheckInterval] [GetSetting] Server event config is null. Skipped.");
-                        }
-
-                    }
-                    catch (Exception ex)
-                    {
-                        DebugLog.WriteLine("\nFAILED TO DESERIALIZE JSON in GetURLContents");
-                        DebugLog.WriteLine(ex.Message);
-                    }
+                    DebugLog.WriteLine($"[GetSetting] Server response failed: {response.StatusCode}");
+                    return;
                 }
 
+                var data = await response.Content.ReadAsStringAsync();
+                var responseData = JsonConvert.DeserializeObject<SettingData>(data, new JsonSerializerSettings
+                {
+                    Error = (s, e) => DebugLog.WriteLine($"[GetSetting] JSON error: {e.ErrorContext.Error.Message}")
+                });
+
+                var serverSettings = responseData?.data;
+                if (serverSettings == null)
+                {
+                    DebugLog.WriteLine("[GetSetting] Server event config is null. Skipped.");
+                    return;
+                }
+
+                var currentConfig = StoreCfgLoader.Instance.Get();
+                DebugLog.WriteLine("[GetSetting] Detected new config hash, applying update...");
+
+                // Update setting
+                currentConfig.eventSettings = [.. serverSettings.eventSettings];
+                currentConfig.rules = serverSettings.rules;
+                currentConfig.settingHash = serverSettings.settingHash;
+
+                // Update interval
+                if (serverSettings.settingPullInterval != _intervalMs)
+                    UpdateInterval(serverSettings.settingPullInterval);
+
+                CleanUpEventSetting(currentConfig.eventSettings);
+                StoreCfgLoader.Instance.Save(currentConfig);
+
+                // Restart plugin
+                PluginManager.Instance.LoadPlugins();
+                PluginManager.Instance.StopAll();
+                PluginManager.Instance.StartAll();
+
+                IsConfigUpdated = true;
+                DebugLog.WriteLine("[GetSetting] EventConfig updated from server. Plugins restarted.");
             }
             catch (Exception ex)
             {
-                DebugLog.WriteLine($"API error: {ex.Message}");
+                DebugLog.WriteLine($"[GetSetting] API error: {ex.Message}");
             }
         }
         public static void CleanUpEventSetting(List<EventSetting> eventSettings)
