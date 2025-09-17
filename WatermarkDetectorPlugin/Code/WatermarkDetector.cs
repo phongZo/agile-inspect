@@ -127,35 +127,11 @@ namespace WatermarkDetectorPlugin
             return bmp;
         }
 
-        public static Bitmap CapturePrimaryScreen()
-        {
-            var screenWidth = GetSystemMetrics(SystemMetric.SM_CXSCREEN);
-            var screenHeight = GetSystemMetrics(SystemMetric.SM_CYSCREEN);
-
-            var bmp = new Bitmap(screenWidth, screenHeight);
-            using (var g = Graphics.FromImage(bmp))
-            {
-                g.CopyFromScreen(0, 0, 0, 0, bmp.Size);
-            }
-
-            return bmp;
-        }
         public static byte[] ConvertBitmapToBytes(Bitmap bitmap)
         {
             using var ms = new MemoryStream();
             bitmap.Save(ms, ImageFormat.Png);
             return ms.ToArray();
-        }
-        [DllImport("user32.dll")]
-        private static extern bool GetCursorPos(out Point lpPoint);
-
-        [DllImport("user32.dll")]
-        private static extern int GetSystemMetrics(SystemMetric smIndex);
-
-        private enum SystemMetric
-        {
-            SM_CXSCREEN = 0,
-            SM_CYSCREEN = 1,
         }
 
         private delegate bool MonitorEnumProc(IntPtr hMonitor, IntPtr hdcMonitor, ref RECT lprcMonitor, IntPtr dwData);
@@ -183,7 +159,5 @@ namespace WatermarkDetectorPlugin
             [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
             public string szDevice;
         }
-
-        const int MONITORINFOF_PRIMARY = 0x00000001;
     }
 }
