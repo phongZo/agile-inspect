@@ -48,7 +48,7 @@ namespace WatermarkDetectorPlugin
             var triggerType = setting.triggerType;
             var intervalSeconds = setting.triggerParams.interval;
 
-            string resourceName = "WatermarkDetectorPlugin.Model.best.onnx";
+            string resourceName = "WatermarkDetectorPlugin.Model.windows.onnx";
             using var modelStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName);
             if (modelStream == null)
             {

@@ -4,7 +4,6 @@ using AgileInspect.Code.Settings.Web;
 using AgileInspect.Code.Settings.Web.Response;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Reflection;
 using System.Threading;
@@ -148,23 +147,23 @@ namespace AgileInspect
                         };
                         responseData = JsonConvert.DeserializeObject<SettingData>(data, jsonSerializerSettings);
 
-                        var serverEventSettings = responseData?.data;
-                        var currentEventSettings = StoreCfgJson.Instance.eventSettings;
+                        var serverEventConfig = responseData?.data;
+                        var currentEventConfig = StoreCfgJson.Instance;
 
-                        if (currentEventSettings != null)
+                        if (serverEventConfig != null)
                         {
-                            var currentConfig = StoreCfgLoader.Instance.Get();
 
                             DebugLog.WriteLine("[HashCheckInterval] [GetSetting] Detected new config hash, applying update...");
 
-                            currentEventSettings = [.. serverEventSettings.eventSettings];
+                            currentEventConfig.eventSettings = [.. serverEventConfig.eventSettings];
+                            currentEventConfig.settingPullInterval = serverEventConfig.settingPullInterval;
+                            currentEventConfig.settingHash = serverEventConfig.settingHash;
+                            currentEventConfig.rules = serverEventConfig.rules;
 
-                            CleanUpEventSetting(currentEventSettings);
-                            currentConfig.eventSettings = currentEventSettings;
-                            DebugLog.WriteLine("[HashCheckInterval] [GetSetting] EventConfig updated from server. Restarting required plugins.");
+                            CleanUpEventSetting(currentEventConfig);
 
                             // SAVE to file and set current config again
-                            StoreCfgLoader.Instance.Save(currentConfig);
+                            StoreCfgLoader.Instance.Save(currentEventConfig);
 
                             PluginManager.Instance.LoadPlugins();
                             PluginManager.Instance.StopAll();
@@ -192,11 +191,11 @@ namespace AgileInspect
                 DebugLog.WriteLine($"API error: {ex.Message}");
             }
         }
-        public static void CleanUpEventSetting(List<EventSetting> eventSettings)
+        public static void CleanUpEventSetting(StoreCfgJson config)
         {
-            if (eventSettings == null) return;
+            if (config?.eventSettings == null) return;
 
-            foreach (var setting in eventSettings)
+            foreach (var setting in config.eventSettings)
             {
                 CleanObject(setting.eventParams);
                 CleanObject(setting.triggerParams);

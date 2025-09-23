@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using AgileInspect.Code.Ipc;
+using Newtonsoft.Json;
 
 namespace AgileInspect.Code.Rules
 {
@@ -31,8 +33,7 @@ namespace AgileInspect.Code.Rules
                 }
 
                 string json = File.ReadAllText(lastStatePath);
-                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                _latestStates = JsonSerializer.Deserialize<Dictionary<string, object>>(json, options)
+                _latestStates = JsonConvert.DeserializeObject<Dictionary<string, object>>(json)
                             ?? new Dictionary<string, object>();
 
                 DebugLog.WriteLine($"Loaded last states from {lastStatePath}");
@@ -52,13 +53,7 @@ namespace AgileInspect.Code.Rules
             try
             {
                 string lastStatePath = GetRoamingConfigPath();
-
-                var options = new JsonSerializerOptions
-                {
-                    WriteIndented = true
-                };
-
-                string json = JsonSerializer.Serialize(_latestStates, options);
+                string json = JsonConvert.SerializeObject(_latestStates);
                 File.WriteAllText(lastStatePath, json);
 
                 DebugLog.WriteLine($"Saved last states to {lastStatePath}");
@@ -71,10 +66,10 @@ namespace AgileInspect.Code.Rules
 
         public static void CheckRules()
         {
-            var rules = StoreCfgJson.Instance.rules;
-            if (rules == null || rules.Count == 0) return;
+            var ruleSettings = StoreCfgJson.Instance.rules;
+            if (ruleSettings == null || ruleSettings.Count == 0) return;
 
-            foreach (var rule in rules)
+            foreach (var rule in ruleSettings)
             {
                 foreach (var conditionGroup in rule.conditions)
                 {
@@ -144,7 +139,7 @@ namespace AgileInspect.Code.Rules
             };
         }
 
-        private static void ExecuteActions(List<RuleAction> actions, List<Condition> conditionGroup)
+        private static void ExecuteActions(List<Action> actions, List<Condition> conditionGroup)
         {
             string conditionStr = string.Join(", ", conditionGroup.Select(c => $"{c.field} {c.@operator} {c.value}"));
             foreach (var action in actions)
@@ -157,6 +152,7 @@ namespace AgileInspect.Code.Rules
                         //RuleConditionQueueService.Instance.EnqueueMatchedConditions(rule.Plugins,rule.Conditions);
                         break;
                     case Constant.ACTION_AGILEMARK_UPDATE_SETTING:
+                        IpcService.Instance.SendRequest(JsonConvert.SerializeObject(action));
                         break;
 
                     default:

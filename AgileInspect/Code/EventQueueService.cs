@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -40,7 +41,6 @@ namespace AgileInspect.Code
         string _filePath;
         public void Enqueue(string pluginName, Dictionary<string, JsonElement> json)
         {
-
             var saveEvent = new SaveEvent
             {
                 eventType = StoreCfgLoader.mapPluginNameToEventType(pluginName),
@@ -49,7 +49,7 @@ namespace AgileInspect.Code
                 data = json
             };
 
-            var serialized = JsonSerializer.Serialize(saveEvent, new JsonSerializerOptions { WriteIndented = true });
+            var serialized = JsonSerializer.Serialize(saveEvent);
             EventLog.WriteLine(serialized);
 
             lock (_lock)
@@ -69,7 +69,7 @@ namespace AgileInspect.Code
                 using var doc = JsonDocument.Parse(serialized);
                 queue.Add(doc.RootElement.Clone());
 
-                var updatedContent = JsonSerializer.Serialize(queue, new JsonSerializerOptions { WriteIndented = true });
+                var updatedContent = JsonSerializer.Serialize(queue);
                 File.WriteAllText(_filePath, updatedContent);
 
                 DebugLog.WriteLine($"[EventQueueService] [Enqueue] Event added to queue. Total: {queue.Count}");
@@ -126,7 +126,7 @@ namespace AgileInspect.Code
 
             lock (_lock)
             {
-                var updatedContent = JsonSerializer.Serialize(newQueue, new JsonSerializerOptions { WriteIndented = true });
+                var updatedContent = JsonSerializer.Serialize(newQueue);
                 File.WriteAllText(_filePath, updatedContent);
                 DebugLog.WriteLine($"[EventQueueService] [SendQueueAsync] Updated queue. Remaining: {newQueue.Count}");
             }

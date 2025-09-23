@@ -1,5 +1,6 @@
 ﻿using AgileInspect.Code;
 using AgileInspect.Code.PluginContracts;
+using AgileInspect.Code.Rules;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -50,7 +51,7 @@ namespace AgileInspect
                 if (updated)
                 {
                     OnLog(pluginName, $"[CHECK RULE] Start.");
-                    //CheckRules(pluginName);
+                    RuleService.CheckRules();
                 }
             }
             catch (Exception ex)

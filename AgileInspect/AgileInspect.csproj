@@ -16,13 +16,9 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DebugType>embedded</DebugType>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DebugType>embedded</DebugType>
-  </PropertyGroup>
-
   <!--Plugin list -->
   <ItemGroup>
-    <PluginProjects Include="WatermarkDetectorPlugin;BrightnessChangePlugin" />
+    <PluginProjects Include="WatermarkDetectorPlugin;BrightnessChangePlugin;AntivirusDetectorPlugin" />
   </ItemGroup>
 
   <Target Name="BuildPlugins" AfterTargets="Build">

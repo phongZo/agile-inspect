@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "KXaijJtpo6Y=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\buisi\\Documents\\GitHub\\agileinspect-client-win\\AntivirusDetectorPlugin\\AntivirusDetectorPlugin.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\buisi\\.nuget\\packages\\system.codedom\\9.0.5\\system.codedom.9.0.5.nupkg.sha512",
+    "C:\\Users\\buisi\\.nuget\\packages\\system.management\\9.0.5\\system.management.9.0.5.nupkg.sha512"
+  ],
+  "logs": []
+}

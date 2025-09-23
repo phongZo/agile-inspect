@@ -1,4 +1,5 @@
 ﻿using AgileInspect.Code;
+using AgileInspect.Code.Ipc;
 using AgileInspect.Code.Rules;
 using AgileInspect.Code.Settings;
 using System;
@@ -17,6 +18,8 @@ namespace AgileInspect
 
         private AsyncTimerService _ruleConditionQueueTimerService;
         private AsyncTimerService _eventQueueTimerService;
+        public IpcService IpcService { get; set; } = new IpcService();
+
         public MainWindow()
         {
             InitializeComponent();
@@ -29,8 +32,11 @@ namespace AgileInspect
 
             DebugLog.Write("", false);
             DebugLog.Write("--------AgileInspect Start-------");
+            //Prevent kill
+            Unkillable.UnkillableInit();
             MachineName.Instance.UpdateName();
             StoreCfgLoader.Instance.Load();
+            IpcService.Instance.startSendingProcess();
             RuleService.Load();
             if (string.Equals(StoreCfgJson.Instance.deployType, "server", StringComparison.OrdinalIgnoreCase))
             {
@@ -73,6 +79,20 @@ namespace AgileInspect
             //});
             //_eventQueueTimerService.Start();
 
+            Microsoft.Win32.SystemEvents.SessionSwitch += SystemEvents_SessionSwitch;
+        }
+
+
+        private void SystemEvents_SessionSwitch(object sender, Microsoft.Win32.SessionSwitchEventArgs e)
+        {
+            DebugLog.WriteLine("User switch " + e.Reason.ToString());
+            DebugLog.WriteLine("User switch " + e.Reason.ToString());
+            if (e.Reason == Microsoft.Win32.SessionSwitchReason.ConsoleDisconnect
+                || e.Reason == Microsoft.Win32.SessionSwitchReason.RemoteDisconnect
+                || e.Reason == Microsoft.Win32.SessionSwitchReason.SessionLogoff)
+            {
+                Application.Current.Shutdown();
+            }
         }
     }
 }

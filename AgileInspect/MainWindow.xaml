@@ -5,7 +5,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AgileInspect"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800" Loaded="Window_Loaded">
+        ResizeMode="NoResize"
+        Background="#00000000"
+        AllowsTransparency="True"   
+        ShowInTaskbar="False"
+        WindowStyle="None"
+        Title="AgileInspect" Height="0" Width="0" Loaded="Window_Loaded">
     <Grid>
 
     </Grid>
