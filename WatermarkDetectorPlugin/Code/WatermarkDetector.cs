@@ -53,12 +53,14 @@ namespace WatermarkDetectorPlugin
                 }
                 catch (Exception ex)
                 {
-                    PluginContext.Log(pluginName, $"[WatermarkDetector] Watermark detected: off");
+                    PluginContext.Log(pluginName, $"[WatermarkDetector] Watermark detected: false");
                     var resultObj = new Dictionary<string, object>
                     {
                         { "visible", false },
                     };
                     string jsonResult = JsonSerializer.Serialize(resultObj);
+                    string eventType = StoreCfgLoader.mapPluginNameToEventType(pluginName);
+                    RuleService.Save(eventType, false);
                     PluginContext.SendDetectionResult(pluginName, jsonResult);
                     return;
                 }
@@ -69,16 +71,15 @@ namespace WatermarkDetectorPlugin
                     var result = await Predictor.DetectAsync(imageData);
 
                     bool isOn = result.Count > 0;
-                    PluginContext.Log(pluginName, $"[WatermarkDetector] Watermark detected: {(isOn ? "on" : "off")}");
+                    PluginContext.Log(pluginName, $"[WatermarkDetector] Watermark detected: {(isOn)}");
 
-                    string value = isOn ? "ON" : "OFF";
+                    bool value = isOn;
                     string eventType = StoreCfgLoader.mapPluginNameToEventType(pluginName);
                     RuleService.Save(eventType, value);
-                    RuleService.CheckRules();
 
                     var resultObj = new Dictionary<string, object>
                     {
-                        { "visible", isOn ? true : false },
+                        { "visible", isOn },
                     };
                     string jsonResult = JsonSerializer.Serialize(resultObj);
                     PluginContext.SendDetectionResult(pluginName, jsonResult);

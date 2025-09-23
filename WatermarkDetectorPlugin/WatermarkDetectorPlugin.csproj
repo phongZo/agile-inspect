@@ -25,12 +25,11 @@
 
   <ItemGroup>
     <None Remove="Model\best.onnx" />
+    <None Remove="Model\windows.onnx" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Model\best.onnx">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </EmbeddedResource>
+    <EmbeddedResource Include="Model\windows.onnx" />
   </ItemGroup>
 
   <ItemGroup>

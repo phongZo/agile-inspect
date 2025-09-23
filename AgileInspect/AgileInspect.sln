@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WatermarkDetectorPlugin", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BrightnessChangePlugin", "..\BrightnessChangePlugin\BrightnessChangePlugin.csproj", "{DB4881A9-F954-41FE-8DC2-84207C81CCAE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AntivirusDetectorPlugin", "..\AntivirusDetectorPlugin\AntivirusDetectorPlugin.csproj", "{B764C3EC-BC24-4DE9-B188-05138243CCAB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -17,16 +19,20 @@ Global
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{08AD6EE8-0138-45AC-B4B7-24E4B89F80CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{08AD6EE8-0138-45AC-B4B7-24E4B89F80CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{08AD6EE8-0138-45AC-B4B7-24E4B89F80CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{08AD6EE8-0138-45AC-B4B7-24E4B89F80CA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{08AD6EE8-0138-45AC-B4B7-24E4B89F80CA}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{08AD6EE8-0138-45AC-B4B7-24E4B89F80CA}.Release|Any CPU.Build.0 = Debug|Any CPU
 		{A087DA84-6CCE-4A14-88D6-E39EF84057AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A087DA84-6CCE-4A14-88D6-E39EF84057AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A087DA84-6CCE-4A14-88D6-E39EF84057AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A087DA84-6CCE-4A14-88D6-E39EF84057AD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A087DA84-6CCE-4A14-88D6-E39EF84057AD}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{A087DA84-6CCE-4A14-88D6-E39EF84057AD}.Release|Any CPU.Build.0 = Debug|Any CPU
 		{DB4881A9-F954-41FE-8DC2-84207C81CCAE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DB4881A9-F954-41FE-8DC2-84207C81CCAE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DB4881A9-F954-41FE-8DC2-84207C81CCAE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DB4881A9-F954-41FE-8DC2-84207C81CCAE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DB4881A9-F954-41FE-8DC2-84207C81CCAE}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{DB4881A9-F954-41FE-8DC2-84207C81CCAE}.Release|Any CPU.Build.0 = Debug|Any CPU
+		{B764C3EC-BC24-4DE9-B188-05138243CCAB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B764C3EC-BC24-4DE9-B188-05138243CCAB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B764C3EC-BC24-4DE9-B188-05138243CCAB}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{B764C3EC-BC24-4DE9-B188-05138243CCAB}.Release|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

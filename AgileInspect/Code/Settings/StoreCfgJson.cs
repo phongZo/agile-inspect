@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace AgileInspect
 {
@@ -17,14 +18,24 @@ namespace AgileInspect
 
             Instance.customerID = config.customerID;
             Instance.serverUrl = config.serverUrl;
-            Instance.settingHash = config.settingHash;
+            Instance.hash = config.hash;
             Instance.deployType = config.deployType;
 
             Instance.logRotation = config.logRotation ?? new LogRotation();
-            Instance.eventSettings = config.eventSettings ?? new List<EventSetting>();
-            Instance.rules = config.rules ?? new List<Rule>();
+            Instance.eventSettings = config.eventSettings ?? new();
+            Instance.rules = config.rules ?? new();
             Instance.ruleConditionQueueConfig = config.ruleConditionQueueConfig ?? new RuleConditionQueueConfig();
             Instance.eventQueueConfig = config.eventQueueConfig ?? new EventQueueConfig();
+            Instance.eventSettings.Add(new EventSetting
+            {
+                eventParams = null,
+                eventType = "antivirus",
+                triggerType = "interval",
+                triggerParams = new TriggerParams
+                {
+                    interval = 60
+                }
+            });
         }
         public static StoreCfgJson GetCurrentStoreConfig()
         {
@@ -32,14 +43,15 @@ namespace AgileInspect
         }
         public string customerID { get; set; } = "60f773a842963f002e73a25b";
         public string serverUrl { get; set; } = "https://a320-171-240-159-247.ngrok-free.app";
-        public string settingHash { get; set; } = "60f773a842963f002e73a25b";
-        public int settingPullInterval { get; set; } = 30000;
+        public string hash { get; set; } = "60f773a842963f002e73a25b";
         public string deployType { get; set; } = "serverless";
         public LogRotation logRotation { get; set; } = new LogRotation();
-        public List<EventSetting> eventSettings { get; set; } = new();
-        public List<Rule> rules { get; set; } = new();
+        public List<Rules> rules { get; set; } = new();
         public RuleConditionQueueConfig ruleConditionQueueConfig { get; set; } = new RuleConditionQueueConfig();
         public EventQueueConfig eventQueueConfig { get; set; } = new EventQueueConfig();
+        public List<EventSetting> eventSettings { get; set; } = new();
+        public string settingHash { get; set; } = "abc";
+        public int settingPullInterval { get; set; } = 30000;
 
     }
     public class EventQueueConfig
@@ -55,10 +67,6 @@ namespace AgileInspect
         public bool enable { get; set; } = true;
         public int size { get; set; } = 10 * 1024 * 1024;
         public int rotate { get; set; } = 5;
-    }
-    public class EventConfig
-    {
-        public List<EventSetting> eventSettings { get; set; } = new();
     }
     public class EventSetting
     {
@@ -80,10 +88,10 @@ namespace AgileInspect
     {
         public int interval { get; set; }
     }
-    public class Rule
+    public class Rules
     {
-        public List<List<Condition>> conditions { get; set; } = new();
-        public List<RuleAction> actions { get; set; } = new();
+        public List<List<Condition>> conditions { get; set; }
+        public List<Action> actions { get; set; }
     }
 
     public class Condition
@@ -94,7 +102,7 @@ namespace AgileInspect
         public object value { get; set; }
     }
 
-    public class RuleAction
+    public class Action
     {
         public string action { get; set; }
         public Dictionary<string, object> @params { get; set; } = new();

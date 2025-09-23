@@ -2,6 +2,7 @@
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace AgileInspect.Code.Settings
 {
@@ -47,9 +48,12 @@ namespace AgileInspect.Code.Settings
                 }
 
                 string json = File.ReadAllText(configPath);
-                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                var cfg = JsonSerializer.Deserialize<StoreCfgJson>(json, options) ?? new StoreCfgJson();
-
+                var cfg = JsonConvert.DeserializeObject<StoreCfgJson>(json) ?? new StoreCfgJson();
+                // save to roaming
+                if (!File.Exists(roamingPath))
+                {
+                    File.WriteAllText(roamingPath, json);
+                }
                 StoreCfgJson.SetCurrentStoreConfig(cfg);
                 DebugLog.WriteLine($"Loaded store config from {configPath}");
                 return cfg;
@@ -75,13 +79,8 @@ namespace AgileInspect.Code.Settings
                 string basePath = AppDomain.CurrentDomain.BaseDirectory;
                 string configPath = Path.Combine(basePath, ConfigFileName);
 
-                var options = new JsonSerializerOptions
-                {
-                    WriteIndented = true,
-                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-                };
 
-                string json = JsonSerializer.Serialize(config, options);
+                string json = JsonConvert.SerializeObject(config);
                 File.WriteAllText(configPath, json);
 
                 StoreCfgJson.SetCurrentStoreConfig(config);
@@ -105,7 +104,11 @@ namespace AgileInspect.Code.Settings
             }
             else if (pluginName == "BrightnessChangePlugin")
             {
-                return "brightness_change";
+                return "brightness";
+            }
+            else if (pluginName == "AntivirusDetectorPlugin")
+            {
+                return "antivirus";
             }
             else
                 return "";
