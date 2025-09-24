@@ -20,4 +20,7 @@
     public interface IWatermarkDetectorPlugin : IAppPlugin
     {
     }
+    public interface IAntivirusDetectorPlugin : IAppPlugin
+    {
+    }
 }

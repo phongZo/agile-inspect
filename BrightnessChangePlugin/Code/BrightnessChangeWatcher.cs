@@ -59,7 +59,6 @@ namespace BrightnessChangePlugin.Code
 
         public void GetCurrentBrightness()
         {
-            string eventType = StoreCfgLoader.mapPluginNameToEventType(Name);
             var result = new List<(string deviceName, int brightness)>();
             int brightness = 0;
 
@@ -98,8 +97,7 @@ namespace BrightnessChangePlugin.Code
                 var monitorInfo = string.Join(", ", result.Select(m => $"{m.deviceName}: {m.brightness}"));
                 PluginContext.Log(Name, $"{monitorInfo}");
 
-                RuleService.Save(eventType, result[0].brightness);
-                RuleService.CheckRules();
+                RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(Name), (long) result[0].brightness);
 
                 var brightnessArray = result.Select(m => new Dictionary<string, object>
                 {

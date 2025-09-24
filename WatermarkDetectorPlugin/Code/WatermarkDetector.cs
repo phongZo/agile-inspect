@@ -44,7 +44,6 @@ namespace WatermarkDetectorPlugin
 
         public async Task ProcessAsync()
         {
-            string eventType = StoreCfgLoader.mapPluginNameToEventType(pluginName);
             bool isOn = true;
             var visibleArray = new List<Dictionary<string, object>>();
 
@@ -70,8 +69,7 @@ namespace WatermarkDetectorPlugin
             PluginContext.Log(pluginName, $"[WatermarkDetector] Watermark detected: {(isOn ? "on" : "off")}");
 
             // save last state and check rule
-            RuleService.Save(eventType, value);
-            RuleService.CheckRules();
+            RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(pluginName), value);
 
             var resultObj = new Dictionary<string, object>
             {
