@@ -46,6 +46,7 @@ namespace WatermarkDetectorPlugin
         {
             string eventType = StoreCfgLoader.mapPluginNameToEventType(pluginName);
             bool isOn = true;
+            var visibleArray = new List<Dictionary<string, object>>();
 
             var screens = MultipleMonitors.GetMonitors();
             foreach (var screen in screens)
@@ -57,6 +58,11 @@ namespace WatermarkDetectorPlugin
                     {
                         isOn = false;
                     }
+                    visibleArray.Add(new Dictionary<string, object>
+                    {
+                        { "monitor", screen.deviceName },
+                        { "value", result }
+                    });
                 }
             }
 
@@ -69,7 +75,7 @@ namespace WatermarkDetectorPlugin
 
             var resultObj = new Dictionary<string, object>
             {
-                { "visible", isOn ? true : false },
+                { "visible", visibleArray },
             };
             string jsonResult = JsonSerializer.Serialize(resultObj);
             PluginContext.SendDetectionResult(pluginName, jsonResult);

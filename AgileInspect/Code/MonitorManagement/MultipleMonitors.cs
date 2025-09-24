@@ -38,6 +38,10 @@ namespace AgileInspect.Code.MonitorManagement
             EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero,
                 (IntPtr hMonitor, IntPtr hdc, ref RECT rect, IntPtr data) =>
                 {
+                    var mi = new MONITORINFOEX();
+                    mi.cbSize = Marshal.SizeOf(typeof(MONITORINFOEX));
+                    if (!GetMonitorInfo(hMonitor, ref mi)) return true;
+
                     uint numberOfMonitors = 0;
                     if (!GetNumberOfPhysicalMonitorsFromHMONITOR(hMonitor, ref numberOfMonitors))
                         return true;
@@ -53,8 +57,7 @@ namespace AgileInspect.Code.MonitorManagement
                             {
                                 brightness = (int)current;
                             }
-
-                            result.Add((pm.szPhysicalMonitorDescription, brightness));
+                            result.Add((mi.szDevice, brightness));
                             DestroyPhysicalMonitor(pm.hPhysicalMonitor);
                         }
                     }
