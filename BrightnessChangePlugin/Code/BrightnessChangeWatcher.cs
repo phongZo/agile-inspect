@@ -2,7 +2,7 @@
 using AgileInspect.Code.Rules;
 using AgileInspect.Code.Settings;
 using System.Management;
-using System.Text.Json;
+using Newtonsoft.Json;
 
 namespace BrightnessChangePlugin.Code
 {
@@ -109,7 +109,7 @@ namespace BrightnessChangePlugin.Code
                 {
                     { "brightness", brightnessArray }
                 };
-                string jsonResult = JsonSerializer.Serialize(resultObj);
+                string jsonResult = JsonConvert.SerializeObject(resultObj);
                 PluginContext.SendDetectionResult(Name, jsonResult);
             }
         }

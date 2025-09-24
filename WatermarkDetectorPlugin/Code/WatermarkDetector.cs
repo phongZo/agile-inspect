@@ -4,7 +4,7 @@ using AgileInspect.Code.MonitorManagement;
 using Compunet.YoloSharp;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.Text.Json;
+using Newtonsoft.Json;
 
 namespace WatermarkDetectorPlugin
 {
@@ -75,7 +75,7 @@ namespace WatermarkDetectorPlugin
             {
                 { "visible", visibleArray },
             };
-            string jsonResult = JsonSerializer.Serialize(resultObj);
+            string jsonResult = JsonConvert.SerializeObject(resultObj);
             PluginContext.SendDetectionResult(pluginName, jsonResult);
         }
 
