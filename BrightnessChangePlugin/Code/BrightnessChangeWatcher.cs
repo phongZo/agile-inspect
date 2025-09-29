@@ -1,8 +1,7 @@
-﻿
-using System.Management;
-using System.Text.Json;
+﻿using AgileInspect.Code.MonitorManagement;
 using AgileInspect.Code.Rules;
 using AgileInspect.Code.Settings;
+using System.Management;
 using Newtonsoft.Json;
 
 namespace BrightnessChangePlugin.Code
@@ -60,59 +59,59 @@ namespace BrightnessChangePlugin.Code
 
         public void GetCurrentBrightness()
         {
+            var result = new List<(string deviceName, int brightness)>();
+            int brightness = 0;
+
+            // get main monitor brightness (laptop)
             try
             {
                 using var searcher = new ManagementObjectSearcher("root\\WMI", "SELECT * FROM WmiMonitorBrightness");
                 foreach (ManagementObject obj in searcher.Get())
                 {
-                    int brightness = Convert.ToInt32(obj["CurrentBrightness"]);
-                    PluginContext.Log(Name, $"[Brightness] Current brightness: {brightness}");
-                    var resultObj = new Dictionary<string, object>
-                    {
-                        ["brightness"] = brightness
-                    };
-                    string jsonResult = JsonConvert.SerializeObject(resultObj);
-                    RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(Name), (long)brightness);
-                    PluginContext.SendDetectionResult(Name, jsonResult);
-                    return;
+                    brightness = Convert.ToInt32(obj["CurrentBrightness"]);
+                    result.Add(("main screen", brightness));
+                    break;
+                }
+            }
+            catch (Exception ex)
+            {
+                PluginContext.Log(Name, $"[Brightness] Failed to get current main screen brightness: {ex.Message}");
+            }
+
+            // get all monitor brightness (support DDC/CI)
+            try
+            {
+                var monitors = MultipleMonitors.GetBrightnessMonitors(brightness);
+                foreach (var m in monitors)
+                {
+                    result.Add((m.deviceName, m.brightness));
                 }
             }
             catch (Exception ex)
             {
                 PluginContext.Log(Name, $"[Brightness] Failed to get current brightness: {ex.Message}");
-                try
-                {
-                    using var monitors = MonitorManager.GetAllMonitors();
-                    var result = monitors
-                        .Select(m => new { brightness = m.CurrentBrightness })
-                        .Max();
-                    var resultObj = new Dictionary<string, object>
-                    {
-                        ["brightness"] = result.brightness
-                    };
-                    string jsonResult = JsonConvert.SerializeObject(result);
-                    PluginContext.Log(Name, $"[Brightness] Get brightness from external monitor");
-                    PluginContext.Log(Name, $"[Brightness] Current brightness: {result.brightness}");
-                    RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(Name), ((long)result.brightness));
-                    PluginContext.SendDetectionResult(Name, jsonResult);
-                }
-                catch (Exception)
-                {
-                    PluginContext.Log(Name, $"[Brightness] Default brightness: {50}");
-                    RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(Name), ((long)50));
-                    var resultObj = new Dictionary<string, object>
-                    {
-                        ["brightness"] = 50
-                    };
-                    string jsonResult = JsonConvert.SerializeObject(resultObj);
-                    PluginContext.SendDetectionResult(Name, jsonResult);
-                    return;
-                }
-
-                return;
             }
 
-            PluginContext.Log(Name, "[Brightness] Brightness info not found.");
+            if (result.Count > 0)
+            {
+                var monitorInfo = string.Join(", ", result.Select(m => $"{m.deviceName}: {m.brightness}"));
+                PluginContext.Log(Name, $"{monitorInfo}");
+
+                RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(Name), (long) result[0].brightness);
+
+                var brightnessArray = result.Select(m => new Dictionary<string, object>
+                {
+                    { "monitor", m.deviceName },
+                    { "value", m.brightness }
+                }).ToList();
+
+                var resultObj = new Dictionary<string, object>
+                {
+                    { "brightness", brightnessArray }
+                };
+                string jsonResult = JsonConvert.SerializeObject(resultObj);
+                PluginContext.SendDetectionResult(Name, jsonResult);
+            }
         }
     }
 }

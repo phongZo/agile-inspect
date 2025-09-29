@@ -1,10 +1,10 @@
 ﻿using AgileInspect.Code.Rules;
 using AgileInspect.Code.Settings;
+using AgileInspect.Code.MonitorManagement;
 using Compunet.YoloSharp;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.Runtime.InteropServices;
-using System.Text.Json;
+using Newtonsoft.Json;
 
 namespace WatermarkDetectorPlugin
 {
@@ -44,83 +44,74 @@ namespace WatermarkDetectorPlugin
 
         public async Task ProcessAsync()
         {
+            bool isOn = true;
+            var visibleArray = new List<Dictionary<string, object>>();
+
+            var screens = MultipleMonitors.GetMonitors();
+            foreach (var screen in screens)
+            {
+                using (Bitmap bmp = GetBitmapFromScreen(screen.bounds))
+                {
+                    bool result = await DetectWatermarkAsync(bmp, screen.deviceName);
+                    if (!result)
+                    {
+                        isOn = false;
+                    }
+                    visibleArray.Add(new Dictionary<string, object>
+                    {
+                        { "monitor", screen.deviceName },
+                        { "value", result }
+                    });
+                }
+            }
+
+            string value = isOn ? "ON" : "OFF";
+            PluginContext.Log(pluginName, $"[WatermarkDetector] Watermark detected: {(isOn ? "on" : "off")}");
+
+            // save last state and check rule
+            RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(pluginName), value);
+
+            var resultObj = new Dictionary<string, object>
+            {
+                { "visible", visibleArray },
+            };
+            string jsonResult = JsonConvert.SerializeObject(resultObj);
+            PluginContext.SendDetectionResult(pluginName, jsonResult);
+        }
+
+        private async Task<bool> DetectWatermarkAsync(Bitmap bitmap, string deviceName)
+        {
             try
             {
-                Bitmap bitmap;
-                try
-                {
-                    bitmap = CapturePrimaryScreen();
-                }
-                catch (Exception ex)
-                {
-                    PluginContext.Log(pluginName, $"[WatermarkDetector] Watermark detected: false");
-                    var resultObj = new Dictionary<string, object>
-                    {
-                        { "visible", false },
-                    };
-                    string jsonResult = JsonSerializer.Serialize(resultObj);
-                    string eventType = StoreCfgLoader.mapPluginNameToEventType(pluginName);
-                    RuleService.Save(eventType, false);
-                    PluginContext.SendDetectionResult(pluginName, jsonResult);
-                    return;
-                }
-
-                using (bitmap)
-                {
-                    imageData = ConvertBitmapToBytes(bitmap);
-                    var result = await Predictor.DetectAsync(imageData);
-
-                    bool isOn = result.Count > 0;
-                    PluginContext.Log(pluginName, $"[WatermarkDetector] Watermark detected: {(isOn)}");
-
-                    bool value = isOn;
-                    string eventType = StoreCfgLoader.mapPluginNameToEventType(pluginName);
-                    RuleService.Save(eventType, value);
-
-                    var resultObj = new Dictionary<string, object>
-                    {
-                        { "visible", isOn },
-                    };
-                    string jsonResult = JsonSerializer.Serialize(resultObj);
-                    PluginContext.SendDetectionResult(pluginName, jsonResult);
-                }
-
+                imageData = ConvertBitmapToBytes(bitmap);
+                var result = await Predictor.DetectAsync(imageData);
+                bool isOn = result.Count > 0;
+                PluginContext.Log(pluginName, $"[WatermarkDetector] DeviceName {deviceName}: {(isOn ? "on" : "off")}");
+                return isOn;
             }
             catch (Exception ex)
             {
-                PluginContext.Log(pluginName, $"Detection error: {ex}");
+                PluginContext.Log(pluginName, $"Detection {deviceName} error: {ex}");
+                return false;
             }
         }
 
-        public static Bitmap CapturePrimaryScreen()
+        private Bitmap GetBitmapFromScreen(Rectangle bounds)
         {
-            var screenWidth = GetSystemMetrics(SystemMetric.SM_CXSCREEN);
-            var screenHeight = GetSystemMetrics(SystemMetric.SM_CYSCREEN);
-
-            var bmp = new Bitmap(screenWidth, screenHeight);
+            var bmp = new Bitmap(bounds.Width, bounds.Height);
             using (var g = Graphics.FromImage(bmp))
             {
-                g.CopyFromScreen(0, 0, 0, 0, bmp.Size);
+                g.CopyFromScreen(bounds.X, bounds.Y, 0, 0, bounds.Size);
             }
 
             return bmp;
         }
+
         public static byte[] ConvertBitmapToBytes(Bitmap bitmap)
         {
             using var ms = new MemoryStream();
             bitmap.Save(ms, ImageFormat.Png);
             return ms.ToArray();
-        }
-        [DllImport("user32.dll")]
-        private static extern bool GetCursorPos(out Point lpPoint);
-
-        [DllImport("user32.dll")]
-        private static extern int GetSystemMetrics(SystemMetric smIndex);
-
-        private enum SystemMetric
-        {
-            SM_CXSCREEN = 0,
-            SM_CYSCREEN = 1,
         }
     }
 }
