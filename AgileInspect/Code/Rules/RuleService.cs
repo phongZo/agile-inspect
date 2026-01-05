@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
 using AgileInspect.Code.Ipc;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace AgileInspect.Code.Rules
 {
@@ -101,6 +103,24 @@ namespace AgileInspect.Code.Rules
             object? value = UnwrapJsonElement(_latestStates.TryGetValue(condition.field, out var v) ? v : null);
             if (value == null) return false;
 
+            if (condition.field.Equals("antivirus"))
+            {
+               var data =  JsonConvert.DeserializeObject<JObject>(value.ToString());
+               var appList = (JArray)data["appList"];
+               var combine = true;
+                foreach (var item in appList)
+                {
+                    foreach (var key in condition.fieldParams.Keys)
+                    {
+                        var left = JToken.FromObject(condition.fieldParams[key]);
+                        var right = item[key];
+                        var compare = JToken.Equals(right, left);
+                        combine = combine && compare;         
+                    }
+                }
+                value = combine;
+            }
+
             if (expected.GetType() != value.GetType()) return false;
 
             string op = condition.@operator?.ToLower();
@@ -152,6 +172,9 @@ namespace AgileInspect.Code.Rules
                         //RuleConditionQueueService.Instance.EnqueueMatchedConditions(rule.Plugins,rule.Conditions);
                         break;
                     case Constant.ACTION_AGILEMARK_UPDATE_SETTING:
+                        IpcService.Instance.SendRequest(JsonConvert.SerializeObject(action));
+                        break;
+                    case Constant.ACTION_AGILEMARK_SHOW_MESSAGE:
                         IpcService.Instance.SendRequest(JsonConvert.SerializeObject(action));
                         break;
 

@@ -97,7 +97,7 @@ namespace AgileInspect
     public class Condition
     {
         public string field { get; set; }
-        public Dictionary<string, string> fieldParams { get; set; } = new();
+        public Dictionary<string, object> fieldParams { get; set; } = new();
         public string @operator { get; set; }   // eq, gte, lte, ...
         public object value { get; set; }
     }

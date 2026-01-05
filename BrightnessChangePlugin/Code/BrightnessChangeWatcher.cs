@@ -104,10 +104,11 @@ namespace BrightnessChangePlugin.Code
                     { "monitor", m.deviceName },
                     { "value", m.brightness }
                 }).ToList();
+                var mainMonitorBrightness = brightnessArray.Where(o => Object.Equals(o["monitor"],(Screen.PrimaryScreen.DeviceName))).First()["value"];
 
                 var resultObj = new Dictionary<string, object>
                 {
-                    { "brightness", brightnessArray }
+                    { "brightness", mainMonitorBrightness }
                 };
                 string jsonResult = JsonConvert.SerializeObject(resultObj);
                 PluginContext.SendDetectionResult(Name, jsonResult);
