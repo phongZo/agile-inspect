@@ -23,4 +23,7 @@
     public interface IAntivirusDetectorPlugin : IAppPlugin
     {
     }
+    public interface IFirewallDetectorPlugin : IAppPlugin
+    {
+    }
 }

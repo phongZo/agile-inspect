@@ -110,6 +110,10 @@ namespace AgileInspect.Code.Settings
             {
                 return "antivirus";
             }
+            else if (pluginName == "FirewallDetectorPlugin")
+            {
+                return "firewall";
+            }
             else
                 return "";
         }
