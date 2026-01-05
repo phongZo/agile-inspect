@@ -114,6 +114,10 @@ namespace AgileInspect.Code.Settings
             {
                 return "firewall";
             }
+            else if (pluginName == "InternetDetectorPlugin")
+            {
+                return "internet";
+            }
             else
                 return "";
         }
