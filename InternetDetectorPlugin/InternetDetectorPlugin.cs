@@ -51,7 +51,7 @@ namespace InternetDetectorPlugin
             }
             else
             {
-                PluginContext.Log(Name, $"[FirewallDetector] Unsupported triggerType '{triggerType}', plugin will not start.");
+                PluginContext.Log(Name, $"[InternetDetector] Unsupported triggerType '{triggerType}', plugin will not start.");
                 return;
             }
         }
