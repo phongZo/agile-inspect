@@ -18,7 +18,7 @@
   </PropertyGroup>
   <!--Plugin list -->
   <ItemGroup>
-    <PluginProjects Include="WatermarkDetectorPlugin;BrightnessChangePlugin;AntivirusDetectorPlugin;FirewallDetectorPlugin;InternetDetectorPlugin" />
+    <PluginProjects Include="WatermarkDetectorPlugin;BrightnessChangePlugin;AntivirusDetectorPlugin;FirewallDetectorPlugin;InternetDetectorPlugin;VpnDetectorPlugin" />
   </ItemGroup>
 
   <Target Name="BuildPlugins" AfterTargets="Build">

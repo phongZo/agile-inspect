@@ -29,4 +29,7 @@
     public interface IInternetDetectorPlugin : IAppPlugin
     {
     }
+    public interface IVpnDetectorPlugin : IAppPlugin
+    {
+    }
 }

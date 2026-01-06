@@ -118,6 +118,10 @@ namespace AgileInspect.Code.Settings
             {
                 return "internet";
             }
+            else if (pluginName == "VpnDetectorPlugin")
+            {
+                return "vpn";
+            }
             else
                 return "";
         }

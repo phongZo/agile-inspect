@@ -13,7 +13,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AntivirusDetectorPlugin", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FirewallDetectorPlugin", "..\FirewallDetectorPlugin\FirewallDetectorPlugin.csproj", "{57D84E77-D7C8-4FAF-9D7B-A3ABF79B90BB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InternetDetectorPlugin", "..\InternetDetectorPlugin\InternetDetectorPlugin.csproj", "{187C04FC-37AF-4DEA-A756-FA636B6A80DF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InternetDetectorPlugin", "..\InternetDetectorPlugin\InternetDetectorPlugin.csproj", "{187C04FC-37AF-4DEA-A756-FA636B6A80DF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VpnDetectorPlugin", "..\VpnDetectorPlugin\VpnDetectorPlugin.csproj", "{7FA80BD6-CE81-4C6B-B6D5-02F7A22431D9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{187C04FC-37AF-4DEA-A756-FA636B6A80DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{187C04FC-37AF-4DEA-A756-FA636B6A80DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{187C04FC-37AF-4DEA-A756-FA636B6A80DF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7FA80BD6-CE81-4C6B-B6D5-02F7A22431D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7FA80BD6-CE81-4C6B-B6D5-02F7A22431D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7FA80BD6-CE81-4C6B-B6D5-02F7A22431D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7FA80BD6-CE81-4C6B-B6D5-02F7A22431D9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
