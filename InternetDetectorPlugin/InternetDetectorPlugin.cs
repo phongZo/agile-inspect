@@ -49,6 +49,10 @@ namespace InternetDetectorPlugin
                 _internetTimerService = new AsyncTimerService(interval * 1000, CheckInternetTimerCallbackAsync);
                 _internetTimerService.Start();
             }
+            else if (triggerType.Equals("Realtime", StringComparison.OrdinalIgnoreCase))
+            {
+                InternetDetector.Instance.StartWatcher();
+            }
             else
             {
                 PluginContext.Log(Name, $"[InternetDetector] Unsupported triggerType '{triggerType}', plugin will not start.");
@@ -62,6 +66,7 @@ namespace InternetDetectorPlugin
             _internetTimerService?.Stop();
             _internetTimerService?.Dispose();
             _internetTimerService = null;
+            InternetDetector.Instance.StopWatcher();
         }
 
         private async Task CheckInternetTimerCallbackAsync()

@@ -1,6 +1,7 @@
 ﻿using AgileInspect.Code.Rules;
 using AgileInspect.Code.Settings;
 using Newtonsoft.Json;
+using System.Net.NetworkInformation;
 
 namespace InternetDetectorPlugin
 {
@@ -15,6 +16,79 @@ namespace InternetDetectorPlugin
         #endregion
 
         string pluginName = "InternetDetectorPlugin";
+        private bool _started;
+
+        private Timer? _debounceTimer;
+        private readonly object _lock = new object();
+
+        public void StartWatcher()
+        {
+            try
+            {
+                if (_started) return;
+
+                NetworkChange.NetworkAddressChanged += OnNetworkAddressChanged;
+
+                _started = true;
+
+                PluginContext.Log(pluginName, "[InternetDetector] Realtime watcher started.");
+
+                ScheduleCheck();
+            }
+            catch (Exception ex)
+            {
+                PluginContext.Log(pluginName, $"[InternetDetector] Failed to start watcher: {ex.Message}");
+            }
+        }
+
+        public void StopWatcher()
+        {
+            try
+            {
+                if (!_started) return;
+
+                NetworkChange.NetworkAddressChanged -= OnNetworkAddressChanged;
+
+                lock (_lock)
+                {
+                    _debounceTimer?.Dispose();
+                    _debounceTimer = null;
+                }
+
+                _started = false;
+                PluginContext.Log(pluginName, "[InternetDetector] Realtime watcher stopped.");
+            }
+            catch (Exception ex)
+            {
+                PluginContext.Log(pluginName, $"[InternetDetector] Error stopping watcher: {ex.Message}");
+            }
+        }
+
+        private void OnNetworkAddressChanged(object? sender, EventArgs e)
+        {
+            ScheduleCheck();
+        }
+
+        private void ScheduleCheck()
+        {
+            const int delayMs = 1000;
+
+            lock (_lock)
+            {
+                _debounceTimer?.Dispose();
+                _debounceTimer = new Timer(_ =>
+                {
+                    try
+                    {
+                        CheckAllowInternet();
+                    }
+                    catch (Exception ex)
+                    {
+                        PluginContext.Log(pluginName, $"[InternetDetector] CheckAllowInternet failed: {ex.Message}");
+                    }
+                }, null, delayMs, Timeout.Infinite);
+            }
+        }
 
         public void CheckAllowInternet()
         {
@@ -40,6 +114,7 @@ namespace InternetDetectorPlugin
             try
             {
                 string ssid = GetInternetSSID();
+                PluginContext.Log(pluginName, $"[InternetDetector] Current SSID: {ssid}");
                 if (string.IsNullOrWhiteSpace(ssid))
                     return false;
 
