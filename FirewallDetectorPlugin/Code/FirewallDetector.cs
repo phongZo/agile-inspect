@@ -15,7 +15,63 @@ namespace FirewallDetectorPlugin
         }
         #endregion
 
+        private ManagementEventWatcher? EventWatcher;
+
         string pluginName = "FirewallDetectorPlugin";
+
+        public void StartWatcher()
+        {
+            try
+            {
+                string queryString = @"
+                    SELECT * FROM __InstanceModificationEvent
+                    WITHIN 1
+                    WHERE TargetInstance ISA 'MSFT_NetFirewallProfile'";
+
+                WqlEventQuery query = new WqlEventQuery(queryString);
+                EventWatcher = new ManagementEventWatcher(@"root\StandardCimv2", query.QueryString);
+
+                EventWatcher.EventArrived += (sender, args) =>
+                {
+                    try
+                    {
+                        CheckFirewall();
+                    }
+                    catch (Exception ex)
+                    {
+                        PluginContext.Log(pluginName, $"[Firewall] Watcher handler error: {ex.Message}");
+                    }
+                };
+
+                EventWatcher.Start();
+                PluginContext.Log(pluginName, "[Firewall] Realtime watcher started.");
+
+                // Check firewall state immediately on startup
+                CheckFirewall();
+            }
+            catch (Exception ex)
+            {
+                PluginContext.Log(pluginName, $"[Firewall] Failed to start realtime watcher: {ex.Message}");
+            }
+        }
+
+        public void StopWatcher()
+        {
+            try
+            {
+                if (EventWatcher != null)
+                {
+                    EventWatcher.Stop();
+                    EventWatcher.Dispose();
+                    EventWatcher = null;
+                    PluginContext.Log(pluginName, "[Firewall] Realtime watcher stopped.");
+                }
+            }
+            catch (Exception ex)
+            {
+                PluginContext.Log(pluginName, $"[Firewall] Error stopping realtime watcher: {ex.Message}");
+            }
+        }
 
         public void CheckFirewall()
         {

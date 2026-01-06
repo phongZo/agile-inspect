@@ -49,6 +49,10 @@ namespace FirewallDetectorPlugin
                 _firewallTimerService = new AsyncTimerService(interval * 1000, CheckFirewallTimerCallbackAsync);
                 _firewallTimerService.Start();
             }
+            else if (triggerType.Equals("Realtime", StringComparison.OrdinalIgnoreCase))
+            {
+                FirewallDetector.Instance.StartWatcher();
+            }
             else
             {
                 PluginContext.Log(Name, $"[FirewallDetector] Unsupported triggerType '{triggerType}', plugin will not start.");
@@ -62,6 +66,7 @@ namespace FirewallDetectorPlugin
             _firewallTimerService?.Stop();
             _firewallTimerService?.Dispose();
             _firewallTimerService = null;
+            FirewallDetector.Instance.StopWatcher();
         }
 
         private async Task CheckFirewallTimerCallbackAsync()
