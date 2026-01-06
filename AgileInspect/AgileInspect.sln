@@ -17,6 +17,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InternetDetectorPlugin", ".
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VpnDetectorPlugin", "..\VpnDetectorPlugin\VpnDetectorPlugin.csproj", "{7FA80BD6-CE81-4C6B-B6D5-02F7A22431D9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExternalDiskDetectorPlugin", "..\ExternalDiskDetectorPlugin\ExternalDiskDetectorPlugin.csproj", "{89D28A85-ECDA-4C1C-BA9D-2EA2BCCB8E2E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{7FA80BD6-CE81-4C6B-B6D5-02F7A22431D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7FA80BD6-CE81-4C6B-B6D5-02F7A22431D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7FA80BD6-CE81-4C6B-B6D5-02F7A22431D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{89D28A85-ECDA-4C1C-BA9D-2EA2BCCB8E2E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{89D28A85-ECDA-4C1C-BA9D-2EA2BCCB8E2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{89D28A85-ECDA-4C1C-BA9D-2EA2BCCB8E2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{89D28A85-ECDA-4C1C-BA9D-2EA2BCCB8E2E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

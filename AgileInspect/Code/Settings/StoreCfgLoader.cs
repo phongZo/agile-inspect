@@ -122,6 +122,10 @@ namespace AgileInspect.Code.Settings
             {
                 return "vpn";
             }
+            else if (pluginName == "ExternalDiskDetectorPlugin")
+            {
+                return "external_disk";
+            }
             else
                 return "";
         }

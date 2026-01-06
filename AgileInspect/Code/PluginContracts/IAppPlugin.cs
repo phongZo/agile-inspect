@@ -32,4 +32,7 @@
     public interface IVpnDetectorPlugin : IAppPlugin
     {
     }
+    public interface IExternalDiskDetectorPlugin : IAppPlugin
+    {
+    }
 }
