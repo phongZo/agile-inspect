@@ -81,32 +81,25 @@ namespace ExternalDiskDetectorPlugin
         {
             try
             {
-                var disks = new Dictionary<string, (string model, string serial)>();
-
+                bool isPlugExternalHardDisk = false;
                 using var driveSearcher = new ManagementObjectSearcher(
                     @"root\CIMV2",
-                    "SELECT * FROM Win32_DiskDrive WHERE InterfaceType = 'USB'");
+                    "SELECT DeviceID, Model, SerialNumber, InterfaceType, MediaType FROM Win32_DiskDrive");
 
                 foreach (ManagementObject disk in driveSearcher.Get())
                 {
                     string deviceId = disk["DeviceID"]?.ToString() ?? "UnknownDevice";
                     string model = (disk["Model"]?.ToString() ?? "UnknownModel").Trim();
                     string serial = (disk["SerialNumber"]?.ToString() ?? "").Trim();
+                    string interfaceType = (disk["InterfaceType"]?.ToString() ?? "").Trim();
+                    string mediaType = (disk["MediaType"]?.ToString() ?? "").Trim().ToLowerInvariant();
 
-                    if (!disks.ContainsKey(deviceId))
-                        disks[deviceId] = (model, serial);
-                }
-
-                bool isPlugExternalHardDisk = disks.Count != 0;
-
-                foreach (var kv in disks)
-                {
-                    string deviceId = kv.Key;
-                    var info = kv.Value;
-
-                    string serialText = string.IsNullOrWhiteSpace(info.serial) ? "UnknownSerial" : info.serial;
-
-                    PluginContext.Log(pluginName, $"[ExternalDiskDetector] External hard disk: Model={info.model}, Serial={serialText}, DeviceID={deviceId}");
+                    if (interfaceType.Equals("USB", StringComparison.OrdinalIgnoreCase)
+                        || mediaType.Contains("external") || mediaType.Contains("removable"))
+                    {
+                        isPlugExternalHardDisk = true;
+                        PluginContext.Log(pluginName, $"[ExternalDiskDetector] External hard disk: Model={model}, Serial={serial}, DeviceID={deviceId}");
+                    }
                 }
                 string value = isPlugExternalHardDisk ? "PLUG" : "UNPLUG";
                 PluginContext.Log(pluginName, $"[ExternalDiskDetector] Plug external hard disk: {(isPlugExternalHardDisk)}");
