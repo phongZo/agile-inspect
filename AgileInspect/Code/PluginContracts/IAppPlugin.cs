@@ -35,4 +35,7 @@
     public interface IExternalDiskDetectorPlugin : IAppPlugin
     {
     }
+    public interface IFileMonitorPlugin : IAppPlugin
+    {
+    }
 }
