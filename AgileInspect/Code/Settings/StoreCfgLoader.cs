@@ -126,9 +126,9 @@ namespace AgileInspect.Code.Settings
             {
                 return "external_disk";
             }
-            else if (pluginName == "FileMonitorPlugin")
+            else if (pluginName == "HostFileMonitorPlugin")
             {
-                return "file";
+                return "host_file";
             }
             else
                 return "";

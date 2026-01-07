@@ -1,13 +1,13 @@
 ﻿using AgileInspect.Code.PluginContracts;
 
-namespace FileMonitorPlugin
+namespace HostFileMonitorPlugin
 {
-    public class FileMonitorPlugin : IFileMonitorPlugin
+    public class HostFileMonitorPlugin : IHostFileMonitorPlugin
     {
-        private AsyncTimerService _fileMonitorTimerService;
+        private AsyncTimerService _hostFileMonitorTimerService;
         public StoreCfgJson StoreCfgJson { get; set; } = new StoreCfgJson();
-        public FileMonitor FileMonitor { get; set; } = new FileMonitor();
-        public string Name => "FileMonitorPlugin";
+        public HostFileMonitor HostFileMonitor { get; set; } = new HostFileMonitor();
+        public string Name => "HostFileMonitorPlugin";
 
         public void Initialize()
         {
@@ -46,16 +46,16 @@ namespace FileMonitorPlugin
 
             if (triggerType.Equals("interval", StringComparison.OrdinalIgnoreCase))
             {
-                _fileMonitorTimerService = new AsyncTimerService(interval * 1000, CheckExternalDiskTimerCallbackAsync);
-                _fileMonitorTimerService.Start();
+                _hostFileMonitorTimerService = new AsyncTimerService(interval * 1000, CheckHostFileTimerCallbackAsync);
+                _hostFileMonitorTimerService.Start();
             }
             else if (triggerType.Equals("Realtime", StringComparison.OrdinalIgnoreCase))
             {
-                FileMonitor.Instance.StartWatcher();
+                HostFileMonitor.Instance.StartWatcher();
             }
             else
             {
-                PluginContext.Log(Name, $"[FileMonitor] Unsupported triggerType '{triggerType}', plugin will not start.");
+                PluginContext.Log(Name, $"[HostFileMonitor] Unsupported triggerType '{triggerType}', plugin will not start.");
                 return;
             }
         }
@@ -63,18 +63,18 @@ namespace FileMonitorPlugin
         public void Stop()
         {
             PluginContext.Log(Name, "Stopped.");
-            _fileMonitorTimerService?.Stop();
-            _fileMonitorTimerService?.Dispose();
-            _fileMonitorTimerService = null;
-            FileMonitor.Instance.StopWatcher();
+            _hostFileMonitorTimerService?.Stop();
+            _hostFileMonitorTimerService?.Dispose();
+            _hostFileMonitorTimerService = null;
+            HostFileMonitor.Instance.StopWatcher();
         }
 
-        private async Task CheckExternalDiskTimerCallbackAsync()
+        private async Task CheckHostFileTimerCallbackAsync()
         {
-            PluginContext.Log(Name, "[FileMonitor] interval hit");
+            PluginContext.Log(Name, "[HostFileMonitor] interval hit");
             try
             {
-                await Task.Run(() => FileMonitor.Instance.Checksum());
+                await Task.Run(() => HostFileMonitor.Instance.Checksum());
             }
             catch (Exception ex)
             {

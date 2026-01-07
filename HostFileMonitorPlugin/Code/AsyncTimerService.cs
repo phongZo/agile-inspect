@@ -1,4 +1,5 @@
-﻿namespace FileMonitorPlugin {
+﻿namespace HostFileMonitorPlugin
+{
     public class AsyncTimerService : IDisposable
     {
         private readonly System.Timers.Timer _timer;

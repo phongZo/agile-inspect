@@ -1,4 +1,4 @@
-﻿namespace FileMonitorPlugin
+﻿namespace HostFileMonitorPlugin
 {
     public class StoreCfgJson
     {

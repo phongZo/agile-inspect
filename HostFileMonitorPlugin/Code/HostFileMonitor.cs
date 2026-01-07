@@ -3,13 +3,13 @@ using AgileInspect.Code.Settings;
 using Newtonsoft.Json;
 using System.Security.Cryptography;
 
-namespace FileMonitorPlugin
+namespace HostFileMonitorPlugin
 {
-    public class FileMonitor
+    public class HostFileMonitor
     {
         #region Singleton
-        public static FileMonitor Instance { get; set; }
-        public FileMonitor()
+        public static HostFileMonitor Instance { get; set; }
+        public HostFileMonitor()
         {
             Instance = this;
         }
@@ -27,7 +27,7 @@ namespace FileMonitorPlugin
 
         private string? _lastChecksum;
 
-        string pluginName = "FileMonitorPlugin";
+        string pluginName = "HostFileMonitorPlugin";
 
         public void StartWatcher()
         {
@@ -42,11 +42,11 @@ namespace FileMonitorPlugin
 
                 EventWatcher.Changed += OnChanged;
 
-                PluginContext.Log(pluginName, "[FileMonitor] Realtime watcher started.");
+                PluginContext.Log(pluginName, "[HostFileMonitor] Realtime watcher started.");
             }
             catch (Exception ex)
             {
-                PluginContext.Log(pluginName, $"[FileMonitor] Failed to start watcher: {ex.Message}");
+                PluginContext.Log(pluginName, $"[HostFileMonitor] Failed to start watcher: {ex.Message}");
             }
         }
 
@@ -60,12 +60,12 @@ namespace FileMonitorPlugin
                     EventWatcher.Changed -= OnChanged;
                     EventWatcher.Dispose();
                     EventWatcher = null;
-                    PluginContext.Log(pluginName, "[FileMonitor] Realtime watcher stopped.");
+                    PluginContext.Log(pluginName, "[HostFileMonitor] Realtime watcher stopped.");
                 }
             }
             catch (Exception ex)
             {
-                PluginContext.Log(pluginName, $"[FileMonitor] Error stopping realtime watcher: {ex.Message}");
+                PluginContext.Log(pluginName, $"[HostFileMonitor] Error stopping realtime watcher: {ex.Message}");
             }
         }
 
@@ -84,7 +84,7 @@ namespace FileMonitorPlugin
             }
             catch (Exception ex)
             {
-                PluginContext.Log(pluginName, $"[FileMonitor] Failed to read file: {ex.Message}");
+                PluginContext.Log(pluginName, $"[HostFileMonitor] Failed to read file: {ex.Message}");
                 return;
             }
 
@@ -95,11 +95,11 @@ namespace FileMonitorPlugin
 
             if (string.IsNullOrEmpty(_lastChecksum))
             {
-                PluginContext.Log(pluginName, $"[FileMonitor] current checksum = {newHash}");
+                PluginContext.Log(pluginName, $"[HostFileMonitor] current checksum = {newHash}");
             }
             else
             {
-                PluginContext.Log(pluginName, $"[FileMonitor] file changed. Old checksum = {_lastChecksum} New checksum = {newHash}");
+                PluginContext.Log(pluginName, $"[HostFileMonitor] file changed. Old checksum = {_lastChecksum} New checksum = {newHash}");
                 // save last state and check rule
                 RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(pluginName), "CHANGED");
 

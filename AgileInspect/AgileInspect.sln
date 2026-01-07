@@ -19,7 +19,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VpnDetectorPlugin", "..\Vpn
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExternalDiskDetectorPlugin", "..\ExternalDiskDetectorPlugin\ExternalDiskDetectorPlugin.csproj", "{89D28A85-ECDA-4C1C-BA9D-2EA2BCCB8E2E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileMonitorPlugin", "..\FileMonitorPlugin\FileMonitorPlugin.csproj", "{E7986B34-CD22-4A7C-A120-3D8BACF01EE7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HostFileMonitorPlugin", "..\HostFileMonitorPlugin\HostFileMonitorPlugin.csproj", "{E7986B34-CD22-4A7C-A120-3D8BACF01EE7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
