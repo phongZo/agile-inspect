@@ -52,6 +52,9 @@ namespace ExternalDiskDetectorPlugin
 
                 EventWatcher.Start();
                 PluginContext.Log(pluginName, "[ExternalDiskDetector] Realtime watcher started.");
+
+                // Check External disk state immediately on startup
+                CheckExternalDisk();
             }
             catch (Exception ex)
             {
