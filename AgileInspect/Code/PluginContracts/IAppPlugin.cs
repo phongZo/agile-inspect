@@ -38,4 +38,7 @@
     public interface IHostFileMonitorPlugin : IAppPlugin
     {
     }
+    public interface IClipboardMonitorPlugin : IAppPlugin
+    {
+    }
 }

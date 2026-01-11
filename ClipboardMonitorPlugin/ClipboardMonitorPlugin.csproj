@@ -1,0 +1,41 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0-windows</TargetFramework>
+		<UseWPF>false</UseWPF>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
+		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+		<OutputPath>bin\$(Configuration)\</OutputPath>
+		<Configurations>Debug;Release</Configurations>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<RootDir>$([System.IO.Path]::GetFullPath('$(SolutionDir)..'))</RootDir>
+		<MainProjectBuildDir>$(RootDir)\AgileInspect\bin\$(Configuration)\net8.0-windows\$(RuntimeIdentifier)</MainProjectBuildDir>
+		<PluginOutputDir>$(RootDir)\AgileInspect\bin\$(Configuration)\net8.0-windows\$(RuntimeIdentifier)\dll\ClipboardMonitorPlugin</PluginOutputDir>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="System.Management" Version="9.0.5" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\AgileInspect\AgileInspect.csproj" />
+	</ItemGroup>
+
+	<Target Name="CopyPluginWithDependencies" AfterTargets="Build">
+		<Message Text="PluginOutputDir = $(PluginOutputDir)" Importance="High" />
+		<Copy SourceFiles="$(TargetPath)" DestinationFolder="$(PluginOutputDir)" SkipUnchangedFiles="true" />
+
+		<ItemGroup>
+			<DependencyFiles Include="@(ReferenceCopyLocalPaths)" />
+		</ItemGroup>
+		<Copy SourceFiles="@(DependencyFiles)" DestinationFolder="$(PluginOutputDir)\libs" SkipUnchangedFiles="true" />
+
+		<ItemGroup>
+			<FilesToDelete Include="$(PluginOutputDir)\libs\*AgileInspect*.dll" />
+		</ItemGroup>
+		<Delete Files="@(FilesToDelete)" />
+	</Target>
+</Project>

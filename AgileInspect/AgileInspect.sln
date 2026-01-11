@@ -19,7 +19,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VpnDetectorPlugin", "..\Vpn
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExternalDiskDetectorPlugin", "..\ExternalDiskDetectorPlugin\ExternalDiskDetectorPlugin.csproj", "{89D28A85-ECDA-4C1C-BA9D-2EA2BCCB8E2E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HostFileMonitorPlugin", "..\HostFileMonitorPlugin\HostFileMonitorPlugin.csproj", "{E7986B34-CD22-4A7C-A120-3D8BACF01EE7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HostFileMonitorPlugin", "..\HostFileMonitorPlugin\HostFileMonitorPlugin.csproj", "{E7986B34-CD22-4A7C-A120-3D8BACF01EE7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClipboardMonitorPlugin", "..\ClipboardMonitorPlugin\ClipboardMonitorPlugin.csproj", "{E76F7955-C0CC-473C-8445-3BA1E84423DE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -63,6 +65,10 @@ Global
 		{E7986B34-CD22-4A7C-A120-3D8BACF01EE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E7986B34-CD22-4A7C-A120-3D8BACF01EE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E7986B34-CD22-4A7C-A120-3D8BACF01EE7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E76F7955-C0CC-473C-8445-3BA1E84423DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E76F7955-C0CC-473C-8445-3BA1E84423DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E76F7955-C0CC-473C-8445-3BA1E84423DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E76F7955-C0CC-473C-8445-3BA1E84423DE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
