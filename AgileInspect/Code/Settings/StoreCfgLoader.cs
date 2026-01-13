@@ -110,6 +110,14 @@ namespace AgileInspect.Code.Settings
             {
                 return "antivirus";
             }
+            else if (pluginName == "PrintScreenPlugin")
+            {
+                return "printscreen";
+            }
+            else if (pluginName == "FocusWindowPlugin")
+            {
+                return "focus_window";
+            }
             else
                 return "";
         }

@@ -23,4 +23,10 @@
     public interface IAntivirusDetectorPlugin : IAppPlugin
     {
     }
+    public interface IPrintScreenPlugin : IAppPlugin
+    {
+    }
+    public interface IFocusWindowPlugin : IAppPlugin
+    {
+    }
 }

@@ -36,6 +36,26 @@ namespace AgileInspect
                     interval = 60
                 }
             });
+            Instance.eventSettings.Add(new EventSetting
+            {
+                eventParams = null,
+                eventType = "printscreen",
+                triggerType = "realtime",
+                triggerParams = new TriggerParams
+                {
+                    interval = 100 // Check frequency for key press
+                }
+            });
+            Instance.eventSettings.Add(new EventSetting
+            {
+                eventParams = null,
+                eventType = "focus_window",
+                triggerType = "realtime",
+                triggerParams = new TriggerParams
+                {
+                    interval = 500 // Check every 500ms
+                }
+            });
         }
         public static StoreCfgJson GetCurrentStoreConfig()
         {
