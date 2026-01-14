@@ -1,4 +1,4 @@
-﻿using System;
+using Newtonsoft.Json;
 using System.Collections.Generic;
 
 namespace AgileInspect
@@ -10,6 +10,37 @@ namespace AgileInspect
         public StoreCfgJson()
         {
             Instance = this;
+            // Default Settings
+            eventSettings.Add(new EventSetting
+            {
+                eventParams = null,
+                eventType = "antivirus",
+                triggerType = "interval",
+                triggerParams = new TriggerParams
+                {
+                    interval = 60
+                }
+            });
+            eventSettings.Add(new EventSetting
+            {
+                eventParams = null,
+                eventType = "brightness",
+                triggerType = "interval",
+                triggerParams = new TriggerParams
+                {
+                    interval = 1000
+                }
+            });
+            eventSettings.Add(new EventSetting
+            {
+                eventParams = null,
+                eventType = "browser_export",
+                triggerType = "realtime",
+                triggerParams = new TriggerParams
+                {
+                    interval = 0
+                }
+            });
         }
         #endregion
         public static void SetCurrentStoreConfig(StoreCfgJson config)
@@ -26,16 +57,6 @@ namespace AgileInspect
             Instance.rules = config.rules ?? new();
             Instance.ruleConditionQueueConfig = config.ruleConditionQueueConfig ?? new RuleConditionQueueConfig();
             Instance.eventQueueConfig = config.eventQueueConfig ?? new EventQueueConfig();
-            Instance.eventSettings.Add(new EventSetting
-            {
-                eventParams = null,
-                eventType = "antivirus",
-                triggerType = "interval",
-                triggerParams = new TriggerParams
-                {
-                    interval = 60
-                }
-            });
         }
         public static StoreCfgJson GetCurrentStoreConfig()
         {
@@ -49,7 +70,10 @@ namespace AgileInspect
         public List<Rules> rules { get; set; } = new();
         public RuleConditionQueueConfig ruleConditionQueueConfig { get; set; } = new RuleConditionQueueConfig();
         public EventQueueConfig eventQueueConfig { get; set; } = new EventQueueConfig();
+
+        [JsonProperty(ObjectCreationHandling = ObjectCreationHandling.Replace)]
         public List<EventSetting> eventSettings { get; set; } = new();
+
         public string settingHash { get; set; } = "abc";
         public int settingPullInterval { get; set; } = 30000;
 
@@ -108,3 +132,4 @@ namespace AgileInspect
         public Dictionary<string, object> @params { get; set; } = new();
     }
 }
+

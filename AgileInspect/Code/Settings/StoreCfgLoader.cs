@@ -1,8 +1,6 @@
-﻿using System;
-using System.IO;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Newtonsoft.Json;
+using System;
+using System.IO;
 
 namespace AgileInspect.Code.Settings
 {
@@ -110,8 +108,13 @@ namespace AgileInspect.Code.Settings
             {
                 return "antivirus";
             }
+            else if (pluginName == "BrowserPasswordExportPlugin")
+            {
+                return "browser_export";
+            }
             else
                 return "";
         }
     }
 }
+

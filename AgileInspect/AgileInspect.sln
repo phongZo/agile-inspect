@@ -1,7 +1,7 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.14.36109.1
+# Visual Studio Version 18
+VisualStudioVersion = 18.0.11222.15 d18.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AgileInspect", "AgileInspect.csproj", "{08AD6EE8-0138-45AC-B4B7-24E4B89F80CA}"
 EndProject
@@ -10,6 +10,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BrightnessChangePlugin", "..\BrightnessChangePlugin\BrightnessChangePlugin.csproj", "{DB4881A9-F954-41FE-8DC2-84207C81CCAE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AntivirusDetectorPlugin", "..\AntivirusDetectorPlugin\AntivirusDetectorPlugin.csproj", "{B764C3EC-BC24-4DE9-B188-05138243CCAB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BrowserPasswordExportPlugin", "..\BrowserPasswordExportPlugin\BrowserPasswordExportPlugin.csproj", "{A548C959-02D7-D8FF-AE12-0E585EB04394}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{B764C3EC-BC24-4DE9-B188-05138243CCAB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B764C3EC-BC24-4DE9-B188-05138243CCAB}.Release|Any CPU.ActiveCfg = Debug|Any CPU
 		{B764C3EC-BC24-4DE9-B188-05138243CCAB}.Release|Any CPU.Build.0 = Debug|Any CPU
+		{A548C959-02D7-D8FF-AE12-0E585EB04394}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A548C959-02D7-D8FF-AE12-0E585EB04394}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A548C959-02D7-D8FF-AE12-0E585EB04394}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A548C959-02D7-D8FF-AE12-0E585EB04394}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
