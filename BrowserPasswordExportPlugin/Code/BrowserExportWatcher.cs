@@ -23,7 +23,7 @@ namespace BrowserPasswordExportPlugin.Code
             {
                 _listener = new WindowEventListener(OnWindowDetected);
                 _listener.Start();
-                PluginContext.Log("BrowserPasswordExportPlugin", "Watcher started (Simple Hook mode).");
+                PluginContext.Log("BrowserPasswordExportPlugin", "Watcher started.");
             }
             catch (Exception ex)
             {
@@ -133,7 +133,7 @@ namespace BrowserPasswordExportPlugin.Code
                     file = fileNameValue,
                     timestamp = DateTime.Now
                 };
-                PluginContext.SendDetectionResult("BrowserPasswordExportPlugin", JsonConvert.SerializeObject(result));
+                //PluginContext.SendDetectionResult("BrowserPasswordExportPlugin", JsonConvert.SerializeObject(result));
             }
             catch(Exception ex)
             {
