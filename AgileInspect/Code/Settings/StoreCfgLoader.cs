@@ -110,6 +110,10 @@ namespace AgileInspect.Code.Settings
             {
                 return "antivirus";
             }
+            else if (pluginName == "PasteDetectorPlugin")
+            {
+                return "paste_detect";
+            }
             else
                 return "";
         }

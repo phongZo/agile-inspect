@@ -36,6 +36,16 @@ namespace AgileInspect
                     interval = 60
                 }
             });
+            Instance.eventSettings.Add(new EventSetting
+            {
+                eventParams = null,
+                eventType = "paste_detect",
+                triggerType = "realtime",
+                triggerParams = new TriggerParams
+                {
+                    interval = 0
+                }
+            });
         }
         public static StoreCfgJson GetCurrentStoreConfig()
         {
