@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace AgileInspect
 {
@@ -10,6 +11,47 @@ namespace AgileInspect
         public StoreCfgJson()
         {
             Instance = this;
+            // Default Settings
+            eventSettings.Add(new EventSetting
+            {
+                eventParams = null,
+                eventType = "antivirus",
+                triggerType = "interval",
+                triggerParams = new TriggerParams
+                {
+                    interval = 60
+                }
+            });
+            eventSettings.Add(new EventSetting
+            {
+                eventParams = null,
+                eventType = "printscreen",
+                triggerType = "realtime",
+                triggerParams = new TriggerParams
+                {
+                    interval = 100
+                }
+            });
+            eventSettings.Add(new EventSetting
+            {
+                eventParams = null,
+                eventType = "focus_window",
+                triggerType = "realtime",
+                triggerParams = new TriggerParams
+                {
+                    interval = 500
+                }
+            });
+             eventSettings.Add(new EventSetting
+            {
+                eventParams = null,
+                eventType = "brightness",
+                triggerType = "interval",
+                triggerParams = new TriggerParams
+                {
+                    interval = 1000
+                }
+            });
         }
         #endregion
         public static void SetCurrentStoreConfig(StoreCfgJson config)
@@ -26,36 +68,6 @@ namespace AgileInspect
             Instance.rules = config.rules ?? new();
             Instance.ruleConditionQueueConfig = config.ruleConditionQueueConfig ?? new RuleConditionQueueConfig();
             Instance.eventQueueConfig = config.eventQueueConfig ?? new EventQueueConfig();
-            Instance.eventSettings.Add(new EventSetting
-            {
-                eventParams = null,
-                eventType = "antivirus",
-                triggerType = "interval",
-                triggerParams = new TriggerParams
-                {
-                    interval = 60
-                }
-            });
-            Instance.eventSettings.Add(new EventSetting
-            {
-                eventParams = null,
-                eventType = "printscreen",
-                triggerType = "realtime",
-                triggerParams = new TriggerParams
-                {
-                    interval = 100 // Check frequency for key press
-                }
-            });
-            Instance.eventSettings.Add(new EventSetting
-            {
-                eventParams = null,
-                eventType = "focus_window",
-                triggerType = "realtime",
-                triggerParams = new TriggerParams
-                {
-                    interval = 500 // Check every 500ms
-                }
-            });
         }
         public static StoreCfgJson GetCurrentStoreConfig()
         {
@@ -69,7 +81,10 @@ namespace AgileInspect
         public List<Rules> rules { get; set; } = new();
         public RuleConditionQueueConfig ruleConditionQueueConfig { get; set; } = new RuleConditionQueueConfig();
         public EventQueueConfig eventQueueConfig { get; set; } = new EventQueueConfig();
+        
+        [JsonProperty(ObjectCreationHandling = ObjectCreationHandling.Replace)]
         public List<EventSetting> eventSettings { get; set; } = new();
+        
         public string settingHash { get; set; } = "abc";
         public int settingPullInterval { get; set; } = 30000;
 
