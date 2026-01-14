@@ -1,6 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
 using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace AgileInspect
 {
@@ -25,31 +24,31 @@ namespace AgileInspect
             eventSettings.Add(new EventSetting
             {
                 eventParams = null,
-                eventType = "printscreen",
-                triggerType = "realtime",
+                eventType = "brightness",
+                triggerType = "interval",
                 triggerParams = new TriggerParams
                 {
-                    interval = 100
+                    interval = 1000
                 }
             });
             eventSettings.Add(new EventSetting
             {
                 eventParams = null,
-                eventType = "focus_window",
+                eventType = "focus_window_detect",
                 triggerType = "realtime",
                 triggerParams = new TriggerParams
                 {
                     interval = 500
                 }
             });
-             eventSettings.Add(new EventSetting
+            eventSettings.Add(new EventSetting
             {
                 eventParams = null,
-                eventType = "brightness",
-                triggerType = "interval",
+                eventType = "printscreen_detect",
+                triggerType = "realtime",
                 triggerParams = new TriggerParams
                 {
-                    interval = 1000
+                    interval = 100
                 }
             });
         }
@@ -81,10 +80,10 @@ namespace AgileInspect
         public List<Rules> rules { get; set; } = new();
         public RuleConditionQueueConfig ruleConditionQueueConfig { get; set; } = new RuleConditionQueueConfig();
         public EventQueueConfig eventQueueConfig { get; set; } = new EventQueueConfig();
-        
+
         [JsonProperty(ObjectCreationHandling = ObjectCreationHandling.Replace)]
         public List<EventSetting> eventSettings { get; set; } = new();
-        
+
         public string settingHash { get; set; } = "abc";
         public int settingPullInterval { get; set; } = 30000;
 
@@ -143,3 +142,4 @@ namespace AgileInspect
         public Dictionary<string, object> @params { get; set; } = new();
     }
 }
+

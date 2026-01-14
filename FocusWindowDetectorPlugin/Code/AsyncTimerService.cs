@@ -1,8 +1,8 @@
 using System;
 using System.Threading.Tasks;
+using AgileInspect.Code.PluginContracts;
 
-namespace PrintScreenPlugin
-{
+namespace FocusWindowDetectorPlugin {
     public class AsyncTimerService : IDisposable
     {
         private readonly System.Timers.Timer _timer;
@@ -31,7 +31,7 @@ namespace PrintScreenPlugin
             }
             catch (Exception ex)
             {
-                PluginContext.Log("PrintScreenPlugin", $"[AsyncTimerService] Error: {ex}");
+                PluginContext.Log("FocusWindowDetectorPlugin", $"[AsyncTimerService] Error: {ex}");
             }
             finally
             {
@@ -54,13 +54,6 @@ namespace PrintScreenPlugin
         {
             _timer?.Stop();
             _timer?.Dispose();
-        }
-
-        public void UpdateInterval(double intervalMs)
-        {
-            _timer.Stop();
-            _timer.Interval = intervalMs;
-            _timer.Start();
         }
     }
 }

@@ -1,4 +1,6 @@
-namespace PrintScreenPlugin
+using System.Collections.Generic;
+
+namespace FocusWindowDetectorPlugin.Code.Settings
 {
     public class StoreCfgJson
     {
@@ -11,7 +13,6 @@ namespace PrintScreenPlugin
         #endregion
 
         public EventSetting eventSetting { get; set; } = new EventSetting();
-
     }
 
     public class EventSetting
@@ -23,10 +24,15 @@ namespace PrintScreenPlugin
 
     public class EventParams
     {
+        public string[] paths { get; set; } = [];
+        public string[] filters { get; set; } = [];
+        public string[] processes { get; set; } = [];
+        public string[] services { get; set; } = [];
+        public int activeTime { get; set; }
     }
 
     public class TriggerParams
     {
-        public int interval { get; set; } = 100;
+        public int interval { get; set; } = 10;
     }
 }

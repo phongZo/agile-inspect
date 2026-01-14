@@ -32,7 +32,7 @@ artifacts/
 Thumbs.db
 ehthumbs.db
 Desktop.ini
-$RECYCLE.BIN/
+.BIN/
 
 # Windows crash dumps
 *.dmp

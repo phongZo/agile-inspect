@@ -3,12 +3,13 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading.Tasks;
+using PrintScreenDetectorPlugin.Code.Settings;
 
-namespace PrintScreenPlugin
+namespace PrintScreenDetectorPlugin
 {
-    public class PrintScreenPlugin : IPrintScreenPlugin
+    public class PrintScreenDetectorPlugin : IPrintScreenDetectorPlugin
     {
-        public string Name => "PrintScreenPlugin";
+        public string Name => "PrintScreenDetectorPlugin";
         private AsyncTimerService _timerService;
         public StoreCfgJson StoreCfgJson { get; set; } = new StoreCfgJson();
 
@@ -36,7 +37,7 @@ namespace PrintScreenPlugin
             }
             setting.triggerType = !string.IsNullOrWhiteSpace(triggerType) ? triggerType : setting.triggerType;
             StoreCfgJson.Instance.eventSetting = setting;
-            PluginContext.Log(Name, "Parameters is set ");
+            PluginContext.Log(Name, "Parameters is set");
         }
 
         public void Start()
@@ -79,7 +80,14 @@ namespace PrintScreenPlugin
                 if ((state & 0x8000) != 0)
                 {
                     PluginContext.Log(Name, "PrintScreen pressed");
-                    await Task.Delay(1000); 
+                    
+                    var result = new {
+                        eventType = "printscreen_detect",
+                        timestamp = DateTime.Now
+                    };
+                    //PluginContext.SendDetectionResult(Name, System.Text.Json.JsonSerializer.Serialize(result));
+
+                    await Task.Delay(50); // Prevent multiple detections
                 }
             }
             catch (Exception ex)

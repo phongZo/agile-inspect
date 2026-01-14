@@ -5,12 +5,13 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using FocusWindowDetectorPlugin.Code.Settings;
 
-namespace FocusWindowPlugin
+namespace FocusWindowDetectorPlugin
 {
-    public class FocusWindowPlugin : IFocusWindowPlugin
+    public class FocusWindowDetectorPlugin : IFocusWindowDetectorPlugin
     {
-        public string Name => "FocusWindowPlugin";
+        public string Name => "FocusWindowDetectorPlugin";
         private AsyncTimerService _timerService;
         public StoreCfgJson StoreCfgJson { get; set; } = new StoreCfgJson();
         private IntPtr _lastWindowHandle = IntPtr.Zero;
@@ -43,7 +44,7 @@ namespace FocusWindowPlugin
             }
             setting.triggerType = !string.IsNullOrWhiteSpace(triggerType) ? triggerType : setting.triggerType;
             StoreCfgJson.Instance.eventSetting = setting;
-            PluginContext.Log(Name, "Parameters is set ");
+            PluginContext.Log(Name, "Parameters is set");
         }
 
         public void Start()

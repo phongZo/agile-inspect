@@ -1,8 +1,6 @@
-﻿using System;
-using System.IO;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Newtonsoft.Json;
+using System;
+using System.IO;
 
 namespace AgileInspect.Code.Settings
 {
@@ -110,11 +108,11 @@ namespace AgileInspect.Code.Settings
             {
                 return "antivirus";
             }
-            else if (pluginName == "PrintScreenPlugin")
+            else if (pluginName == "PrintScreenDetectorPlugin")
             {
-                return "printscreen";
+                return "print_screen";
             }
-            else if (pluginName == "FocusWindowPlugin")
+            else if (pluginName == "FocusWindowDetectorPlugin")
             {
                 return "focus_window";
             }
@@ -123,3 +121,4 @@ namespace AgileInspect.Code.Settings
         }
     }
 }
+

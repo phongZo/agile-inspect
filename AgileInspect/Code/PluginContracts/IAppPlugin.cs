@@ -1,4 +1,4 @@
-﻿namespace AgileInspect.Code.PluginContracts
+namespace AgileInspect.Code.PluginContracts
 {
     public interface IAppCallback
     {
@@ -23,10 +23,10 @@
     public interface IAntivirusDetectorPlugin : IAppPlugin
     {
     }
-    public interface IPrintScreenPlugin : IAppPlugin
+    public interface IPrintScreenDetectorPlugin : IAppPlugin
     {
     }
-    public interface IFocusWindowPlugin : IAppPlugin
+    public interface IFocusWindowDetectorPlugin : IAppPlugin
     {
     }
 }
