@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
-namespace BrowserPasswordExportPlugin.Code.Settings
+namespace PasswordExportDetectorPlugin.Code.Settings
 {
     public class StoreCfgJson
     {
@@ -13,12 +13,9 @@ namespace BrowserPasswordExportPlugin.Code.Settings
         #endregion
 
         public List<string> targetProcesses { get; set; } = new List<string> { "chrome", "msedge", "brave", "firefox", "opera" };
-        public List<string> titleKeywords { get; set; } = new List<string> { "save as", "export passwords", "xuất mật khẩu", "save" };
+        public List<string> titleKeywords { get; set; } = new List<string> { "save as", "lưu dưới dạng", "export passwords", "xuất mật khẩu", "save" };
         public List<string> fileNameKeywords { get; set; } = new List<string> { "password", "pass", "login", "credentials", "mật khẩu" };
-        public List<string> saveButtonKeywords { get; set; } = new List<string> { "save", "lưu", "download", "tải xuống" };
-        public List<string> confirmOverwriteKeywords { get; set; } = new List<string> { "confirm save as", "confirm save", "xác nhận lưu", "confirm replace" };
-        public List<string> yesButtonKeywords { get; set; } = new List<string> { "yes", "có", "ok" };
-
+        public List<string> confirmOverwriteKeywords { get; set; } = new List<string> { "confirm save as", "confirm save", "x�c nh?n luu", "confirm replace" };
         public string fileExtension { get; set; } = ".csv";
 
         public EventSetting eventSetting { get; set; } = new EventSetting();

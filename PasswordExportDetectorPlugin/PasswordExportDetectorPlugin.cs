@@ -1,20 +1,21 @@
 using AgileInspect.Code.PluginContracts;
-using BrowserPasswordExportPlugin.Code;
-using BrowserPasswordExportPlugin.Code.Settings;
+using PasswordExportDetectorPlugin.Code;
+using PasswordExportDetectorPlugin.Code.Settings;
+using System;
 using System.Text.Json;
 
-namespace BrowserPasswordExportPlugin
+namespace PasswordExportDetectorPlugin
 {
-    public class BrowserPasswordExportPlugin : IAppPlugin
+    public class PasswordExportDetectorPlugin : IAppPlugin
     {
-        public string Name => "BrowserPasswordExportPlugin";
+        public string Name => "PasswordExportDetectorPlugin";
         public StoreCfgJson StoreCfgJson { get; set; } = new StoreCfgJson();
-        private BrowserExportWatcher _watcher;
+        private PasswordExportWatcher _watcher;
 
         public void Initialize()
         {
             PluginContext.Log(Name, "Initialize");
-            _watcher = new BrowserExportWatcher(StoreCfgJson);
+            _watcher = new PasswordExportWatcher(StoreCfgJson);
         }
 
         public void SetParameters(string eventParamsJson, string triggerType, string triggerParamsJson)
@@ -35,23 +36,18 @@ namespace BrowserPasswordExportPlugin
 
             StoreCfgJson.Instance.eventSetting = setting;
 
-            PluginContext.Log(Name, "Parameters is set ");
+            PluginContext.Log(Name, "Parameters is set");
         }
 
         public void Start()
         {
-            var setting = StoreCfgJson.Instance.eventSetting ?? new EventSetting();
-            var triggerType = setting.triggerType;
-
             PluginContext.Log(Name, "Start");
-            PluginContext.Log(Name, $"triggerType: {triggerType}");
-            
             _watcher?.Start();
         }
 
         public void Stop()
         {
-            PluginContext.Log(Name, "Stopped.");
+            PluginContext.Log(Name, "Stopped");
             _watcher?.Stop();
         }
     }

@@ -2,7 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace BrowserPasswordExportPlugin.Code
+namespace PasswordExportDetectorPlugin.Code
 {
     public class WindowEventListener : IDisposable
     {
@@ -38,7 +38,6 @@ namespace BrowserPasswordExportPlugin.Code
         public void Start()
         {
             _procDelegate = new WinEventDelegate(WinEventProc);
-            // Hook range covers CREATE(0x8000) to NAMECHANGE(0x800C) which includes DESTROY(0x8001) and SHOW(0x8002)
             _hookHandle = SetWinEventHook(EVENT_OBJECT_CREATE, EVENT_OBJECT_NAMECHANGE, IntPtr.Zero, _procDelegate, 0, 0, WINEVENT_OUTOFCONTEXT);
         }
 

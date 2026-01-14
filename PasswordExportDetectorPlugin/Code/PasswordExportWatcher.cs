@@ -1,18 +1,22 @@
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Windows.Automation;
-using BrowserPasswordExportPlugin.Code.Settings;
+using AgileInspect.Code.PluginContracts;
+using PasswordExportDetectorPlugin.Code.Settings;
 using Newtonsoft.Json;
 
-namespace BrowserPasswordExportPlugin.Code
+namespace PasswordExportDetectorPlugin.Code
 {
-    public class BrowserExportWatcher
+    public class PasswordExportWatcher
     {
         private StoreCfgJson _config;
         private WindowEventListener _listener;
         private HashSet<IntPtr> _watchedWindows = new HashSet<IntPtr>();
         private const uint EVENT_OBJECT_DESTROY = 0x8001;
 
-        public BrowserExportWatcher(StoreCfgJson config)
+        public PasswordExportWatcher(StoreCfgJson config)
         {
             _config = config;
         }
@@ -23,11 +27,11 @@ namespace BrowserPasswordExportPlugin.Code
             {
                 _listener = new WindowEventListener(OnWindowDetected);
                 _listener.Start();
-                PluginContext.Log("BrowserPasswordExportPlugin", "Watcher started.");
+                PluginContext.Log("PasswordExportDetectorPlugin", "Watcher started.");
             }
             catch (Exception ex)
             {
-                PluginContext.Log("BrowserPasswordExportPlugin", $"Failed to start watcher: {ex.Message}");
+                PluginContext.Log("PasswordExportDetectorPlugin", $"Failed to start watcher: {ex.Message}");
             }
         }
 
@@ -39,7 +43,7 @@ namespace BrowserPasswordExportPlugin.Code
                 _listener?.Dispose();
                 _listener = null;
                 _watchedWindows.Clear();
-                PluginContext.Log("BrowserPasswordExportPlugin", "Watcher stopped.");
+                PluginContext.Log("PasswordExportDetectorPlugin", "Watcher stopped.");
             }
             catch {}
         }
@@ -48,14 +52,12 @@ namespace BrowserPasswordExportPlugin.Code
         {
             try
             {
-                // Cleanup when window closes
                 if (eventType == EVENT_OBJECT_DESTROY)
                 {
                     if (_watchedWindows.Contains(hwnd)) _watchedWindows.Remove(hwnd);
                     return;
                 }
 
-                // Avoid processing the same window multiple times
                 if (_watchedWindows.Contains(hwnd)) return;
 
                 var info = WindowEventListener.GetWindowInfo(hwnd);
@@ -97,7 +99,6 @@ namespace BrowserPasswordExportPlugin.Code
         {
             try 
             {
-                // Try to find the filename in the Edit control
                 string fileNameValue = "Unknown";
                 try 
                 {
@@ -123,21 +124,21 @@ namespace BrowserPasswordExportPlugin.Code
                 } 
                 catch {}
 
-                string alertMsg = $"Browser Export Detected: App='{procName}' Title='{windowTitle}' (PID: {pid})";
-                PluginContext.Log("BrowserPasswordExportPlugin", alertMsg);
+                string alertMsg = $"Password Export Detected: App='{procName}' Title='{windowTitle}' (PID: {pid})";
+                PluginContext.Log("PasswordExportDetectorPlugin", alertMsg);
 
                 var result = new
                 {
-                    eventType = "browser_export",
+                    eventType = "password_export",
                     process = procName,
                     file = fileNameValue,
                     timestamp = DateTime.Now
                 };
-                //PluginContext.SendDetectionResult("BrowserPasswordExportPlugin", JsonConvert.SerializeObject(result));
+                //PluginContext.SendDetectionResult("PasswordExportDetectorPlugin", JsonConvert.SerializeObject(result));
             }
             catch(Exception ex)
             {
-                PluginContext.Log("BrowserPasswordExportPlugin", $"Scan Error: {ex.Message}");
+                PluginContext.Log("PasswordExportDetectorPlugin", $"Scan Error: {ex.Message}");
             }
         }
 

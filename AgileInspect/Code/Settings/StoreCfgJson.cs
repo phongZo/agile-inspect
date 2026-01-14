@@ -34,7 +34,7 @@ namespace AgileInspect
             eventSettings.Add(new EventSetting
             {
                 eventParams = null,
-                eventType = "browser_export",
+                eventType = "password_export",
                 triggerType = "realtime",
                 triggerParams = new TriggerParams
                 {

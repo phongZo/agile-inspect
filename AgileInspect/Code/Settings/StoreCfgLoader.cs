@@ -108,9 +108,13 @@ namespace AgileInspect.Code.Settings
             {
                 return "antivirus";
             }
-            else if (pluginName == "BrowserPasswordExportPlugin")
+            else if (pluginName == "PasswordExportDetectorPlugin")
             {
-                return "browser_export";
+                return "password_export";
+            }
+            else if (pluginName == "PasteDetectorPlugin")
+            {
+                return "paste_detect";
             }
             else
                 return "";
