@@ -23,4 +23,19 @@
     public interface IAntivirusDetectorPlugin : IAppPlugin
     {
     }
+    public interface IFirewallDetectorPlugin : IAppPlugin
+    {
+    }
+    public interface IInternetDetectorPlugin : IAppPlugin
+    {
+    }
+    public interface IVpnDetectorPlugin : IAppPlugin
+    {
+    }
+    public interface IExternalDiskDetectorPlugin : IAppPlugin
+    {
+    }
+    public interface IHostFileMonitorPlugin : IAppPlugin
+    {
+    }
 }
