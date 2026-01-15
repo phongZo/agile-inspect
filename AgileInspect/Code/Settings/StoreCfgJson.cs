@@ -115,6 +115,7 @@ namespace AgileInspect
         public string[] filters { get; set; } = [];
         public string[] processes { get; set; } = [];
         public string[] services { get; set; } = [];
+        public string[] allowedInternetSsids { get; set; } = [];
         public int activeTime { get; set; }
     }
 

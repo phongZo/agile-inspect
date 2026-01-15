@@ -116,6 +116,26 @@ namespace AgileInspect.Code.Settings
             {
                 return "focus_window";
             }
+            else if (pluginName == "FirewallDetectorPlugin")
+            {
+                return "firewall";
+            }
+            else if (pluginName == "InternetDetectorPlugin")
+            {
+                return "internet";
+            }
+            else if (pluginName == "VpnDetectorPlugin")
+            {
+                return "vpn";
+            }
+            else if (pluginName == "ExternalDiskDetectorPlugin")
+            {
+                return "external_disk";
+            }
+            else if (pluginName == "HostFileMonitorPlugin")
+            {
+                return "host_file";
+            }
             else
                 return "";
         }
