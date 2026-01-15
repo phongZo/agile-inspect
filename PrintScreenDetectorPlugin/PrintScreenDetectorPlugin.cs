@@ -82,12 +82,11 @@ namespace PrintScreenDetectorPlugin
                     PluginContext.Log(Name, "PrintScreen pressed");
                     
                     var result = new {
-                        eventType = "printscreen_detect",
-                        timestamp = DateTime.Now
+                        timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
                     };
-                    //PluginContext.SendDetectionResult(Name, System.Text.Json.JsonSerializer.Serialize(result));
+                    PluginContext.SendDetectionResult(Name, JsonSerializer.Serialize(result));
 
-                    await Task.Delay(50); // Prevent multiple detections
+                    await Task.Delay(200); // Prevent multiple detections from one long press
                 }
             }
             catch (Exception ex)

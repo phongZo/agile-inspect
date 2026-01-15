@@ -121,7 +121,18 @@ namespace FocusWindowDetectorPlugin
                     GetWindowThreadProcessId(handle, out uint pid);
                     string processName = "Unknown";
                     try { processName = Process.GetProcessById((int)pid).ProcessName; } catch { }
+                    
+                    var detectionResult = new
+                    {
+                        processName,
+                        windowTitle,
+                        pid,
+                        timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+                    };
+
+                    string json = JsonSerializer.Serialize(detectionResult);
                     PluginContext.Log(Name, $"Focus: App='{processName}' Title='{windowTitle}' (PID: {pid})");
+                    PluginContext.SendDetectionResult(Name, json);
                 }
             }
             catch (Exception ex)
