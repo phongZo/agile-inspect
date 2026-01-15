@@ -10,47 +10,6 @@ namespace AgileInspect
         public StoreCfgJson()
         {
             Instance = this;
-            // Default Settings
-            eventSettings.Add(new EventSetting
-            {
-                eventParams = null,
-                eventType = "antivirus",
-                triggerType = "interval",
-                triggerParams = new TriggerParams
-                {
-                    interval = 60
-                }
-            });
-            eventSettings.Add(new EventSetting
-            {
-                eventParams = null,
-                eventType = "brightness",
-                triggerType = "interval",
-                triggerParams = new TriggerParams
-                {
-                    interval = 1000
-                }
-            });
-            eventSettings.Add(new EventSetting
-            {
-                eventParams = null,
-                eventType = "focus_window_detect",
-                triggerType = "realtime",
-                triggerParams = new TriggerParams
-                {
-                    interval = 500
-                }
-            });
-            eventSettings.Add(new EventSetting
-            {
-                eventParams = null,
-                eventType = "printscreen_detect",
-                triggerType = "realtime",
-                triggerParams = new TriggerParams
-                {
-                    interval = 100
-                }
-            });
         }
         #endregion
         public static void SetCurrentStoreConfig(StoreCfgJson config)
