@@ -1,4 +1,4 @@
-using AgileInspect.Code.PluginContracts;
+﻿using AgileInspect.Code.PluginContracts;
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -12,9 +12,15 @@ namespace FocusWindowDetectorPlugin
     public class FocusWindowDetectorPlugin : IFocusWindowDetectorPlugin
     {
         public string Name => "FocusWindowDetectorPlugin";
-        private AsyncTimerService _timerService;
         public StoreCfgJson StoreCfgJson { get; set; } = new StoreCfgJson();
-        private IntPtr _lastWindowHandle = IntPtr.Zero;
+        
+        private delegate void WinEventDelegate(IntPtr hWinEventHook, uint eventType, IntPtr hwnd, int idObject, int idChild, uint dwEventThread, uint dwmsEventTime);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr SetWinEventHook(uint eventMin, uint eventMax, IntPtr hmodWinEventProc, WinEventDelegate lpfnWinEventProc, uint idProcess, uint idThread, uint dwFlags);
+
+        [DllImport("user32.dll")]
+        private static extern bool UnhookWinEvent(IntPtr hWinEventHook);
 
         [DllImport("user32.dll")]
         private static extern IntPtr GetForegroundWindow();
@@ -24,6 +30,13 @@ namespace FocusWindowDetectorPlugin
 
         [DllImport("user32.dll")]
         private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
+        private const uint WINEVENT_OUTOFCONTEXT = 0;
+        private const uint EVENT_SYSTEM_FOREGROUND = 0x0003;
+
+        private IntPtr _hookHandle = IntPtr.Zero;
+        private WinEventDelegate _winEventProc; 
+        private IntPtr _lastWindowHandle = IntPtr.Zero;
 
         public void Initialize()
         {
@@ -51,62 +64,62 @@ namespace FocusWindowDetectorPlugin
         {
             var setting = StoreCfgJson.Instance.eventSetting ?? new EventSetting();
             var triggerType = setting.triggerType;
-            var interval = setting.triggerParams.interval;
 
             PluginContext.Log(Name, "Start");
             PluginContext.Log(Name, $"triggerType: {triggerType}");
 
-            double intervalMs = 500;
-            if (triggerType.Equals("interval", StringComparison.OrdinalIgnoreCase))
+            if (triggerType.Equals("realtime", StringComparison.OrdinalIgnoreCase))
             {
-                intervalMs = interval * 1000;
+                Stop(); 
+                _winEventProc = new WinEventDelegate(WinEventProc);
+                _hookHandle = SetWinEventHook(EVENT_SYSTEM_FOREGROUND, EVENT_SYSTEM_FOREGROUND, IntPtr.Zero, _winEventProc, 0, 0, WINEVENT_OUTOFCONTEXT);
+
+                if (_hookHandle == IntPtr.Zero)
+                {
+                    PluginContext.Log(Name, "Failed to set WinEventHook.");
+                }
+                else
+                {
+                    CheckFocus(GetForegroundWindow());
+                }
             }
-            else if (!triggerType.Equals("realtime", StringComparison.OrdinalIgnoreCase))
+            else
             {
                 PluginContext.Log(Name, $"[FocusWindow] Unsupported triggerType '{triggerType}', plugin will not start.");
                 return;
             }
-
-            _timerService = new AsyncTimerService(intervalMs, CheckFocusAsync);
-            _timerService.Start();
         }
 
         public void Stop()
         {
-            PluginContext.Log(Name, "Stopped.");
-            _timerService?.Stop();
-            _timerService?.Dispose();
-            _timerService = null;
+            if (_hookHandle != IntPtr.Zero)
+            {
+                UnhookWinEvent(_hookHandle);
+                _hookHandle = IntPtr.Zero;
+            }
+            _winEventProc = null;
         }
 
-        private async Task CheckFocusAsync()
+        private void WinEventProc(IntPtr hWinEventHook, uint eventType, IntPtr hwnd, int idObject, int idChild, uint dwEventThread, uint dwmsEventTime)
         {
-             try
-            {
-                var setting = StoreCfgJson.Instance.eventSetting;
-                IntPtr handle = GetForegroundWindow();
+            if (idObject != 0) return; 
+            CheckFocus(hwnd);
+        }
 
-                if (setting.triggerType.Equals("realtime", StringComparison.OrdinalIgnoreCase))
-                {
-                    if (handle != _lastWindowHandle && handle != IntPtr.Zero)
-                    {
-                        _lastWindowHandle = handle;
-                        LogWindowInfo(handle);
-                    }
-                }
-                else // interval
-                {
-                    if (handle != IntPtr.Zero)
-                    {
-                         LogWindowInfo(handle);
-                    }
-                }
+        private void CheckFocus(IntPtr handle)
+        {
+            try
+            {
+                if (handle == IntPtr.Zero) return;
+                if (handle == _lastWindowHandle) return; 
+
+                _lastWindowHandle = handle;
+                LogWindowInfo(handle);
             }
             catch (Exception ex)
             {
-                PluginContext.Log(Name, $"Error: {ex.Message}");
+                PluginContext.Log(Name, $"Error processing focus change: {ex.Message}");
             }
-            await Task.CompletedTask;
         }
 
         private void LogWindowInfo(IntPtr handle)
@@ -121,7 +134,7 @@ namespace FocusWindowDetectorPlugin
                     GetWindowThreadProcessId(handle, out uint pid);
                     string processName = "Unknown";
                     try { processName = Process.GetProcessById((int)pid).ProcessName; } catch { }
-                    
+
                     var detectionResult = new
                     {
                         processName,

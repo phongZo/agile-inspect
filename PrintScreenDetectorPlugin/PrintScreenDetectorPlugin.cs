@@ -1,5 +1,6 @@
-using AgileInspect.Code.PluginContracts;
+﻿using AgileInspect.Code.PluginContracts;
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -10,13 +11,30 @@ namespace PrintScreenDetectorPlugin
     public class PrintScreenDetectorPlugin : IPrintScreenDetectorPlugin
     {
         public string Name => "PrintScreenDetectorPlugin";
-        private AsyncTimerService _timerService;
         public StoreCfgJson StoreCfgJson { get; set; } = new StoreCfgJson();
 
-        [DllImport("user32.dll")]
-        private static extern short GetAsyncKeyState(int vKey);
+        private delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
 
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        private static extern IntPtr SetWindowsHookEx(int idHook, LowLevelKeyboardProc lpfn, IntPtr hMod, uint dwThreadId);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool UnhookWindowsHookEx(IntPtr hhk);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        private static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        private static extern IntPtr GetModuleHandle(string lpModuleName);
+
+        private const int WH_KEYBOARD_LL = 13;
+        private const int WM_KEYDOWN = 0x0100;
+        private const int WM_SYSKEYDOWN = 0x0104;
         private const int VK_SNAPSHOT = 0x2C;
+
+        private IntPtr _hookHandle = IntPtr.Zero;
+        private LowLevelKeyboardProc _proc;
 
         public void Initialize()
         {
@@ -44,50 +62,66 @@ namespace PrintScreenDetectorPlugin
         {
             var setting = StoreCfgJson.Instance.eventSetting ?? new EventSetting();
             var triggerType = setting.triggerType;
-            var interval = setting.triggerParams.interval;
 
             PluginContext.Log(Name, "Start");
             PluginContext.Log(Name, $"triggerType: {triggerType}");
 
-            double intervalMs = 100; // Default for realtime polling
-            if (triggerType.Equals("interval", StringComparison.OrdinalIgnoreCase))
+            if (triggerType.Equals("realtime", StringComparison.OrdinalIgnoreCase))
             {
-                intervalMs = interval * 1000;
+                Stop(); 
+
+                _proc = HookCallback;
+                using (Process curProcess = Process.GetCurrentProcess())
+                using (ProcessModule curModule = curProcess.MainModule)
+                {
+                    _hookHandle = SetWindowsHookEx(WH_KEYBOARD_LL, _proc, GetModuleHandle(curModule.ModuleName), 0);
+                }
+
+                if (_hookHandle == IntPtr.Zero)
+                {
+                    PluginContext.Log(Name, "Failed to set Keyboard Hook.");
+                }
             }
-            else if (!triggerType.Equals("realtime", StringComparison.OrdinalIgnoreCase))
+            else
             {
                 PluginContext.Log(Name, $"[PrintScreen] Unsupported triggerType '{triggerType}', plugin will not start.");
                 return;
             }
-
-            _timerService = new AsyncTimerService(intervalMs, CheckPrintScreenAsync);
-            _timerService.Start();
         }
 
         public void Stop()
         {
-            PluginContext.Log(Name, "Stopped.");
-            _timerService?.Stop();
-            _timerService?.Dispose();
-            _timerService = null;
+            if (_hookHandle != IntPtr.Zero)
+            {
+                UnhookWindowsHookEx(_hookHandle);
+                _hookHandle = IntPtr.Zero;
+                PluginContext.Log(Name, "Keyboard Hook uninstalled.");
+            }
+            _proc = null;
         }
 
-        private async Task CheckPrintScreenAsync()
+        private IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
         {
-            try
+            if (nCode >= 0 && (wParam == (IntPtr)WM_KEYDOWN || wParam == (IntPtr)WM_SYSKEYDOWN))
             {
-                short state = GetAsyncKeyState(VK_SNAPSHOT);
-                if ((state & 0x8000) != 0)
+                int vkCode = Marshal.ReadInt32(lParam);
+                if (vkCode == VK_SNAPSHOT)
                 {
-                    PluginContext.Log(Name, "PrintScreen pressed");
-                    
-                    var result = new {
-                        timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
-                    };
-                    PluginContext.SendDetectionResult(Name, JsonSerializer.Serialize(result));
-
-                    await Task.Delay(200); // Prevent multiple detections from one long press
+                    Task.Run(() => HandlePrintScreen());
                 }
+            }
+            return CallNextHookEx(_hookHandle, nCode, wParam, lParam);
+        }
+
+        private void HandlePrintScreen()
+        {
+             try
+            {
+                PluginContext.Log(Name, "PrintScreen pressed");
+                var result = new {
+                    timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+                };
+                PluginContext.SendDetectionResult(Name, JsonSerializer.Serialize(result));
             }
             catch (Exception ex)
             {
