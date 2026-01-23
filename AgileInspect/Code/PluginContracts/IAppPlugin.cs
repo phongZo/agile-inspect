@@ -44,4 +44,7 @@ namespace AgileInspect.Code.PluginContracts
     public interface IHostFileMonitorPlugin : IAppPlugin
     {
     }
+    public interface IAiInteractionDetectorPlugin : IAppPlugin
+    {
+    }
 }

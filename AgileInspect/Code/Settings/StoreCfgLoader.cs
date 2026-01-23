@@ -136,6 +136,10 @@ namespace AgileInspect.Code.Settings
             {
                 return "host_file";
             }
+            else if (pluginName == "AiInteractionDetectorPlugin")
+            {
+                return "ai_interaction";
+            }
             else
                 return "";
         }

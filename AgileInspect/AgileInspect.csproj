@@ -20,10 +20,10 @@
   list -->
   <ItemGroup>
     <PluginProjects
-      Include="WatermarkDetectorPlugin;BrightnessChangePlugin;AntivirusDetectorPlugin;FirewallDetectorPlugin;InternetDetectorPlugin;VpnDetectorPlugin;ExternalDiskDetectorPlugin;HostFileMonitorPlugin;FocusWindowDetectorPlugin;PrintScreenDetectorPlugin" />
+      Include="WatermarkDetectorPlugin;BrightnessChangePlugin;AntivirusDetectorPlugin;FirewallDetectorPlugin;InternetDetectorPlugin;VpnDetectorPlugin;ExternalDiskDetectorPlugin;HostFileMonitorPlugin;FocusWindowDetectorPlugin;PrintScreenDetectorPlugin;AiInteractionDetectorPlugin" />
   </ItemGroup>
 
-  <Target Name="BuildPlugins" AfterTargets="Build">
+  <Target Name="BuildPlugins" AfterTargets="Build" Condition="'$(SkipPluginBuild)' != 'true'">
     <MSBuild Projects="@(PluginProjects->'..\\%(Identity)\\%(Identity).csproj')" Targets="Build" />
   </Target>
 
