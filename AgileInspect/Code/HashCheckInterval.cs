@@ -165,9 +165,7 @@ namespace AgileInspect
                             // SAVE to file and set current config again
                             StoreCfgLoader.Instance.Save(currentEventConfig);
 
-                            PluginManager.Instance.LoadPlugins();
-                            PluginManager.Instance.StopAll();
-                            PluginManager.Instance.StartAll();
+                            PluginManager.Instance.ReloadAll();
                             IsConfigUpdated = true;
 
                             DebugLog.WriteLine("[HashCheckInterval] [GetSetting] EventConfig updated from server. Restarting required plugins.");

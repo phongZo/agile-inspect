@@ -35,6 +35,6 @@
 
     public class TriggerParams
     {
-        public int interval { get; set; } = 30;
+        public int interval { get; set; } = 10;
     }
 }

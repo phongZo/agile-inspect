@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading.Tasks;
 using PrintScreenDetectorPlugin.Code.Settings;
+using Newtonsoft.Json.Linq;
 
 namespace PrintScreenDetectorPlugin
 {
@@ -118,8 +119,8 @@ namespace PrintScreenDetectorPlugin
              try
             {
                 PluginContext.Log(Name, "PrintScreen pressed");
-                var result = new {
-                    timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+                var result = new JObject{
+                    ["timestamp"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
                 };
                 PluginContext.SendDetectionResult(Name, JsonSerializer.Serialize(result));
             }

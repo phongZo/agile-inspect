@@ -1,6 +1,7 @@
 ﻿using AgileInspect.Code.Rules;
 using AgileInspect.Code.Settings;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Management;
 
 namespace ExternalDiskDetectorPlugin
@@ -110,12 +111,11 @@ namespace ExternalDiskDetectorPlugin
                 // save last state and check rule
                 RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(pluginName), value);
 
-                var resultObj = new Dictionary<string, object>
+                var resultObj = new JObject
                 {
                     ["isPlugExternalHardDisk"] = isPlugExternalHardDisk
                 };
-                string jsonResult = JsonConvert.SerializeObject(resultObj);
-                PluginContext.SendDetectionResult(pluginName, jsonResult);
+                PluginContext.SendDetectionResult(pluginName, resultObj);
             }
             catch (Exception ex)
             {

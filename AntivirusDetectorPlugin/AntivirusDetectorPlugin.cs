@@ -4,6 +4,7 @@ using AgileInspect.Code.Rules;
 using AgileInspect.Code.Settings;
 using AntivirusDetectorPlugin;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Wscapi.Interop; // Add COM reference to wscapi.dll
 
 namespace WatermarkDetectorPlugin
@@ -17,6 +18,7 @@ namespace WatermarkDetectorPlugin
         public string state { get; set; }
         public bool localUpToDate { get; set; }
         public string stateTimestamp { get; set; }
+        public int signatureAge { get; set; }
     }
     [Flags]
     public enum WSC_SECURITY_PROVIDER
@@ -128,16 +130,14 @@ namespace WatermarkDetectorPlugin
                 // Query Antispyware products if needed
                 // appList.AddRange(GetSecurityProducts(WSC_SECURITY_PROVIDER.WSC_SECURITY_PROVIDER_ANTISPYWARE));
 
-                var output =  new { appList } ;
-                string json = JsonConvert.SerializeObject(output);
-                PluginContext.Log(Name, $"[AntivirusDetector] Current antivirus: {json}");
-                var resultObj = new Dictionary<string, object>
+                var output =  new JObject
                 {
-                    ["antivirus"] = output
+                    ["appList"] = JToken.FromObject(appList)
                 };
-                string jsonResult = JsonConvert.SerializeObject(resultObj);
-                RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(Name), json);
-                PluginContext.SendDetectionResult(Name, json);
+                string json = JsonConvert.SerializeObject(output);
+                PluginContext.Log(Name, $"[AntivirusDetector] Current antivirus: {output}");
+                RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(Name), output);
+                PluginContext.SendDetectionResult(Name, output);
             });
         }
         static List<AntivirusInfo> GetSecurityProducts(WSC_SECURITY_PROVIDER provider)
@@ -168,6 +168,7 @@ namespace WatermarkDetectorPlugin
                 string appVersion = "";
                 string sigVersion = "";
                 string sigLastUpdated = "";
+                int signatureAge = 0;
                 // Defender special handling
                 if (name.IndexOf("defender", StringComparison.OrdinalIgnoreCase) >= 0)
                 {
@@ -181,6 +182,7 @@ namespace WatermarkDetectorPlugin
                             {
                                 appVersion = def["AMProductVersion"]?.ToString() ?? "";
                                 sigVersion = def["AntivirusSignatureVersion"]?.ToString() ?? "";
+                                var sigAge = def["AntivirusSignatureAge"]?.ToString() ?? "0";
 
                                 if (def["AntivirusSignatureLastUpdated"] != null)
                                 {
@@ -188,6 +190,7 @@ namespace WatermarkDetectorPlugin
                                         .ToDateTime(def["AntivirusSignatureLastUpdated"].ToString());
                                     sigLastUpdated = dt.ToString("yyyy-MM-dd HH:mm:ss");
                                 }
+                                signatureAge = int.Parse(sigAge);
                             }
                         }
                     }
@@ -218,7 +221,8 @@ namespace WatermarkDetectorPlugin
                     localUpToDate = productStatusStr,
                     stateTimestamp = productStateTimestamp,
                     signatureVersion = sigVersion,
-                    signatureLastUpdated = sigLastUpdated
+                    signatureLastUpdated = sigLastUpdated,
+                    signatureAge = signatureAge,
                 });
 
                 Marshal.ReleaseComObject(product);

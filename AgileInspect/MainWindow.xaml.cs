@@ -3,6 +3,7 @@ using AgileInspect.Code.Ipc;
 using AgileInspect.Code.Rules;
 using AgileInspect.Code.Settings;
 using System;
+using System.Diagnostics;
 using System.Windows;
 
 namespace AgileInspect
@@ -19,6 +20,9 @@ namespace AgileInspect
         private AsyncTimerService _ruleConditionQueueTimerService;
         private AsyncTimerService _eventQueueTimerService;
         public IpcService IpcService { get; set; } = new IpcService();
+        private BackgroundTimer LogRotateTimer;
+        public WindowProc WindowProc { get; set; } = new WindowProc();
+
 
         public MainWindow()
         {
@@ -27,13 +31,23 @@ namespace AgileInspect
 
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            WindowProc.Instance.Init(this);
             Hide();
             Instance = this;
 
             DebugLog.Write("", false);
             DebugLog.Write("--------AgileInspect Start-------");
+            // set timer
+            LogRotateTimer = new BackgroundTimer(LogRotateTimerCallback, "log rotation");
+            //Setup timer call back for log rotate
+            LogRotateTimer.StopIfRunning();
+            LogRotateTimer.Start(0); //start immediately
             //Prevent kill
             Unkillable.UnkillableInit();
+            //if (!Debugger.IsAttached)
+            //{
+            //    Debugger.Launch();
+            //}
             MachineName.Instance.UpdateName();
             StoreCfgLoader.Instance.Load();
             IpcService.Instance.startSendingProcess();
@@ -79,9 +93,14 @@ namespace AgileInspect
             //});
             //_eventQueueTimerService.Start();
 
-            Microsoft.Win32.SystemEvents.SessionSwitch += SystemEvents_SessionSwitch;
+            //Microsoft.Win32.SystemEvents.SessionSwitch += SystemEvents_SessionSwitch;
         }
 
+        protected override void OnSourceInitialized(EventArgs e)
+        {
+            base.OnSourceInitialized(e);
+            Microsoft.Win32.SystemEvents.SessionSwitch += SystemEvents_SessionSwitch;
+        }
 
         private void SystemEvents_SessionSwitch(object sender, Microsoft.Win32.SessionSwitchEventArgs e)
         {
@@ -92,6 +111,22 @@ namespace AgileInspect
                 || e.Reason == Microsoft.Win32.SessionSwitchReason.SessionLogoff)
             {
                 Application.Current.Shutdown();
+            }
+        }
+        public void LogRotateTimerCallback()
+        {
+            try
+            {
+                // perform log rotation
+                DebugLog.WriteLine("Log rotation interval hit");
+                LogRotate.HandleRotation();
+
+                //set 24h
+                LogRotateTimer.Interval = new TimeSpan(24, 0, 0);
+            }
+            catch (Exception ex)
+            {
+                DebugLog.WriteLine("Error in TimerCall: " + ex.Message);
             }
         }
     }

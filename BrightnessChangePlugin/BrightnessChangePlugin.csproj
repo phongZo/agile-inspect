@@ -5,22 +5,23 @@
     <UseWPF>false</UseWPF>
 	<UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <RuntimeIdentifier>win-x86</RuntimeIdentifier>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <OutputPath>bin\$(Configuration)\</OutputPath>
+    <Platforms>x86</Platforms>
   </PropertyGroup>
 
   <PropertyGroup>
     <RootDir>$([System.IO.Path]::GetFullPath('$(SolutionDir)..'))</RootDir>
     <MainProjectBuildDir>$(RootDir)\AgileInspect\bin\$(Configuration)\net8.0-windows\$(RuntimeIdentifier)</MainProjectBuildDir>
-    <PluginOutputDir>$(RootDir)\AgileInspect\bin\$(Configuration)\net8.0-windows\$(RuntimeIdentifier)\dll\BrightnessChangePlugin</PluginOutputDir>
+    <PluginOutputDir>$(RootDir)\AgileInspect\bin\$(Platforms)\$(Configuration)\net8.0-windows\$(RuntimeIdentifier)\dll\BrightnessChangePlugin</PluginOutputDir>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
     <DebugType>embedded</DebugType>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
     <DebugType>embedded</DebugType>
   </PropertyGroup>
 

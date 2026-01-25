@@ -1,10 +1,14 @@
 ﻿using AgileInspect.Code;
 using AgileInspect.Code.PluginContracts;
 using AgileInspect.Code.Rules;
+using AgileInspect.Code.Settings;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using System.Xml.Linq;
 
 namespace AgileInspect
 {
@@ -27,11 +31,11 @@ namespace AgileInspect
             DebugLog.WriteLine($"[{pluginName}] {message}");
         }
 
-        public void OnDetectionResult(string pluginName, string jsonResult)
+        public void OnDetectionResult(string pluginName, JToken jsonResult)
         {
             try
             {
-                var dict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(jsonResult);
+                var dict = jsonResult.ToObject<JObject>();
 
                 if (dict == null) return;
                 EventQueueService.Instance.Enqueue(pluginName, dict);
@@ -51,7 +55,7 @@ namespace AgileInspect
                 if (updated)
                 {
                     OnLog(pluginName, $"[CHECK RULE] Start.");
-                    RuleService.CheckRules();
+                    RuleService.CheckRules(StoreCfgLoader.mapPluginNameToEventType(pluginName));
                 }
             }
             catch (Exception ex)

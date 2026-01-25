@@ -1,14 +1,17 @@
-﻿using AgileInspect.Code.PluginContracts;
-using System.Reflection;
-using System.Text.Json;
+using AgileInspect.Code.PluginContracts;
+using AgileInspect.Code.Ipc;
+using AgileInspect.Code.Rules;
+using AgileInspect.Code.Settings;
+using Newtonsoft.Json.Linq;
+using System;
+using System.Threading.Tasks;
 
 namespace WatermarkDetectorPlugin
 {
     public class WatermarkDetectorPlugin : IWatermarkDetectorPlugin
     {
-        private AsyncTimerService _watermarkDetectorTimer;
+        private AsyncTimerService _watermarkTimerService;
         public StoreCfgJson StoreCfgJson { get; set; } = new StoreCfgJson();
-        public WatermarkDetector WatermarkDetector { get; set; } = new WatermarkDetector();
         public string Name => "WatermarkDetectorPlugin";
 
         public void Initialize()
@@ -20,22 +23,17 @@ namespace WatermarkDetectorPlugin
         {
             var setting = StoreCfgJson.Instance.eventSetting ?? new EventSetting();
 
-            if (!string.IsNullOrWhiteSpace(eventParamsJson))
-            {
-                var parsedEventParams = JsonSerializer.Deserialize<EventParams>(eventParamsJson);
-                if (parsedEventParams != null) setting.eventParams = parsedEventParams;
-            }
+            var parsedEventParams = !string.IsNullOrWhiteSpace(eventParamsJson)
+                ? System.Text.Json.JsonSerializer.Deserialize<EventParams>(eventParamsJson)
+                : null;
 
-            if (!string.IsNullOrWhiteSpace(triggerType))
-            {
-                setting.triggerType = triggerType;
-            }
+            var parsedTriggerParams = !string.IsNullOrWhiteSpace(triggerParamsJson)
+                ? System.Text.Json.JsonSerializer.Deserialize<TriggerParams>(triggerParamsJson)
+                : null;
 
-            if (!string.IsNullOrWhiteSpace(triggerParamsJson))
-            {
-                var parsedTriggerParams = JsonSerializer.Deserialize<TriggerParams>(triggerParamsJson);
-                if (parsedTriggerParams != null) setting.triggerParams = parsedTriggerParams;
-            }
+            setting.eventParams = parsedEventParams ?? setting.eventParams;
+            setting.triggerType = !string.IsNullOrWhiteSpace(triggerType) ? triggerType : setting.triggerType;
+            setting.triggerParams = parsedTriggerParams ?? setting.triggerParams;
 
             StoreCfgJson.Instance.eventSetting = setting;
 
@@ -46,51 +44,74 @@ namespace WatermarkDetectorPlugin
         {
             var setting = StoreCfgJson.Instance.eventSetting ?? new EventSetting();
             var triggerType = setting.triggerType;
-            var intervalSeconds = setting.triggerParams.interval;
-
-            string resourceName = "WatermarkDetectorPlugin.Model.windows.onnx";
-            using var modelStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName);
-            if (modelStream == null)
-            {
-                PluginContext.Log(Name, $"Model resource '{resourceName}' not found.");
-                return;
-            }
-
-            WatermarkDetector = new WatermarkDetector(modelStream);
+            var interval = setting.triggerParams.interval;
 
             PluginContext.Log(Name, "Start");
             PluginContext.Log(Name, $"triggerType: {triggerType}");
 
-            if (!triggerType.Equals("interval", StringComparison.OrdinalIgnoreCase))
+            if (triggerType.Equals("interval", StringComparison.OrdinalIgnoreCase))
             {
-                PluginContext.Log(Name, $"Unsupported triggerType '{triggerType}', fallback to interval");
+                _watermarkTimerService = new AsyncTimerService(interval * 1000, CheckWatermarkTimerCallbackAsync);
+                _watermarkTimerService.Start();
             }
-
-            _watermarkDetectorTimer = new AsyncTimerService(intervalSeconds * 1000, WatermarkDetectorCallback);
-
-            _watermarkDetectorTimer.Start();
+            else
+            {
+                PluginContext.Log(Name, $"[WatermarkDetector] Unsupported triggerType '{triggerType}', plugin will not start.");
+                return;
+            }
         }
 
         public void Stop()
         {
-            _watermarkDetectorTimer?.Stop();
-            _watermarkDetectorTimer?.Dispose();
-
-            PluginContext.Log(Name, "Stopped");
+            PluginContext.Log(Name, "Stopped.");
+            _watermarkTimerService?.Stop();
+            _watermarkTimerService?.Dispose();
+            _watermarkTimerService = null;
         }
-        private async Task WatermarkDetectorCallback()
-        {
-            PluginContext.Log(Name, "interval hit");
 
+        private async Task CheckWatermarkTimerCallbackAsync()
+        {
+            PluginContext.Log(Name, "[WatermarkDetector] interval hit");
             try
             {
-                await WatermarkDetector.ProcessAsync();
+                await Task.Run(async () =>
+                {
+                    // Send IPC message to AgileMark with 3s timeout
+                    string response = await IpcService.Instance.SendRequestWithResponseAsync("{\"action\":\"check_watermark_status\"}", 3000);
+                    
+                    bool visible = false;
+                    if (!string.IsNullOrEmpty(response))
+                    {
+                        try
+                        {
+                            var responseObj = Newtonsoft.Json.JsonConvert.DeserializeObject<JObject>(response);
+                            if (responseObj != null && responseObj["visible"] != null)
+                            {
+                                visible = responseObj["visible"].Value<bool>();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            PluginContext.Log(Name, $"Failed to parse response: {ex.Message}");
+                        }
+                    }
+                    // If no reply in 3s (response is null/empty), watermark is off
+
+                    var output = new JObject
+                    {
+                        ["visible"] = visible
+                    };
+                    
+                    PluginContext.Log(Name, $"[WatermarkDetector] Watermark status: {(visible)}");
+                    RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(Name), output);
+                    PluginContext.SendDetectionResult(Name, output);
+                });
             }
             catch (Exception ex)
             {
                 PluginContext.Log(Name, $"Detection failed: {ex}");
             }
         }
-
     }
 }
+

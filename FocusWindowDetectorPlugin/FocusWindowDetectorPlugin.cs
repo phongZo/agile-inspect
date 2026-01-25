@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using FocusWindowDetectorPlugin.Code.Settings;
+using Newtonsoft.Json.Linq;
 
 namespace FocusWindowDetectorPlugin
 {
@@ -135,17 +136,16 @@ namespace FocusWindowDetectorPlugin
                     string processName = "Unknown";
                     try { processName = Process.GetProcessById((int)pid).ProcessName; } catch { }
 
-                    var detectionResult = new
+                    var detectionResult = new JObject
                     {
-                        processName,
-                        windowTitle,
-                        pid,
-                        timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+                        ["processName"] = processName,
+                        ["windowTitle"] = windowTitle,
+                        ["pid"] = pid,
+                        ["timestamp"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
                     };
 
-                    string json = JsonSerializer.Serialize(detectionResult);
                     PluginContext.Log(Name, $"Focus: App='{processName}' Title='{windowTitle}' (PID: {pid})");
-                    PluginContext.SendDetectionResult(Name, json);
+                    PluginContext.SendDetectionResult(Name, detectionResult);
                 }
             }
             catch (Exception ex)

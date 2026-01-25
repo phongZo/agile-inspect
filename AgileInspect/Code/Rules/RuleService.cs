@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using AgileInspect.Code.Ipc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -12,7 +14,7 @@ namespace AgileInspect.Code.Rules
 {
     public class RuleService
     {
-        public static Dictionary<string, object> _latestStates = new();
+        public static Dictionary<string, JToken> _latestStates = new();
         private const string ConfigFileName = "event_last_state_log.json";
         private static string GetRoamingConfigPath()
         {
@@ -35,8 +37,8 @@ namespace AgileInspect.Code.Rules
                 }
 
                 string json = File.ReadAllText(lastStatePath);
-                _latestStates = JsonConvert.DeserializeObject<Dictionary<string, object>>(json)
-                            ?? new Dictionary<string, object>();
+                _latestStates = JsonConvert.DeserializeObject<Dictionary<string, JToken>>(json)
+                            ?? new Dictionary<string, JToken>();
 
                 DebugLog.WriteLine($"Loaded last states from {lastStatePath}");
             }
@@ -46,9 +48,11 @@ namespace AgileInspect.Code.Rules
             }
         }
 
-        public static void Save(string key, object value)
+        public static void Save(string key, JToken value)
         {
-            if (_latestStates.TryGetValue(key, out var oldValue) && Equals(oldValue, value))
+            JToken oldValue; 
+            _latestStates.TryGetValue(key,out oldValue);
+            if (JToken.DeepEquals(oldValue, value))
                 return;
             _latestStates[key] = value;
 
@@ -66,11 +70,14 @@ namespace AgileInspect.Code.Rules
             }
         }
 
-        public static void CheckRules()
+        public static void CheckRules(String pluginName)
         {
             var ruleSettings = StoreCfgJson.Instance.rules;
             if (ruleSettings == null || ruleSettings.Count == 0) return;
-
+            ruleSettings = ruleSettings.Where(o => {
+                var condition = o.conditions.Where(i => i.Where(e=>e.field == pluginName).Any()).ToList();
+                return condition.Any();
+            }).ToList();
             foreach (var rule in ruleSettings)
             {
                 foreach (var conditionGroup in rule.conditions)
@@ -162,6 +169,7 @@ namespace AgileInspect.Code.Rules
         private static void ExecuteActions(List<Action> actions, List<Condition> conditionGroup)
         {
             string conditionStr = string.Join(", ", conditionGroup.Select(c => $"{c.field} {c.@operator} {c.value}"));
+            List<Action> messageAction = new List<Action>();
             foreach (var action in actions)
             {
 
@@ -175,7 +183,7 @@ namespace AgileInspect.Code.Rules
                         IpcService.Instance.SendRequest(JsonConvert.SerializeObject(action));
                         break;
                     case Constant.ACTION_AGILEMARK_SHOW_MESSAGE:
-                        IpcService.Instance.SendRequest(JsonConvert.SerializeObject(action));
+                        messageAction.Add(action);
                         break;
 
                     default:
@@ -184,6 +192,109 @@ namespace AgileInspect.Code.Rules
                 }
                 PluginContext.Log("RuleEngine", $"Executing action: {action.action}");
             }
+            if (messageAction.Count > 0)
+            {
+                var stateProperties = FlattenDeep(_latestStates);
+                messageAction = messageAction.Where(o =>
+                {
+                    return (o.@params.TryGetValue("params", out object @params) && @params is JToken messageParams && messageParams["message"] != null);
+                }).Select(o =>
+                {
+                    o.@params.TryGetValue("params", out object @params);
+                    var json = @params as JObject;
+                    var message = json["message"].ToObject<String>();
+                    if (message == null)
+                    {
+                        return null;
+                    }
+                    message = ReplacePlaceholders(message, stateProperties);
+                    json["message"] = message;
+                    o.@params["params"] = json;
+                    return o;
+                })
+                .Where(o=>o!=null)
+                .ToList() ;
+                IpcService.Instance.SendRequest(JsonConvert.SerializeObject(messageAction));
+            }
         }
+        public static string ReplacePlaceholders(string template, JObject data)
+        {
+            if (string.IsNullOrEmpty(template))
+                return template;
+
+            // Find all placeholders: {xxx}
+            var matches = System.Text.RegularExpressions.Regex.Matches(template, @"\{([a-zA-Z0-9_]+)\}");
+
+            foreach (Match match in matches)
+            {
+                string placeholder = match.Value;     // e.g. "{name}"
+                string key = match.Groups[1].Value;    // e.g. "name"
+
+                // Check if JObject contains the key
+                if (data.TryGetValue(key, out JToken value) && value != null)
+                {
+                    template = template.Replace(placeholder, value.ToString());
+                }
+                else
+                {
+                    // Remove placeholder entirely if key missing
+                    template = template.Replace(placeholder, "");
+                }
+            }
+
+            return template.Trim();
+        }
+
+        public static JObject FlattenDeep(Dictionary<string, JToken> input)
+        {
+            JObject result = new JObject();
+
+            void FlattenToken(JToken token)
+            {
+                if (token is JObject obj)
+                {
+                    FlattenObject(obj);
+                }
+                else if (token is JArray arr)
+                {
+                    foreach (var item in arr)
+                        FlattenToken(item);
+                }
+            }
+
+            void FlattenObject(JObject obj)
+            {
+                // 1. CHILDREN FIRST
+                foreach (var prop in obj.Properties())
+                {
+                    FlattenToken(prop.Value);
+                }
+
+                // 2. THEN PARENT LEVEL (NO OVERRIDE)
+                foreach (var prop in obj.Properties())
+                {
+                    if (!result.TryGetValue(prop.Name, out _)) // do not override
+                    {
+                        result[prop.Name] = prop.Value.DeepClone();
+                    }
+                }
+            }
+
+            // START: flatten input Dictionary
+            foreach (var kv in input)
+            {
+                FlattenToken(kv.Value);
+            }
+
+            // Add top-level keys last (no override)
+            foreach (var kv in input)
+            {
+                if (!result.TryGetValue(kv.Key, out _))
+                    result[kv.Key] = kv.Value.DeepClone();
+            }
+
+            return result;
+        }
+
     }
 }

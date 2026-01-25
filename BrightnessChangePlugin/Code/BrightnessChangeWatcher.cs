@@ -3,6 +3,7 @@ using AgileInspect.Code.Rules;
 using AgileInspect.Code.Settings;
 using System.Management;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace BrightnessChangePlugin.Code
 {
@@ -97,7 +98,7 @@ namespace BrightnessChangePlugin.Code
                 var monitorInfo = string.Join(", ", result.Select(m => $"{m.deviceName}: {m.brightness}"));
                 PluginContext.Log(Name, $"{monitorInfo}");
 
-                RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(Name), (long) result[0].brightness);
+                RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(Name), JToken.FromObject((long) result[0].brightness));
 
                 var brightnessArray = result.Select(m => new Dictionary<string, object>
                 {
@@ -106,12 +107,12 @@ namespace BrightnessChangePlugin.Code
                 }).ToList();
                 var mainMonitorBrightness = brightnessArray.Where(o => Object.Equals(o["monitor"],(Screen.PrimaryScreen.DeviceName))).First()["value"];
 
-                var resultObj = new Dictionary<string, object>
+                var resultObj = new JObject
                 {
-                    { "brightness", mainMonitorBrightness }
+                    ["brightness"] = JToken.FromObject(mainMonitorBrightness)
                 };
                 string jsonResult = JsonConvert.SerializeObject(resultObj);
-                PluginContext.SendDetectionResult(Name, jsonResult);
+                PluginContext.SendDetectionResult(Name, resultObj);
             }
         }
     }

@@ -1,5 +1,6 @@
 ﻿using AgileInspect;
 using AgileInspect.Code.PluginContracts;
+using Newtonsoft.Json.Linq;
 using System;
 
 public static class PluginContext
@@ -26,7 +27,7 @@ public static class PluginContext
         }
     }
 
-    public static void SendDetectionResult(string pluginName, string jsonResult)
+    public static void SendDetectionResult(string pluginName, JToken jsonResult)
     {
         if (Callback != null)
         {

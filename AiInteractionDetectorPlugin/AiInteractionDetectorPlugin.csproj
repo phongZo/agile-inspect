@@ -2,22 +2,47 @@
 
 	<PropertyGroup>
 		<TargetFramework>net8.0-windows</TargetFramework>
-		<UseWPF>true</UseWPF>
+		<UseWPF>false</UseWPF>
 		<ImplicitUsings>enable</ImplicitUsings>
-		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
+		<RuntimeIdentifier>win-x86</RuntimeIdentifier>
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 		<OutputPath>bin\$(Configuration)\</OutputPath>
 		<Configurations>Debug;Release</Configurations>
+		<Platforms>x86</Platforms>
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<RootDir>$([System.IO.Path]::GetFullPath('$(SolutionDir)..\'))</RootDir>
+		<RootDir>$([System.IO.Path]::GetFullPath('$(SolutionDir)..'))</RootDir>
 		<MainProjectBuildDir>$(RootDir)\AgileInspect\bin\$(Configuration)\net8.0-windows\$(RuntimeIdentifier)</MainProjectBuildDir>
-		<PluginOutputDir>$(RootDir)\AgileInspect\bin\$(Configuration)\net8.0-windows\$(RuntimeIdentifier)\dll\AiInteractionDetectorPlugin</PluginOutputDir>
+		<PluginOutputDir>$(RootDir)\AgileInspect\bin\$(Platforms)\$(Configuration)\net8.0-windows\$(RuntimeIdentifier)\dll\AiInteractionDetectorPlugin</PluginOutputDir>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<DebugType>embedded</DebugType>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+		<DebugType>embedded</DebugType>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+		<DebugType>embedded</DebugType>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<DebugType>embedded</DebugType>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
+		<DebugType>embedded</DebugType>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+		<DebugType>embedded</DebugType>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="System.Management" Version="9.0.5" />
+	  <PackageReference Include="System.Management" Version="9.0.5" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -39,3 +64,4 @@
 		<Delete Files="@(FilesToDelete)" />
 	</Target>
 </Project>
+

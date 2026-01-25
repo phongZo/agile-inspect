@@ -38,6 +38,57 @@ namespace AgileInspect.Code.Ipc
         {
             _messageQueue.Enqueue(message);
         }
+
+        public async Task<string> SendRequestWithResponseAsync(string message, int timeoutMs)
+        {
+            try
+            {
+                using (NamedPipeClientStream pipeClient = new NamedPipeClientStream(".", "agileinspect_qaKOab5VPyK4ar4A6sfm2VZ0", PipeDirection.InOut))
+                {
+                    // Use a reasonable connection timeout (2 seconds) separate from response timeout
+                    int connectionTimeout = Math.Min(2000, timeoutMs);
+                    await pipeClient.ConnectAsync(connectionTimeout);
+
+                    // Check if connected
+                    if (pipeClient.IsConnected)
+                    {
+                        DebugLog.WriteLine("[IPC] Successfully connected to AgileMark for request-response.");
+
+                        using (StreamWriter streamWriter = new StreamWriter(pipeClient) { AutoFlush = true })
+                        using (StreamReader streamReader = new StreamReader(pipeClient))
+                        {
+                            // Send the request
+                            await streamWriter.WriteLineAsync(message);
+                            await streamWriter.FlushAsync();
+                            DebugLog.WriteLine($"[IPC] Sent request to AgileMark: {message}");
+
+                            // Wait for response with timeout
+                            using (var cts = new CancellationTokenSource(timeoutMs))
+                            {
+                                try
+                                {
+                                    string response = await streamReader.ReadLineAsync().WaitAsync(cts.Token);
+                                    DebugLog.WriteLine($"[IPC] Received response from AgileMark: {response}");
+                                    return response ?? string.Empty;
+                                }
+                                catch (OperationCanceledException)
+                                {
+                                    DebugLog.WriteLine($"[IPC] Timeout waiting for response from AgileMark after {timeoutMs}ms");
+                                    return string.Empty;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                DebugLog.WriteLine("[IPC] Error sending request with response: " + ex.Message);
+                return string.Empty;
+            }
+            return string.Empty;
+        }
+
         public void startSendingProcess()
         {
             Task.Run(() => ProcessMessageInQueue(_cancellationTokenSource.Token));
@@ -49,7 +100,7 @@ namespace AgileInspect.Code.Ipc
             {
                 if (_messageQueue.TryDequeue(out string message))
                 {
-                    DebugLog.WriteLine($"[IPC - sent] Attempting to connect to AgileSharing...");
+                    DebugLog.WriteLine($"[IPC - sent] Attempting to connect to AgileMark...");
 
                     try
                     {

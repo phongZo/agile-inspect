@@ -1,6 +1,8 @@
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.IO;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace AgileInspect.Code.Settings
 {
@@ -37,10 +39,10 @@ namespace AgileInspect.Code.Settings
 
                 if (!File.Exists(configPath))
                 {
-                    DebugLog.WriteLine($"Config file not found at either location: {roamingPath}, {exePath}. All plugin will be disabled.");
+                    DebugLog.WriteLine($"Config file not found at either location: {roamingPath}, {exePath}");
 
                     var defaultConfig = new StoreCfgJson();
-
+                    Save(defaultConfig);
                     StoreCfgJson.SetCurrentStoreConfig(defaultConfig);
                     return defaultConfig;
                 }
@@ -63,7 +65,7 @@ namespace AgileInspect.Code.Settings
                 // fallback default config
                 var defaultConfig = new StoreCfgJson();
                 StoreCfgJson.SetCurrentStoreConfig(defaultConfig);
-                DebugLog.WriteLine($"Fallback default store config success. All plugin will be disabled.");
+                DebugLog.WriteLine($"Fallback defaut store config success");
 
                 return defaultConfig;
             }
@@ -74,10 +76,7 @@ namespace AgileInspect.Code.Settings
         {
             try
             {
-                string basePath = AppDomain.CurrentDomain.BaseDirectory;
-                string configPath = Path.Combine(basePath, ConfigFileName);
-
-
+                string configPath = GetRoamingConfigPath();
                 string json = JsonConvert.SerializeObject(config);
                 File.WriteAllText(configPath, json);
 
@@ -145,4 +144,3 @@ namespace AgileInspect.Code.Settings
         }
     }
 }
-

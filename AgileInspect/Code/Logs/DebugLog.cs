@@ -1,4 +1,4 @@
-﻿using AgileInspect.Code;
+using AgileInspect.Code;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -12,6 +12,7 @@ namespace AgileInspect
         public static FileStream Filestream;
         public static bool CanWrite = true;
         private static readonly object _logLock = new();
+
 
         public static void Init()
         {
@@ -66,10 +67,28 @@ namespace AgileInspect
             }
             catch (Exception ex)
             {
-                lock (_logLock)
+                // Prevent recursive logging failures by checking disk space and CanWrite
+                if (ex is IOException && ex.Message.Contains("not enough space"))
                 {
-                    if (timestamp) StreamWriter?.Write(DateTime.Now.ToString(DateTimeFormat) + ":   ");
-                    StreamWriter?.WriteLine("Error when write to log: " + ex.Message);
+                    CanWrite = false;
+                }
+
+                // Only attempt to log the error if we can still write and StreamWriter exists
+                if (CanWrite && StreamWriter != null)
+                {
+                    try
+                    {
+                        lock (_logLock)
+                        {
+                            if (timestamp) StreamWriter.Write(DateTime.Now.ToString(DateTimeFormat) + ":   ");
+                            StreamWriter.WriteLine("Error when write to log: " + ex.Message);
+                        }
+                    }
+                    catch
+                    {
+                        // If we can't even log the error, disable logging to prevent crashes
+                        CanWrite = false;
+                    }
                 }
             }
         }

@@ -4,16 +4,17 @@
 		<TargetFramework>net8.0-windows</TargetFramework>
 		<UseWPF>false</UseWPF>
 		<ImplicitUsings>enable</ImplicitUsings>
-		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
+		<RuntimeIdentifier>win-x86</RuntimeIdentifier>
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 		<OutputPath>bin\$(Configuration)\</OutputPath>
 		<Configurations>Debug;Release</Configurations>
+		<Platforms>x86</Platforms>
 	</PropertyGroup>
 
 	<PropertyGroup>
 		<RootDir>$([System.IO.Path]::GetFullPath('$(SolutionDir)..'))</RootDir>
 		<MainProjectBuildDir>$(RootDir)\AgileInspect\bin\$(Configuration)\net8.0-windows\$(RuntimeIdentifier)</MainProjectBuildDir>
-		<PluginOutputDir>$(RootDir)\AgileInspect\bin\$(Configuration)\net8.0-windows\$(RuntimeIdentifier)\dll\HostFileMonitorPlugin</PluginOutputDir>
+		<PluginOutputDir>$(RootDir)\AgileInspect\bin\$(Platforms)\$(Configuration)\net8.0-windows\$(RuntimeIdentifier)\dll\HostFileMonitorPlugin</PluginOutputDir>
 	</PropertyGroup>
 
 	<ItemGroup>

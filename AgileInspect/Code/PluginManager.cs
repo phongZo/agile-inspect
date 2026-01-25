@@ -20,9 +20,10 @@ namespace AgileInspect.Code
         }
         #endregion
         private readonly List<IAppPlugin> Plugins = new();
+        private readonly List<IAppPlugin> _startedPlugins = new();
+        private readonly List<AssemblyLoadContext> _loadContexts = new();
+        private readonly object _sync = new();
         public AppCallbackHandler AppCallbackHandler { get; set; } = new AppCallbackHandler();
-
-        private readonly List<IAppPlugin> _startedPlugins = new List<IAppPlugin>();
         public void LoadPlugins()
         {
             string pluginsDir = AppDomain.CurrentDomain.BaseDirectory;
@@ -63,6 +64,7 @@ namespace AgileInspect.Code
                     continue;
 
                 var context = new PluginLoadContext(subDir);
+                _loadContexts.Add(context);
 
                 foreach (var dll in dllFiles)
                 {
@@ -138,6 +140,36 @@ namespace AgileInspect.Code
             }
         }
 
+        public void ReloadAll()
+        {
+            lock (_sync)
+            {
+                StopAll();
+                ClearLoadedPlugins();
+                LoadPlugins();
+                StartAll();
+            }
+        }
+
+        private void ClearLoadedPlugins()
+        {
+            foreach (var ctx in _loadContexts)
+            {
+                try
+                {
+                    ctx.Unload();
+                }
+                catch (Exception ex)
+                {
+                    DebugLog.WriteLine($"Failed to unload plugin context: {ex.Message}");
+                }
+            }
+
+            _loadContexts.Clear();
+            _startedPlugins.Clear();
+            Plugins.Clear();
+        }
+
         public IEnumerable<T> GetPluginsOfType<T>() where T : IAppPlugin => Plugins.OfType<T>();
     }
 
@@ -147,7 +179,7 @@ namespace AgileInspect.Code
         private readonly string dependencyDir;
 
         public PluginLoadContext(string pluginPath)
-            : base(isCollectible: false)
+            : base(isCollectible: true)
         {
             this.pluginPath = pluginPath;
             this.dependencyDir = Path.Combine(pluginPath, "libs");

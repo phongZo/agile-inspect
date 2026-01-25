@@ -1,4 +1,6 @@
 ﻿using AgileInspect.Code.Settings;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -6,6 +8,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 
 namespace AgileInspect.Code
@@ -39,7 +42,7 @@ namespace AgileInspect.Code
 
         private readonly object _lock = new();
         string _filePath;
-        public void Enqueue(string pluginName, Dictionary<string, JsonElement> json)
+        public void Enqueue(string pluginName, JToken json)
         {
             var saveEvent = new SaveEvent
             {
@@ -49,27 +52,27 @@ namespace AgileInspect.Code
                 data = json
             };
 
-            var serialized = JsonSerializer.Serialize(saveEvent);
+            var serialized = JsonConvert.SerializeObject(saveEvent);
             EventLog.WriteLine(serialized);
 
             lock (_lock)
             {
-                List<JsonElement> queue;
+                List<JToken> queue;
 
                 try
                 {
                     var content = File.ReadAllText(_filePath);
-                    queue = JsonSerializer.Deserialize<List<JsonElement>>(content) ?? new List<JsonElement>();
+                    queue = JsonConvert.DeserializeObject<List<JToken>>(content) ?? new List<JToken>();
                 }
                 catch
                 {
-                    queue = new List<JsonElement>();
+                    queue = new List<JToken>();
                 }
 
-                using var doc = JsonDocument.Parse(serialized);
-                queue.Add(doc.RootElement.Clone());
+                var doc = JToken.Parse(serialized);
+                queue.Add(doc);
 
-                var updatedContent = JsonSerializer.Serialize(queue);
+                var updatedContent = JsonConvert.SerializeObject(queue);
                 File.WriteAllText(_filePath, updatedContent);
 
                 DebugLog.WriteLine($"[EventQueueService] [Enqueue] Event added to queue. Total: {queue.Count}");
@@ -79,7 +82,7 @@ namespace AgileInspect.Code
 
         public async Task SendQueueAsync()
         {
-            List<JsonElement> originalQueue;
+            List<JToken> originalQueue;
 
             lock (_lock)
             {
@@ -96,7 +99,7 @@ namespace AgileInspect.Code
                     return;
                 }
 
-                originalQueue = JsonSerializer.Deserialize<List<JsonElement>>(content) ?? [];
+                originalQueue = JsonConvert.DeserializeObject<List<JToken>>(content) ?? [];
             }
 
             if (originalQueue.Count == 0)
@@ -105,11 +108,11 @@ namespace AgileInspect.Code
                 return;
             }
 
-            var newQueue = new List<JsonElement>();
+            var newQueue = new List<JToken>();
 
             foreach (var item in originalQueue)
             {
-                var json = item.GetRawText();
+                var json = JsonConvert.SerializeObject(item);
                 DebugLog.WriteLine($"[EventQueueService] [SendQueueAsync] Sending JSON: {json}");
 
                 bool success = await TrySendToServerAsync(json);
@@ -121,12 +124,13 @@ namespace AgileInspect.Code
                 {
                     DebugLog.WriteLine("[EventQueueService] [SendQueueAsync] Send failed. Will retry next time.");
                     newQueue.Add(item); // Keep to retry at next interval hit
+                    await Task.Delay(10000); // wait 10 seconds
                 }
             }
 
             lock (_lock)
             {
-                var updatedContent = JsonSerializer.Serialize(newQueue);
+                var updatedContent = JsonConvert.SerializeObject(newQueue);
                 File.WriteAllText(_filePath, updatedContent);
                 DebugLog.WriteLine($"[EventQueueService] [SendQueueAsync] Updated queue. Remaining: {newQueue.Count}");
             }

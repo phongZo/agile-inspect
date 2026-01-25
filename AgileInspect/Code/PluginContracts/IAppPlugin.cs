@@ -1,9 +1,11 @@
+﻿using Newtonsoft.Json.Linq;
+
 namespace AgileInspect.Code.PluginContracts
 {
     public interface IAppCallback
     {
         void OnLog(string pluginName, string message);
-        void OnDetectionResult(string pluginName, string jsonResult);
+        void OnDetectionResult(string pluginName, JToken jsonResult);
 
     }
     public interface IAppPlugin
