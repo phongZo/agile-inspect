@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>false</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <RootDir>$([System.IO.Path]::GetFullPath('$(SolutionDir)..\'))</RootDir>
+    <MainProjectBuildDir>$(RootDir)\AgileInspect\bin\$(Configuration)\net8.0-windows\$(RuntimeIdentifier)</MainProjectBuildDir>
+    <PluginOutputDir>$(RootDir)\AgileInspect\bin\$(Configuration)\net8.0-windows\$(RuntimeIdentifier)\dll\PrintScreenDetectorPlugin</PluginOutputDir>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AgileInspect\AgileInspect.csproj" />
+  </ItemGroup>
+  <Target Name="CopyPluginWithDependencies" AfterTargets="Build">
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(PluginOutputDir)" SkipUnchangedFiles="true" />
+    <ItemGroup>
+      <DependencyFiles Include="@(ReferenceCopyLocalPaths)" />
+    </ItemGroup>
+    <Copy SourceFiles="@(DependencyFiles)" DestinationFolder="$(PluginOutputDir)\libs" SkipUnchangedFiles="true" />
+    <ItemGroup>
+      <FilesToDelete Include="$(PluginOutputDir)\libs\*AgileInspect*.dll" />
+    </ItemGroup>
+    <Delete Files="@(FilesToDelete)" />
+  </Target>
+</Project>

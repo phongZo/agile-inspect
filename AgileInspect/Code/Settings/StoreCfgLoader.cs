@@ -1,8 +1,6 @@
-﻿using System;
-using System.IO;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Newtonsoft.Json;
+using System;
+using System.IO;
 
 namespace AgileInspect.Code.Settings
 {
@@ -39,10 +37,10 @@ namespace AgileInspect.Code.Settings
 
                 if (!File.Exists(configPath))
                 {
-                    DebugLog.WriteLine($"Config file not found at either location: {roamingPath}, {exePath}");
+                    DebugLog.WriteLine($"Config file not found at either location: {roamingPath}, {exePath}. All plugin will be disabled.");
 
                     var defaultConfig = new StoreCfgJson();
-                    Save(defaultConfig);
+
                     StoreCfgJson.SetCurrentStoreConfig(defaultConfig);
                     return defaultConfig;
                 }
@@ -65,7 +63,7 @@ namespace AgileInspect.Code.Settings
                 // fallback default config
                 var defaultConfig = new StoreCfgJson();
                 StoreCfgJson.SetCurrentStoreConfig(defaultConfig);
-                DebugLog.WriteLine($"Fallback defaut store config success");
+                DebugLog.WriteLine($"Fallback default store config success. All plugin will be disabled.");
 
                 return defaultConfig;
             }
@@ -110,6 +108,14 @@ namespace AgileInspect.Code.Settings
             {
                 return "antivirus";
             }
+            else if (pluginName == "PrintScreenDetectorPlugin")
+            {
+                return "print_screen";
+            }
+            else if (pluginName == "FocusWindowDetectorPlugin")
+            {
+                return "focus_window";
+            }
             else if (pluginName == "FirewallDetectorPlugin")
             {
                 return "firewall";
@@ -130,8 +136,13 @@ namespace AgileInspect.Code.Settings
             {
                 return "host_file";
             }
+            else if (pluginName == "AiInteractionDetectorPlugin")
+            {
+                return "ai_interaction";
+            }
             else
                 return "";
         }
     }
 }
+
