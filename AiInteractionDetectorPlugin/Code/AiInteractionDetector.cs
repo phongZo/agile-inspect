@@ -1,6 +1,7 @@
 #nullable enable
 using AgileInspect.Code.PluginContracts;
 using AiInteractionDetectorPlugin.Code.Settings;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -219,6 +220,20 @@ namespace AiInteractionDetectorPlugin
                         string pidInfo = session.Pid > 0 ? $" (PID: {session.Pid})" : "";
                         string info = !string.IsNullOrEmpty(session.Details) ? $" | Info: {session.Details}" : "";
                         PluginContext.Log("AiInteractionDetectorPlugin", $"[STARTED] AI: {session.Keyword} | Type: {session.DetectionType} | Source: {session.ProcessName}{pidInfo}{info}");
+
+                        try
+                        {
+                            var resultObj = new JObject
+                            {
+                                ["isOn"] = true,
+                                ["keyword"] = session.Keyword,
+                                ["process"] = session.ProcessName,
+                                ["type"] = session.DetectionType
+                            };
+                            PluginContext.SendDetectionResult("AiInteractionDetectorPlugin", resultObj);
+                        }
+                        catch { }
+
                         return session;
                     },
                     (k, s) => {
@@ -276,6 +291,19 @@ namespace AiInteractionDetectorPlugin
                         if (_activeSessions.TryRemove(key, out _))
                         {
                             PluginContext.Log("AiInteractionDetectorPlugin", $"[STOPPED] AI: {session.Keyword} | Type: {session.DetectionType} | Reason: {stopReason}");
+
+                            try
+                            {
+                                var resultObj = new JObject
+                                {
+                                    ["isOn"] = false,
+                                    ["keyword"] = session.Keyword,
+                                    ["process"] = session.ProcessName,
+                                    ["type"] = session.DetectionType
+                                };
+                                PluginContext.SendDetectionResult("AiInteractionDetectorPlugin", resultObj);
+                            }
+                            catch { }
                         }
                     }
                 }
