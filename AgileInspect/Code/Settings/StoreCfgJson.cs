@@ -92,6 +92,8 @@ namespace AgileInspect
         public string[] processes { get; set; } = [];
         public string[] services { get; set; } = [];
         public string[] allowedInternetSsids { get; set; } = [];
+        public string[] aiDomains { get; set; } = [];
+        public string[] browsers { get; set; } = [];
         public int activeTime { get; set; }
     }
 
