@@ -26,26 +26,6 @@ namespace AgileInspect
             Instance.rules = config.rules ?? new();
             Instance.ruleConditionQueueConfig = config.ruleConditionQueueConfig ?? new RuleConditionQueueConfig();
             Instance.eventQueueConfig = config.eventQueueConfig ?? new EventQueueConfig();
-            Instance.eventSettings.Add(new EventSetting
-            {
-                eventParams = null,
-                eventType = "antivirus",
-                triggerType = "interval",
-                triggerParams = new TriggerParams
-                {
-                    interval = 60
-                }
-            });
-            Instance.eventSettings.Add(new EventSetting
-            {
-                eventParams = null,
-                eventType = "watermark",
-                triggerType = "interval",
-                triggerParams = new TriggerParams
-                {
-                    interval = 60
-                }
-            });
         }
         public static StoreCfgJson GetCurrentStoreConfig()
         {

@@ -139,6 +139,10 @@ namespace AgileInspect.Code.Settings
             {
                 return "ai_interaction";
             }
+            else if (pluginName == "PrintDetectorPlugin")
+            {
+                return "print";
+            }
             else
                 return "";
         }
