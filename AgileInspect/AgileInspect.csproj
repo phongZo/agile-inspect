@@ -12,16 +12,10 @@
     <DebugType>none</DebugType>
     <MainProjectDll>AgileInspect.dll</MainProjectDll>
     <RootDir>$([System.IO.Path]::GetFullPath('$(SolutionDir)..'))\</RootDir>
-    <Platforms>AnyCPU;x86</Platforms>
+    <Platforms>x86</Platforms>
 	<RuntimeIdentifier>win-x86</RuntimeIdentifier>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DebugType>full</DebugType>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
-    <DebugType>full</DebugType>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DebugType>full</DebugType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
