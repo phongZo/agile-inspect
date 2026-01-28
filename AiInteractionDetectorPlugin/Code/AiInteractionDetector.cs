@@ -356,7 +356,7 @@ namespace AiInteractionDetectorPlugin
                     {
                         return new AiSession
                         {
-                            Keyword = currentHost, 
+                            Keyword = GetMainDomainKeyword(currentHost), 
                             ProcessName = proc.ProcessName,
                             Pid = (int)pid,
                             DetectionType = "Web",
