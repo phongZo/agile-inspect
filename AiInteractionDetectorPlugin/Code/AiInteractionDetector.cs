@@ -128,15 +128,27 @@ namespace AiInteractionDetectorPlugin
             if (!_activeSessions.IsEmpty && _activeTrackingCts == null)
             {
                 _activeTrackingCts = new CancellationTokenSource();
+                var cts = _activeTrackingCts;
                 Task.Run(async () => 
                 {
-                    while (_activeTrackingCts != null && !_activeTrackingCts.Token.IsCancellationRequested)
+                    try
                     {
-                        if (_activeSessions.IsEmpty) break;
-                        lock (_scanLock) { PerformScanCycle(); }
-                        await Task.Delay(1000, _activeTrackingCts.Token);
+                        while (!cts.IsCancellationRequested)
+                        {
+                            if (_activeSessions.IsEmpty) break;
+                            lock (_scanLock) { PerformScanCycle(); }
+                            await Task.Delay(1000, cts.Token);
+                        }
                     }
-                    _activeTrackingCts = null;
+                    catch (OperationCanceledException) { }
+                    catch (Exception ex) 
+                    {
+                        PluginContext.Log("AiInteractionDetectorPlugin", $"Tracking task error: {ex.Message}");
+                    }
+                    finally
+                    {
+                        if (_activeTrackingCts == cts) _activeTrackingCts = null;
+                    }
                 });
             }
             else if (_activeSessions.IsEmpty && _activeTrackingCts != null)
@@ -312,7 +324,8 @@ namespace AiInteractionDetectorPlugin
 
         private string GetMainDomainKeyword(string domain)
         {
-            // example: Extract "githubcopilot" from "api.githubcopilot.com"
+            if (domain.Contains("gemini.google")) return "gemini";
+
             if (!domain.Contains(".")) return domain;
             
             var parts = domain.Split('.');
@@ -356,7 +369,7 @@ namespace AiInteractionDetectorPlugin
                     {
                         return new AiSession
                         {
-                            Keyword = currentHost, 
+                            Keyword = GetMainDomainKeyword(currentHost), 
                             ProcessName = proc.ProcessName,
                             Pid = (int)pid,
                             DetectionType = "Web",
