@@ -1,6 +1,7 @@
 ﻿using AgileInspect.Code.Rules;
 using AgileInspect.Code.Settings;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Security.Cryptography;
 
 namespace HostFileMonitorPlugin
@@ -90,6 +91,12 @@ namespace HostFileMonitorPlugin
 
             if (string.Equals(_lastChecksum, newHash, StringComparison.Ordinal))
             {
+                var resultObj = new JObject
+                {
+                    [StoreCfgLoader.mapPluginNameToEventType(pluginName)] = false
+                };
+                RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(pluginName), resultObj);
+                PluginContext.SendDetectionResult(pluginName, resultObj);
                 return;
             }
 
@@ -101,14 +108,13 @@ namespace HostFileMonitorPlugin
             {
                 PluginContext.Log(pluginName, $"[HostFileMonitor] file changed. Old checksum = {_lastChecksum} New checksum = {newHash}");
                 // save last state and check rule
-                RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(pluginName), "CHANGED");
 
-                var resultObj = new Dictionary<string, object>
+                var resultObj = new JObject
                 {
-                    ["isChanged"] = true
+                    [StoreCfgLoader.mapPluginNameToEventType(pluginName)] = true
                 };
-                string jsonResult = JsonConvert.SerializeObject(resultObj);
-                PluginContext.SendDetectionResult(pluginName, jsonResult);
+                RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(pluginName), resultObj);
+                PluginContext.SendDetectionResult(pluginName, resultObj);
             }
             _lastChecksum = newHash;
         }

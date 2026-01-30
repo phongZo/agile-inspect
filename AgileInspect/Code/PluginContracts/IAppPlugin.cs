@@ -10,7 +10,7 @@ namespace AgileInspect.Code.PluginContracts
     }
     public interface IAppPlugin
     {
-        string Name { get; }
+        string pluginName { get; }
         void Initialize();
         void Start();
         void Stop();

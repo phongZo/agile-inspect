@@ -7,12 +7,14 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using FocusWindowDetectorPlugin.Code.Settings;
 using Newtonsoft.Json.Linq;
+using AgileInspect.Code.Rules;
+using AgileInspect.Code.Settings;
 
 namespace FocusWindowDetectorPlugin
 {
     public class FocusWindowDetectorPlugin : IFocusWindowDetectorPlugin
     {
-        public string Name => "FocusWindowDetectorPlugin";
+        public string pluginName => "FocusWindowDetectorPlugin";
         public StoreCfgJson StoreCfgJson { get; set; } = new StoreCfgJson();
         
         private delegate void WinEventDelegate(IntPtr hWinEventHook, uint eventType, IntPtr hwnd, int idObject, int idChild, uint dwEventThread, uint dwmsEventTime);
@@ -41,7 +43,7 @@ namespace FocusWindowDetectorPlugin
 
         public void Initialize()
         {
-            PluginContext.Log(Name, "Initialize");
+            PluginContext.Log(pluginName, "Initialize");
         }
 
         public void SetParameters(string eventParamsJson, string triggerType, string triggerParamsJson)
@@ -58,7 +60,7 @@ namespace FocusWindowDetectorPlugin
             }
             setting.triggerType = !string.IsNullOrWhiteSpace(triggerType) ? triggerType : setting.triggerType;
             StoreCfgJson.Instance.eventSetting = setting;
-            PluginContext.Log(Name, "Parameters is set");
+            PluginContext.Log(pluginName, "Parameters is set");
         }
 
         public void Start()
@@ -66,8 +68,8 @@ namespace FocusWindowDetectorPlugin
             var setting = StoreCfgJson.Instance.eventSetting ?? new EventSetting();
             var triggerType = setting.triggerType;
 
-            PluginContext.Log(Name, "Start");
-            PluginContext.Log(Name, $"triggerType: {triggerType}");
+            PluginContext.Log(pluginName, "Start");
+            PluginContext.Log(pluginName, $"triggerType: {triggerType}");
 
             if (triggerType.Equals("realtime", StringComparison.OrdinalIgnoreCase))
             {
@@ -77,7 +79,7 @@ namespace FocusWindowDetectorPlugin
 
                 if (_hookHandle == IntPtr.Zero)
                 {
-                    PluginContext.Log(Name, "Failed to set WinEventHook.");
+                    PluginContext.Log(pluginName, "Failed to set WinEventHook.");
                 }
                 else
                 {
@@ -86,7 +88,7 @@ namespace FocusWindowDetectorPlugin
             }
             else
             {
-                PluginContext.Log(Name, $"[FocusWindow] Unsupported triggerType '{triggerType}', plugin will not start.");
+                PluginContext.Log(pluginName, $"[FocusWindow] Unsupported triggerType '{triggerType}', plugin will not start.");
                 return;
             }
         }
@@ -119,7 +121,7 @@ namespace FocusWindowDetectorPlugin
             }
             catch (Exception ex)
             {
-                PluginContext.Log(Name, $"Error processing focus change: {ex.Message}");
+                PluginContext.Log(pluginName, $"Error processing focus change: {ex.Message}");
             }
         }
 
@@ -144,13 +146,14 @@ namespace FocusWindowDetectorPlugin
                         ["timestamp"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
                     };
 
-                    PluginContext.Log(Name, $"Focus: App='{processName}' Title='{windowTitle}' (PID: {pid})");
-                    PluginContext.SendDetectionResult(Name, detectionResult);
+                    PluginContext.Log(pluginName, $"Focus: App='{processName}' Title='{windowTitle}' (PID: {pid})");
+                    RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(pluginName), detectionResult);
+                    PluginContext.SendDetectionResult(pluginName, detectionResult);
                 }
             }
             catch (Exception ex)
             {
-                PluginContext.Log(Name, $"Failed to get window info: {ex.Message}");
+                PluginContext.Log(pluginName, $"Failed to get window info: {ex.Message}");
             }
         }
     }

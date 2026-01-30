@@ -7,11 +7,11 @@ namespace InternetDetectorPlugin
         private AsyncTimerService _internetTimerService;
         public StoreCfgJson StoreCfgJson { get; set; } = new StoreCfgJson();
         public InternetDetector InternetDetector { get; set; } = new InternetDetector();
-        public string Name => "InternetDetectorPlugin";
+        public string pluginName => "InternetDetectorPlugin";
 
         public void Initialize()
         {
-            PluginContext.Log(Name, $"Initialize");
+            PluginContext.Log(pluginName, $"Initialize");
         }
 
         public void SetParameters(string eventParamsJson, string triggerType, string triggerParamsJson)
@@ -32,7 +32,7 @@ namespace InternetDetectorPlugin
 
             StoreCfgJson.Instance.eventSetting = setting;
 
-            PluginContext.Log(Name, $"Parameters is set ");
+            PluginContext.Log(pluginName, $"Parameters is set ");
         }
 
         public void Start()
@@ -41,8 +41,8 @@ namespace InternetDetectorPlugin
             var triggerType = setting.triggerType;
             var interval = setting.triggerParams.interval;
 
-            PluginContext.Log(Name, "Start");
-            PluginContext.Log(Name, $"triggerType: {triggerType}");
+            PluginContext.Log(pluginName, "Start");
+            PluginContext.Log(pluginName, $"triggerType: {triggerType}");
 
             if (triggerType.Equals("interval", StringComparison.OrdinalIgnoreCase))
             {
@@ -55,14 +55,14 @@ namespace InternetDetectorPlugin
             }
             else
             {
-                PluginContext.Log(Name, $"[InternetDetector] Unsupported triggerType '{triggerType}', plugin will not start.");
+                PluginContext.Log(pluginName, $"[InternetDetector] Unsupported triggerType '{triggerType}', plugin will not start.");
                 return;
             }
         }
 
         public void Stop()
         {
-            PluginContext.Log(Name, "Stopped.");
+            PluginContext.Log(pluginName, "Stopped.");
             _internetTimerService?.Stop();
             _internetTimerService?.Dispose();
             _internetTimerService = null;
@@ -71,14 +71,14 @@ namespace InternetDetectorPlugin
 
         private async Task CheckInternetTimerCallbackAsync()
         {
-            PluginContext.Log(Name, "[InternetDetector] interval hit");
+            PluginContext.Log(pluginName, "[InternetDetector] interval hit");
             try
             {
                 await Task.Run(() => InternetDetector.Instance.CheckAllowInternet());
             }
             catch (Exception ex)
             {
-                PluginContext.Log(Name, $"Detection failed: {ex}");
+                PluginContext.Log(pluginName, $"Detection failed: {ex}");
             }
         }
     }

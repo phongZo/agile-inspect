@@ -109,7 +109,10 @@ namespace AgileInspect.Code.Rules
 
             object? value = UnwrapJsonElement(_latestStates.TryGetValue(condition.field, out var v) ? v : null);
             if (value == null) return false;
-
+            if (condition.fieldParams.Count == 0) {
+                value = (((JToken)value)[condition.field]).ToObject<object>();
+                if (value == null) return false;
+            }
             if (condition.field.Equals("antivirus"))
             {
                var data =  JsonConvert.DeserializeObject<JObject>(value.ToString());
@@ -127,7 +130,6 @@ namespace AgileInspect.Code.Rules
                 }
                 value = combine;
             }
-
             if (expected.GetType() != value.GetType()) return false;
 
             string op = condition.@operator?.ToLower();
@@ -184,6 +186,9 @@ namespace AgileInspect.Code.Rules
                         break;
                     case Constant.ACTION_AGILEMARK_SHOW_MESSAGE:
                         messageAction.Add(action);
+                        break;
+                    case Constant.ACTION_AGILEMARK_SHOW_TOAST:
+                        IpcService.Instance.SendRequest(JsonConvert.SerializeObject(action));
                         break;
 
                     default:

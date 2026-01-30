@@ -11,7 +11,7 @@ namespace PrintDetectorPlugin
 {
     public class PrintDetectorPlugin : IPrintDetectorPlugin
     {
-        public string Name => "PrintDetectorPlugin";
+        public string pluginName => "PrintDetectorPlugin";
         public StoreCfgJson StoreCfgJson { get; set; } = new StoreCfgJson();
         private ManagementEventWatcher _watcher;
 
@@ -23,7 +23,7 @@ namespace PrintDetectorPlugin
 
         public void Initialize()
         {
-            PluginContext.Log(Name, "Initialize");
+            PluginContext.Log(pluginName, "Initialize");
         }
 
         public void SetParameters(string eventParamsJson, string triggerType, string triggerParamsJson)
@@ -40,25 +40,25 @@ namespace PrintDetectorPlugin
             }
             setting.triggerType = !string.IsNullOrWhiteSpace(triggerType) ? triggerType : setting.triggerType;
             StoreCfgJson.Instance.eventSetting = setting;
-            PluginContext.Log(Name, "Parameters is set");
+            PluginContext.Log(pluginName, "Parameters is set");
         }
 
         public void Start()
         {
             try 
             {
-                PluginContext.Log(Name, "Starting Print Watcher...");
+                PluginContext.Log(pluginName, "Starting Print Watcher...");
                 Stop(); // Ensure clean start
 
                 var query = new WqlEventQuery("SELECT * FROM __InstanceCreationEvent WITHIN 1 WHERE TargetInstance ISA 'Win32_PrintJob'");
                 _watcher = new ManagementEventWatcher(query);
                 _watcher.EventArrived += Watcher_EventArrived;
                 _watcher.Start();
-                PluginContext.Log(Name, "Print Watcher started.");
+                PluginContext.Log(pluginName, "Print Watcher started.");
             }
             catch (Exception ex)
             {
-                PluginContext.Log(Name, $"Failed to start Print Watcher: {ex.Message}");
+                PluginContext.Log(pluginName, $"Failed to start Print Watcher: {ex.Message}");
             }
         }
 
@@ -73,7 +73,7 @@ namespace PrintDetectorPlugin
                 }
                 catch {}
                 _watcher = null;
-                PluginContext.Log(Name, "Print Watcher stopped.");
+                PluginContext.Log(pluginName, "Print Watcher stopped.");
             }
         }
 
@@ -91,7 +91,7 @@ namespace PrintDetectorPlugin
                 // Heuristic detection removed as per request.
                 // Standard WMI/PrintSpooler API does not provide Source Process ID or Full File Path.
                 
-                PluginContext.Log(Name, $"Print detected: '{documentName}' on {printerName}");
+                PluginContext.Log(pluginName, $"Print detected: '{documentName}' on {printerName}");
                 
                 var result = new JObject
                 {
@@ -101,11 +101,11 @@ namespace PrintDetectorPlugin
                     ["owner"] = owner
                 };
 
-                PluginContext.SendDetectionResult(Name, result);
+                PluginContext.SendDetectionResult(pluginName, result);
             }
             catch (Exception ex)
             {
-                PluginContext.Log(Name, $"Error handling print event: {ex.Message}");
+                PluginContext.Log(pluginName, $"Error handling print event: {ex.Message}");
             }
         }
     }

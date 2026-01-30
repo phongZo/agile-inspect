@@ -79,13 +79,10 @@ namespace FirewallDetectorPlugin
             bool isOn = IsFirewallEnabled();
             string value = isOn ? "ON" : "OFF";
             PluginContext.Log(pluginName, $"[FirewallDetector] Firewall detected: {(isOn ? "on" : "off")}");
-
-            // save last state and check rule
-            RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(pluginName), value);
-
             var resultObj = new JObject            {
-                ["isOn"] = isOn
+                [StoreCfgLoader.mapPluginNameToEventType(pluginName)] = isOn
             };
+            RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(pluginName), resultObj);
             PluginContext.SendDetectionResult(pluginName, resultObj);
         }
 

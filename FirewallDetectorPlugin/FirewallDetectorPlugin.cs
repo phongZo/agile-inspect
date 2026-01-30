@@ -7,11 +7,11 @@ namespace FirewallDetectorPlugin
         private AsyncTimerService _firewallTimerService;
         public StoreCfgJson StoreCfgJson { get; set; } = new StoreCfgJson();
         public FirewallDetector FirewallDetector { get; set; } = new FirewallDetector();
-        public string Name => "FirewallDetectorPlugin";
+        public string pluginName => "FirewallDetectorPlugin";
 
         public void Initialize()
         {
-            PluginContext.Log(Name, $"Initialize");
+            PluginContext.Log(pluginName, $"Initialize");
         }
 
         public void SetParameters(string eventParamsJson, string triggerType, string triggerParamsJson)
@@ -32,7 +32,7 @@ namespace FirewallDetectorPlugin
 
             StoreCfgJson.Instance.eventSetting = setting;
 
-            PluginContext.Log(Name, $"Parameters is set ");
+            PluginContext.Log(pluginName, $"Parameters is set ");
         }
 
         public void Start()
@@ -41,8 +41,8 @@ namespace FirewallDetectorPlugin
             var triggerType = setting.triggerType;
             var interval = setting.triggerParams.interval;
 
-            PluginContext.Log(Name, "Start");
-            PluginContext.Log(Name, $"triggerType: {triggerType}");
+            PluginContext.Log(pluginName, "Start");
+            PluginContext.Log(pluginName, $"triggerType: {triggerType}");
 
             if (triggerType.Equals("interval", StringComparison.OrdinalIgnoreCase))
             {
@@ -55,14 +55,14 @@ namespace FirewallDetectorPlugin
             }
             else
             {
-                PluginContext.Log(Name, $"[FirewallDetector] Unsupported triggerType '{triggerType}', plugin will not start.");
+                PluginContext.Log(pluginName, $"[FirewallDetector] Unsupported triggerType '{triggerType}', plugin will not start.");
                 return;
             }
         }
 
         public void Stop()
         {
-            PluginContext.Log(Name, "Stopped.");
+            PluginContext.Log(pluginName, "Stopped.");
             _firewallTimerService?.Stop();
             _firewallTimerService?.Dispose();
             _firewallTimerService = null;
@@ -71,14 +71,14 @@ namespace FirewallDetectorPlugin
 
         private async Task CheckFirewallTimerCallbackAsync()
         {
-            PluginContext.Log(Name, "[FirewallDetector] interval hit");
+            PluginContext.Log(pluginName, "[FirewallDetector] interval hit");
             try
             {
                 await Task.Run(() => FirewallDetector.Instance.CheckFirewall());
             }
             catch (Exception ex)
             {
-                PluginContext.Log(Name, $"Detection failed: {ex}");
+                PluginContext.Log(pluginName, $"Detection failed: {ex}");
             }
         }
     }

@@ -7,11 +7,11 @@ namespace ExternalDiskDetectorPlugin
         private AsyncTimerService _externalDiskTimerService;
         public StoreCfgJson StoreCfgJson { get; set; } = new StoreCfgJson();
         public ExternalDiskDetector ExternalDiskDetector { get; set; } = new ExternalDiskDetector();
-        public string Name => "ExternalDiskDetectorPlugin";
+        public string pluginName => "ExternalDiskDetectorPlugin";
 
         public void Initialize()
         {
-            PluginContext.Log(Name, $"Initialize");
+            PluginContext.Log(pluginName, $"Initialize");
         }
 
         public void SetParameters(string eventParamsJson, string triggerType, string triggerParamsJson)
@@ -32,7 +32,7 @@ namespace ExternalDiskDetectorPlugin
 
             StoreCfgJson.Instance.eventSetting = setting;
 
-            PluginContext.Log(Name, $"Parameters is set ");
+            PluginContext.Log(pluginName, $"Parameters is set ");
         }
 
         public void Start()
@@ -41,8 +41,8 @@ namespace ExternalDiskDetectorPlugin
             var triggerType = setting.triggerType;
             var interval = setting.triggerParams.interval;
 
-            PluginContext.Log(Name, "Start");
-            PluginContext.Log(Name, $"triggerType: {triggerType}");
+            PluginContext.Log(pluginName, "Start");
+            PluginContext.Log(pluginName, $"triggerType: {triggerType}");
 
             if (triggerType.Equals("interval", StringComparison.OrdinalIgnoreCase))
             {
@@ -55,14 +55,14 @@ namespace ExternalDiskDetectorPlugin
             }
             else
             {
-                PluginContext.Log(Name, $"[ExternalDiskDetector] Unsupported triggerType '{triggerType}', plugin will not start.");
+                PluginContext.Log(pluginName, $"[ExternalDiskDetector] Unsupported triggerType '{triggerType}', plugin will not start.");
                 return;
             }
         }
 
         public void Stop()
         {
-            PluginContext.Log(Name, "Stopped.");
+            PluginContext.Log(pluginName, "Stopped.");
             _externalDiskTimerService?.Stop();
             _externalDiskTimerService?.Dispose();
             _externalDiskTimerService = null;
@@ -71,14 +71,14 @@ namespace ExternalDiskDetectorPlugin
 
         private async Task CheckExternalDiskTimerCallbackAsync()
         {
-            PluginContext.Log(Name, "[ExternalDiskDetector] interval hit");
+            PluginContext.Log(pluginName, "[ExternalDiskDetector] interval hit");
             try
             {
                 await Task.Run(() => ExternalDiskDetector.Instance.CheckExternalDisk());
             }
             catch (Exception ex)
             {
-                PluginContext.Log(Name, $"Detection failed: {ex}");
+                PluginContext.Log(pluginName, $"Detection failed: {ex}");
             }
         }
     }

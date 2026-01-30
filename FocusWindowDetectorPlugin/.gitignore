@@ -1,0 +1,58 @@
+# Build results
+bin/
+obj/
+publish/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio Code settings
+.vscode/
+
+# Rider settings
+.idea/
+
+# NuGet packages
+*.nupkg
+*.snupkg
+*.nuspec
+packages/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# DotCover
+*.dcvr
+
+# Logs
+*.log
+
+# System files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Windows crash dumps
+*.dmp
+
+# Publish folder
+**/publish/
+**/publish*/   # covers publish\win-x64 etc.
+
+# ReSharper
+_ReSharper*/
+*.DotSettings.user
+
+# ILRepack merged output (if temporary)
+*.merged.dll
+
+# Backup files
+*.bak
+*.old
+*.orig
+*.tmp
+
+# Others (optional)
+*.vs/

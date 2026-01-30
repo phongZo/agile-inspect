@@ -12,11 +12,11 @@ namespace WatermarkDetectorPlugin
     {
         private AsyncTimerService _watermarkTimerService;
         public StoreCfgJson StoreCfgJson { get; set; } = new StoreCfgJson();
-        public string Name => "WatermarkDetectorPlugin";
+        public string pluginName => "WatermarkDetectorPlugin";
 
         public void Initialize()
         {
-            PluginContext.Log(Name, $"Initialize");
+            PluginContext.Log(pluginName, $"Initialize");
         }
 
         public void SetParameters(string eventParamsJson, string triggerType, string triggerParamsJson)
@@ -37,7 +37,7 @@ namespace WatermarkDetectorPlugin
 
             StoreCfgJson.Instance.eventSetting = setting;
 
-            PluginContext.Log(Name, $"Parameters is set ");
+            PluginContext.Log(pluginName, $"Parameters is set ");
         }
 
         public void Start()
@@ -46,8 +46,8 @@ namespace WatermarkDetectorPlugin
             var triggerType = setting.triggerType;
             var interval = setting.triggerParams.interval;
 
-            PluginContext.Log(Name, "Start");
-            PluginContext.Log(Name, $"triggerType: {triggerType}");
+            PluginContext.Log(pluginName, "Start");
+            PluginContext.Log(pluginName, $"triggerType: {triggerType}");
 
             if (triggerType.Equals("interval", StringComparison.OrdinalIgnoreCase))
             {
@@ -56,14 +56,14 @@ namespace WatermarkDetectorPlugin
             }
             else
             {
-                PluginContext.Log(Name, $"[WatermarkDetector] Unsupported triggerType '{triggerType}', plugin will not start.");
+                PluginContext.Log(pluginName, $"[WatermarkDetector] Unsupported triggerType '{triggerType}', plugin will not start.");
                 return;
             }
         }
 
         public void Stop()
         {
-            PluginContext.Log(Name, "Stopped.");
+            PluginContext.Log(pluginName, "Stopped.");
             _watermarkTimerService?.Stop();
             _watermarkTimerService?.Dispose();
             _watermarkTimerService = null;
@@ -71,7 +71,7 @@ namespace WatermarkDetectorPlugin
 
         private async Task CheckWatermarkTimerCallbackAsync()
         {
-            PluginContext.Log(Name, "[WatermarkDetector] interval hit");
+            PluginContext.Log(pluginName, "[WatermarkDetector] interval hit");
             try
             {
                 await Task.Run(async () =>
@@ -92,24 +92,23 @@ namespace WatermarkDetectorPlugin
                         }
                         catch (Exception ex)
                         {
-                            PluginContext.Log(Name, $"Failed to parse response: {ex.Message}");
+                            PluginContext.Log(pluginName, $"Failed to parse response: {ex.Message}");
                         }
                     }
                     // If no reply in 3s (response is null/empty), watermark is off
 
                     var output = new JObject
                     {
-                        ["visible"] = visible
+                        [StoreCfgLoader.mapPluginNameToEventType(pluginName)] = visible
                     };
-                    
-                    PluginContext.Log(Name, $"[WatermarkDetector] Watermark status: {(visible)}");
-                    RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(Name), output);
-                    PluginContext.SendDetectionResult(Name, output);
+                    PluginContext.Log(pluginName, $"[WatermarkDetector] Watermark status: {(visible)}");
+                    RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(pluginName), output);
+                    PluginContext.SendDetectionResult(pluginName, output);
                 });
             }
             catch (Exception ex)
             {
-                PluginContext.Log(Name, $"Detection failed: {ex}");
+                PluginContext.Log(pluginName, $"Detection failed: {ex}");
             }
         }
     }

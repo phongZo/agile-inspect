@@ -1,0 +1,157 @@
+{
+  // GeneratedAt: 2026-01-29
+  //
+  // Notes:
+  // - triggerType can be "realtime" or "interval" (some plugins support only one of them).
+  // - If a field can have other values, we document it using // comments.
+  "eventSettings": [
+    {
+      "eventType": "ai_interaction",
+      "triggerType": "realtime",
+      "eventParams": {
+        "browsers": ["chrome", "msedge", "firefox", "brave", "opera", "coccoc"],
+        "aiDomains": [
+          "openai.com",
+          "chatgpt.com",
+          "anthropic.com",
+          "claude.ai",
+          "githubcopilot.com",
+          "api.githubcopilot.com",
+          "copilot-proxy.githubusercontent.com",
+          "generativelanguage.googleapis.com",
+          "perplexity.ai",
+          "x.ai",
+          "grok.x.ai",
+          "deepseek.com",
+          "mistral.ai",
+          "huggingface.co",
+          "blackbox.ai",
+          "phind.com",
+          "you.com",
+          "jasper.ai",
+          "copy.ai",
+          "rytr.me",
+          "writesonic.com",
+          "poe.com",
+          "quora.com",
+          "lmstudio.ai",
+          "ollama.com",
+          "grok.com"
+        ]
+      },
+      "triggerParams": { "interval": 10 }
+      // comment: AiInteractionDetectorPlugin currently ignores triggerParams.interval
+    },
+    { "eventType": "watermark", "eventParams": {}, "triggerType": "interval", "triggerParams": { "interval": 60 } },
+    { "eventType": "brightness", "eventParams": {}, "triggerType": "realtime/interval", "triggerParams": { "interval": 10 } },
+    { "eventType": "antivirus", "eventParams": {}, "triggerType": "interval", "triggerParams": { "interval": 60 } },
+    { "eventType": "firewall", "eventParams": {}, "triggerType": "realtime/interval", "triggerParams": { "interval": 60 } },
+    {
+      "eventType": "internet",
+      "eventParams": { "allowedInternetSsids": ["Khanh Huy_5G", "Khanh Huy"] },
+      "triggerType": "realtime/interval",
+      "triggerParams": { "interval": 60 }
+    },
+    { "eventType": "vpn", "eventParams": {}, "triggerType": "interval", "triggerParams": { "interval": 60 } },
+    { "eventType": "external_disk", "eventParams": {}, "triggerType": "realtime/interval", "triggerParams": { "interval": 60 } },
+    { "eventType": "host_file", "eventParams": {}, "triggerType": "realtime/interval", "triggerParams": { "interval": 60 } },
+    { "eventType": "focus_window", "eventParams": {}, "triggerType": "realtime", "triggerParams": { "interval": 60 } },
+    { "eventType": "print", "eventParams": {}, "triggerType": "realtime", "triggerParams": { "interval": 60 } },
+    { "eventType": "print_screen", "eventParams": {}, "triggerType": "realtime", "triggerParams": { "interval": 60 } }
+  ],
+  "outputExamples": [
+    {
+      "eventType": "antivirus",
+      "clientName": "DESKTOP-28USAMR:buisi",
+      "customerId": "60f773a842963f002e73a25b",
+      "data": {
+        "appList": [
+          {
+            "name": "Microsoft Defender Antivirus",
+            "version": "4.18.x",
+            "signatureVersion": "1.423.x",
+            "signatureLastUpdated": "2026-01-29 10:11:12",
+            "state": "on",
+            "localUpToDate": true,
+            "stateTimestamp": "2026-01-29T10:11:12Z",
+            "signatureAge": 0
+          }
+        ]
+      }
+    },
+    {
+      "eventType": "brightness",
+      "clientName": "DESKTOP-28USAMR:buisi",
+      "customerId": "60f773a842963f002e73a25b",
+      "data": { "brightness": 62 }
+    },
+    {
+      "eventType": "firewall",
+      "clientName": "DESKTOP-28USAMR:buisi",
+      "customerId": "60f773a842963f002e73a25b",
+      "data": { "isOn": true }
+    },
+    {
+      "eventType": "internet",
+      "clientName": "DESKTOP-28USAMR:buisi",
+      "customerId": "60f773a842963f002e73a25b",
+      "data": { "isAllowed": false }
+    },
+    {
+      "eventType": "vpn",
+      "clientName": "DESKTOP-28USAMR:buisi",
+      "customerId": "60f773a842963f002e73a25b",
+      "data": { "isOn": false }
+    },
+    {
+      "eventType": "external_disk",
+      "clientName": "DESKTOP-28USAMR:buisi",
+      "customerId": "60f773a842963f002e73a25b",
+      "data": { "isPlugExternalHardDisk": false }
+    },
+    {
+      "eventType": "host_file",
+      "clientName": "DESKTOP-28USAMR:buisi",
+      "customerId": "60f773a842963f002e73a25b",
+      "data": { "isChanged": true }
+    },
+    {
+      "eventType": "focus_window",
+      "clientName": "DESKTOP-28USAMR:buisi",
+      "customerId": "60f773a842963f002e73a25b",
+      "data": { "processName": "chrome", "windowTitle": "Example - Google Chrome", "pid": 1234, "timestamp": "2026-01-29 11:00:00" }
+    },
+    {
+      "eventType": "print",
+      "clientName": "DESKTOP-28USAMR:buisi",
+      "customerId": "60f773a842963f002e73a25b",
+      "data": { "timestamp": "2026-01-29 11:00:00", "file_name": "Document1", "printer_name": "Microsoft Print to PDF", "owner": "buisi" }
+    },
+    {
+      "eventType": "print_screen",
+      "clientName": "DESKTOP-28USAMR:buisi",
+      "customerId": "60f773a842963f002e73a25b",
+      "data": { "timestamp": "2026-01-29 11:00:00" }
+    },
+    {
+      "eventType": "watermark",
+      "clientName": "DESKTOP-28USAMR:buisi",
+      "customerId": "60f773a842963f002e73a25b",
+      "data": { "visible": false }
+    },
+    {
+      "eventType": "ai_interaction",
+      "clientName": "DESKTOP-28USAMR:buisi",
+      "customerId": "60f773a842963f002e73a25b",
+      "data": { "isOn": true, "keyword": "chatgpt.com", "process": "chrome", "type": "web" }
+      // comment: data.type can be "web" or "process" (depending on detection source)
+    },
+    {
+      "eventType": "ai_interaction",
+      "clientName": "DESKTOP-28USAMR:buisi",
+      "customerId": "60f773a842963f002e73a25b",
+      "data": { "isOn": true, "keyword": "githubcopilot.com", "process": "copilot", "type": "process" }
+    }
+  ]
+}
+

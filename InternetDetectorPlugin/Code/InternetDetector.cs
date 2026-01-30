@@ -96,15 +96,11 @@ namespace InternetDetectorPlugin
             var setting = StoreCfgJson.Instance.eventSetting ?? new EventSetting();
             var allowedInternetSsids = setting.eventParams.allowedInternetSsids?.ToList() ?? new List<string>();
             bool isAllowed = IsInternetAllowed(allowedInternetSsids);
-            string value = isAllowed ? "ALLOW" : "NOT ALLOW";
             PluginContext.Log(pluginName, $"[InternetDetector] Internet allowed: {isAllowed}");
-
-            // save last state and check rule
-            RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(pluginName), value);
-
             var resultObj = new JObject            {
-                ["isAllowed"] = isAllowed
+                [StoreCfgLoader.mapPluginNameToEventType(pluginName)] = isAllowed
             };
+            RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(pluginName), resultObj);
             PluginContext.SendDetectionResult(pluginName, resultObj);
         }
 

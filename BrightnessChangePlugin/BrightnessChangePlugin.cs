@@ -9,11 +9,11 @@ namespace BrightnessChangePlugin
         private AsyncTimerService _brightnessTimerService;
         public StoreCfgJson StoreCfgJson { get; set; } = new StoreCfgJson();
         public BrightnessChangeWatcher BrightnessChangeWatcher { get; set; } = new BrightnessChangeWatcher();
-        public string Name => "BrightnessChangePlugin";
+        public string pluginName => "BrightnessChangePlugin";
 
         public void Initialize()
         {
-            PluginContext.Log(Name, $"Initialize");
+            PluginContext.Log(pluginName, $"Initialize");
         }
 
         public void SetParameters(string eventParamsJson, string triggerType, string triggerParamsJson)
@@ -34,7 +34,7 @@ namespace BrightnessChangePlugin
 
             StoreCfgJson.Instance.eventSetting = setting;
 
-            PluginContext.Log(Name, $"Parameters is set ");
+            PluginContext.Log(pluginName, $"Parameters is set ");
         }
 
         public void Start()
@@ -43,8 +43,8 @@ namespace BrightnessChangePlugin
             var triggerType = setting.triggerType;
             var interval = setting.triggerParams.interval;
 
-            PluginContext.Log(Name, "Start");
-            PluginContext.Log(Name, $"triggerType: {triggerType}");
+            PluginContext.Log(pluginName, "Start");
+            PluginContext.Log(pluginName, $"triggerType: {triggerType}");
 
             if (triggerType.Equals("interval", StringComparison.OrdinalIgnoreCase))
             {
@@ -57,14 +57,14 @@ namespace BrightnessChangePlugin
             }
             else
             {
-                PluginContext.Log(Name, $"[Brightness] Unsupported triggerType '{triggerType}', plugin will not start.");
+                PluginContext.Log(pluginName, $"[Brightness] Unsupported triggerType '{triggerType}', plugin will not start.");
                 return;
             }
         }
 
         public void Stop()
         {
-            PluginContext.Log(Name, "Stopped.");
+            PluginContext.Log(pluginName, "Stopped.");
             _brightnessTimerService?.Stop();
             _brightnessTimerService?.Dispose();
             _brightnessTimerService = null;
@@ -73,7 +73,7 @@ namespace BrightnessChangePlugin
 
         private async Task CheckBrightnessTimerCallbackAsync()
         {
-            PluginContext.Log(Name, "[CheckBrightness] interval hit");
+            PluginContext.Log(pluginName, "[CheckBrightness] interval hit");
             await Task.Run(() => BrightnessChangeWatcher.Instance.GetCurrentBrightness());
         }
     }
