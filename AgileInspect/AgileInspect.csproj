@@ -23,7 +23,7 @@
   </PropertyGroup>
   <!--Plugin list -->
   <ItemGroup>
-	  <PluginProjects Include="WatermarkDetectorPlugin;BrightnessChangePlugin;AntivirusDetectorPlugin;FirewallDetectorPlugin;InternetDetectorPlugin;VpnDetectorPlugin;ExternalDiskDetectorPlugin;HostFileMonitorPlugin;FocusWindowDetectorPlugin;PrintScreenDetectorPlugin;AiInteractionDetectorPlugin;PrintDetectorPlugin" />
+	  <PluginProjects Include="WatermarkDetectorPlugin;BrightnessChangePlugin;AntivirusDetectorPlugin;FirewallDetectorPlugin;InternetDetectorPlugin;VpnDetectorPlugin;ExternalDiskDetectorPlugin;HostFileMonitorPlugin;FocusWindowDetectorPlugin;PrintScreenDetectorPlugin;AiInteractionDetectorPlugin;PrintDetectorPlugin;ClipboardMonitorPlugin" />
   </ItemGroup>
 
   <Target Name="BuildPlugins" AfterTargets="Build">

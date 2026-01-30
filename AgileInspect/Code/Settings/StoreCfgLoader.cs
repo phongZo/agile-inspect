@@ -143,6 +143,10 @@ namespace AgileInspect.Code.Settings
             {
                 return "print";
             }
+            else if (pluginName == "ClipboardMonitorPlugin")
+            {
+                return "clipboard";
+            }
             else
                 return "";
         }

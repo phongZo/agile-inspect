@@ -52,4 +52,7 @@ namespace AgileInspect.Code.PluginContracts
     public interface IPrintDetectorPlugin : IAppPlugin
     {
     }
+    public interface IClipboardMonitorPlugin : IAppPlugin
+    {
+    }
 }
