@@ -7,12 +7,12 @@ namespace AiInteractionDetectorPlugin
 {
     public class AiInteractionDetectorPlugin : IAiInteractionDetectorPlugin
     {
-        public string Name => "AiInteractionDetectorPlugin";
+        public string pluginName => "AiInteractionDetectorPlugin";
         public StoreCfgJson StoreCfgJson { get; set; } = new StoreCfgJson();
 
         public void Initialize()
         {
-            PluginContext.Log(Name, "Initialize");
+            PluginContext.Log(pluginName, "Initialize");
         }
 
         public void SetParameters(string eventParamsJson, string triggerType, string triggerParamsJson)
@@ -29,12 +29,12 @@ namespace AiInteractionDetectorPlugin
                     if (eventParams != null) 
                     {
                         setting.eventParams = eventParams;
-                        PluginContext.Log(Name, $"[DEBUG] Deserialized Domains: {setting.eventParams.aiDomains?.Length ?? 0}");
+                        PluginContext.Log(pluginName, $"[DEBUG] Deserialized Domains: {setting.eventParams.aiDomains?.Length ?? 0}");
                     }
                 }
                 catch (Exception ex)
                 {
-                    PluginContext.Log(Name, $"Failed to parse eventParams: {ex.Message}");
+                    PluginContext.Log(pluginName, $"Failed to parse eventParams: {ex.Message}");
                 }
             }
 
@@ -48,24 +48,24 @@ namespace AiInteractionDetectorPlugin
                 }
                 catch (Exception ex)
                 {
-                    PluginContext.Log(Name, $"Failed to parse triggerParams: {ex.Message}");
+                    PluginContext.Log(pluginName, $"Failed to parse triggerParams: {ex.Message}");
                 }
             }
 
             setting.triggerType = !string.IsNullOrWhiteSpace(triggerType) ? triggerType : setting.triggerType;
             StoreCfgJson.Instance.eventSetting = setting;
-            PluginContext.Log(Name, "Parameters is set");
+            PluginContext.Log(pluginName, "Parameters is set");
         }
 
         public void Start()
         {
-            PluginContext.Log(Name, "Start");
+            PluginContext.Log(pluginName, "Start");
             AiInteractionDetector.Instance.StartWatcher();
         }
 
         public void Stop()
         {
-            PluginContext.Log(Name, "Stop");
+            PluginContext.Log(pluginName, "Stop");
             AiInteractionDetector.Instance.StopWatcher();
         }
     }

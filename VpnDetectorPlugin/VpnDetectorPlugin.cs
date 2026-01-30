@@ -7,11 +7,11 @@ namespace VpnDetectorPlugin
         private AsyncTimerService _vpnTimerService;
         public StoreCfgJson StoreCfgJson { get; set; } = new StoreCfgJson();
         public VpnDetector VpnDetector { get; set; } = new VpnDetector();
-        public string Name => "VpnDetectorPlugin";
+        public string pluginName => "VpnDetectorPlugin";
 
         public void Initialize()
         {
-            PluginContext.Log(Name, $"Initialize");
+            PluginContext.Log(pluginName, $"Initialize");
         }
 
         public void SetParameters(string eventParamsJson, string triggerType, string triggerParamsJson)
@@ -32,7 +32,7 @@ namespace VpnDetectorPlugin
 
             StoreCfgJson.Instance.eventSetting = setting;
 
-            PluginContext.Log(Name, $"Parameters is set ");
+            PluginContext.Log(pluginName, $"Parameters is set ");
         }
 
         public void Start()
@@ -41,8 +41,8 @@ namespace VpnDetectorPlugin
             var triggerType = setting.triggerType;
             var interval = setting.triggerParams.interval;
 
-            PluginContext.Log(Name, "Start");
-            PluginContext.Log(Name, $"triggerType: {triggerType}");
+            PluginContext.Log(pluginName, "Start");
+            PluginContext.Log(pluginName, $"triggerType: {triggerType}");
 
             if (triggerType.Equals("interval", StringComparison.OrdinalIgnoreCase))
             {
@@ -51,14 +51,14 @@ namespace VpnDetectorPlugin
             }
             else
             {
-                PluginContext.Log(Name, $"[VpnDetector] Unsupported triggerType '{triggerType}', plugin will not start.");
+                PluginContext.Log(pluginName, $"[VpnDetector] Unsupported triggerType '{triggerType}', plugin will not start.");
                 return;
             }
         }
 
         public void Stop()
         {
-            PluginContext.Log(Name, "Stopped.");
+            PluginContext.Log(pluginName, "Stopped.");
             _vpnTimerService?.Stop();
             _vpnTimerService?.Dispose();
             _vpnTimerService = null;
@@ -66,14 +66,14 @@ namespace VpnDetectorPlugin
 
         private async Task CheckVpnTimerCallbackAsync()
         {
-            PluginContext.Log(Name, "[VpnDetector] interval hit");
+            PluginContext.Log(pluginName, "[VpnDetector] interval hit");
             try
             {
                 await Task.Run(() => VpnDetector.Instance.CheckVpn());
             }
             catch (Exception ex)
             {
-                PluginContext.Log(Name, $"Detection failed: {ex}");
+                PluginContext.Log(pluginName, $"Detection failed: {ex}");
             }
         }
     }

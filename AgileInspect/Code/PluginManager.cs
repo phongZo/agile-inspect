@@ -85,7 +85,7 @@ namespace AgileInspect.Code
                                 plugin.SetParameters(eventParamsJson, setting.triggerType, triggerParamsJson);
 
                                 Plugins.Add(plugin);
-                                DebugLog.WriteLine($"Loaded plugin: {plugin.Name} as {eventType} from {dll}");
+                                DebugLog.WriteLine($"Loaded plugin: {plugin.pluginName} as {eventType} from {dll}");
                             }
                         }
                     }
@@ -113,7 +113,7 @@ namespace AgileInspect.Code
                 }
                 catch (Exception ex)
                 {
-                    DebugLog.WriteLine($"Failed to start plugin {plugin.Name}: {ex.Message}");
+                    DebugLog.WriteLine($"Failed to start plugin {plugin.pluginName}: {ex.Message}");
                 }
             }
         }
@@ -135,7 +135,7 @@ namespace AgileInspect.Code
                 }
                 catch (Exception ex)
                 {
-                    DebugLog.WriteLine($"Failed to stop plugin {plugin.Name}: {ex.Message}");
+                    DebugLog.WriteLine($"Failed to stop plugin {plugin.pluginName}: {ex.Message}");
                 }
             }
         }

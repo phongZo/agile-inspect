@@ -6,12 +6,14 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using PrintScreenDetectorPlugin.Code.Settings;
 using Newtonsoft.Json.Linq;
+using AgileInspect.Code.Rules;
+using AgileInspect.Code.Settings;
 
 namespace PrintScreenDetectorPlugin
 {
     public class PrintScreenDetectorPlugin : IPrintScreenDetectorPlugin
     {
-        public string Name => "PrintScreenDetectorPlugin";
+        public string pluginName => "PrintScreenDetectorPlugin";
         public StoreCfgJson StoreCfgJson { get; set; } = new StoreCfgJson();
 
         private delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
@@ -39,7 +41,7 @@ namespace PrintScreenDetectorPlugin
 
         public void Initialize()
         {
-            PluginContext.Log(Name, "Initialize");
+            PluginContext.Log(pluginName, "Initialize");
         }
 
         public void SetParameters(string eventParamsJson, string triggerType, string triggerParamsJson)
@@ -56,7 +58,7 @@ namespace PrintScreenDetectorPlugin
             }
             setting.triggerType = !string.IsNullOrWhiteSpace(triggerType) ? triggerType : setting.triggerType;
             StoreCfgJson.Instance.eventSetting = setting;
-            PluginContext.Log(Name, "Parameters is set");
+            PluginContext.Log(pluginName, "Parameters is set");
         }
 
         public void Start()
@@ -64,8 +66,8 @@ namespace PrintScreenDetectorPlugin
             var setting = StoreCfgJson.Instance.eventSetting ?? new EventSetting();
             var triggerType = setting.triggerType;
 
-            PluginContext.Log(Name, "Start");
-            PluginContext.Log(Name, $"triggerType: {triggerType}");
+            PluginContext.Log(pluginName, "Start");
+            PluginContext.Log(pluginName, $"triggerType: {triggerType}");
 
             if (triggerType.Equals("realtime", StringComparison.OrdinalIgnoreCase))
             {
@@ -80,12 +82,12 @@ namespace PrintScreenDetectorPlugin
 
                 if (_hookHandle == IntPtr.Zero)
                 {
-                    PluginContext.Log(Name, "Failed to set Keyboard Hook.");
+                    PluginContext.Log(pluginName, "Failed to set Keyboard Hook.");
                 }
             }
             else
             {
-                PluginContext.Log(Name, $"[PrintScreen] Unsupported triggerType '{triggerType}', plugin will not start.");
+                PluginContext.Log(pluginName, $"[PrintScreen] Unsupported triggerType '{triggerType}', plugin will not start.");
                 return;
             }
         }
@@ -96,7 +98,7 @@ namespace PrintScreenDetectorPlugin
             {
                 UnhookWindowsHookEx(_hookHandle);
                 _hookHandle = IntPtr.Zero;
-                PluginContext.Log(Name, "Keyboard Hook uninstalled.");
+                PluginContext.Log(pluginName, "Keyboard Hook uninstalled.");
             }
             _proc = null;
         }
@@ -118,15 +120,16 @@ namespace PrintScreenDetectorPlugin
         {
              try
             {
-                PluginContext.Log(Name, "PrintScreen pressed");
+                PluginContext.Log(pluginName, "PrintScreen pressed");
                 var result = new JObject{
                     ["timestamp"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
                 };
-                PluginContext.SendDetectionResult(Name, JsonSerializer.Serialize(result));
+                RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(pluginName), result);
+                PluginContext.SendDetectionResult(pluginName, result);
             }
             catch (Exception ex)
             {
-                PluginContext.Log(Name, $"Error: {ex.Message}");
+                PluginContext.Log(pluginName, $"Error: {ex.Message}");
             }
         }
     }

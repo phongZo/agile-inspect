@@ -60,11 +60,11 @@ namespace WatermarkDetectorPlugin
     {
         private AsyncTimerService _antivirusTimerService;
         public StoreCfgJson StoreCfgJson { get; set; } = new StoreCfgJson();
-        public string Name => "AntivirusDetectorPlugin";
+        public string pluginName => "AntivirusDetectorPlugin";
 
         public void Initialize()
         {
-            PluginContext.Log(Name, $"Initialize");
+            PluginContext.Log(pluginName, $"Initialize");
         }
 
         public void SetParameters(string eventParamsJson, string triggerType, string triggerParamsJson)
@@ -85,7 +85,7 @@ namespace WatermarkDetectorPlugin
 
             StoreCfgJson.Instance.eventSetting = setting;
 
-            PluginContext.Log(Name, $"Parameters is set ");
+            PluginContext.Log(pluginName, $"Parameters is set ");
         }
 
         public void Start()
@@ -94,8 +94,8 @@ namespace WatermarkDetectorPlugin
             var triggerType = setting.triggerType;
             var interval = setting.triggerParams.interval;
 
-            PluginContext.Log(Name, "Start");
-            PluginContext.Log(Name, $"triggerType: {triggerType}");
+            PluginContext.Log(pluginName, "Start");
+            PluginContext.Log(pluginName, $"triggerType: {triggerType}");
 
             if (triggerType.Equals("interval", StringComparison.OrdinalIgnoreCase))
             {
@@ -104,14 +104,14 @@ namespace WatermarkDetectorPlugin
             }
             else
             {
-                PluginContext.Log(Name, $"[AntivirusDetector] Unsupported triggerType '{triggerType}', plugin will not start.");
+                PluginContext.Log(pluginName, $"[AntivirusDetector] Unsupported triggerType '{triggerType}', plugin will not start.");
                 return;
             }
         }
 
         public void Stop()
         {
-            PluginContext.Log(Name, "Stopped.");
+            PluginContext.Log(pluginName, "Stopped.");
             _antivirusTimerService?.Stop();
             _antivirusTimerService?.Dispose();
             _antivirusTimerService = null;
@@ -119,7 +119,7 @@ namespace WatermarkDetectorPlugin
 
         private async Task CheckAntivirusTimerCallbackAsync()
         {
-            PluginContext.Log(Name, "[AntivirusDetector] interval hit");
+            PluginContext.Log(pluginName, "[AntivirusDetector] interval hit");
             await Task.Run(() =>
             {
                 var appList = new List<AntivirusInfo>();
@@ -135,9 +135,9 @@ namespace WatermarkDetectorPlugin
                     ["appList"] = JToken.FromObject(appList)
                 };
                 string json = JsonConvert.SerializeObject(output);
-                PluginContext.Log(Name, $"[AntivirusDetector] Current antivirus: {output}");
-                RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(Name), output);
-                PluginContext.SendDetectionResult(Name, output);
+                PluginContext.Log(pluginName, $"[AntivirusDetector] Current antivirus: {output}");
+                RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(pluginName), output);
+                PluginContext.SendDetectionResult(pluginName, output);
             });
         }
         static List<AntivirusInfo> GetSecurityProducts(WSC_SECURITY_PROVIDER provider)

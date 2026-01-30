@@ -1,4 +1,4 @@
-﻿using AgileInspect.Code.Settings;
+using AgileInspect.Code.Settings;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -44,6 +44,9 @@ namespace AgileInspect.Code
         string _filePath;
         public void Enqueue(string pluginName, JToken json)
         {
+            if (string.Equals(StoreCfgJson.Instance.deployType, "serverless", StringComparison.OrdinalIgnoreCase))
+                return;
+
             var saveEvent = new SaveEvent
             {
                 eventType = StoreCfgLoader.mapPluginNameToEventType(pluginName),

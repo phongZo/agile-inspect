@@ -24,16 +24,12 @@ namespace VpnDetectorPlugin
         public void CheckVpn()
         {
             bool isOn = isVpnEnabled();
-            string value = isOn ? "ON" : "OFF";
             PluginContext.Log(pluginName, $"[VpnDetector] Vpn detected: {(isOn ? "on" : "off")}");
-
-            // save last state and check rule
-            RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(pluginName), value);
-
             var resultObj = new JObject
             {
-                ["isOn"] = isOn
+                [StoreCfgLoader.mapPluginNameToEventType(pluginName)] = isOn
             };
+            RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(pluginName), resultObj);
             PluginContext.SendDetectionResult(pluginName, resultObj);
         }
 

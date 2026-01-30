@@ -98,7 +98,6 @@ namespace BrightnessChangePlugin.Code
                 var monitorInfo = string.Join(", ", result.Select(m => $"{m.deviceName}: {m.brightness}"));
                 PluginContext.Log(Name, $"{monitorInfo}");
 
-                RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(Name), JToken.FromObject((long) result[0].brightness));
 
                 var brightnessArray = result.Select(m => new Dictionary<string, object>
                 {
@@ -109,9 +108,10 @@ namespace BrightnessChangePlugin.Code
 
                 var resultObj = new JObject
                 {
-                    ["brightness"] = JToken.FromObject(mainMonitorBrightness)
+                    [StoreCfgLoader.mapPluginNameToEventType(Name)] = (int)mainMonitorBrightness
                 };
                 string jsonResult = JsonConvert.SerializeObject(resultObj);
+                RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(Name), resultObj);
                 PluginContext.SendDetectionResult(Name, resultObj);
             }
         }

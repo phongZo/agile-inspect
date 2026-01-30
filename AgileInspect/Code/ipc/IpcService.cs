@@ -43,7 +43,7 @@ namespace AgileInspect.Code.Ipc
         {
             try
             {
-                using (NamedPipeClientStream pipeClient = new NamedPipeClientStream(".", "agileinspect_qaKOab5VPyK4ar4A6sfm2VZ0", PipeDirection.InOut))
+                using (NamedPipeClientStream pipeClient = new NamedPipeClientStream(".", "agileinspect_qaKOab5VPyK4ar4A6sfm2VZ0G", PipeDirection.InOut))
                 {
                     // Use a reasonable connection timeout (2 seconds) separate from response timeout
                     int connectionTimeout = Math.Min(2000, timeoutMs);

@@ -105,16 +105,13 @@ namespace ExternalDiskDetectorPlugin
                         PluginContext.Log(pluginName, $"[ExternalDiskDetector] External hard disk: Model={model}, Serial={serial}, DeviceID={deviceId}");
                     }
                 }
-                string value = isPlugExternalHardDisk ? "PLUG" : "UNPLUG";
+                var value = isPlugExternalHardDisk;
                 PluginContext.Log(pluginName, $"[ExternalDiskDetector] Plug external hard disk: {(isPlugExternalHardDisk)}");
-
-                // save last state and check rule
-                RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(pluginName), value);
-
                 var resultObj = new JObject
                 {
-                    ["isPlugExternalHardDisk"] = isPlugExternalHardDisk
+                    [StoreCfgLoader.mapPluginNameToEventType(pluginName)] = isPlugExternalHardDisk
                 };
+                RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(pluginName), resultObj);
                 PluginContext.SendDetectionResult(pluginName, resultObj);
             }
             catch (Exception ex)
