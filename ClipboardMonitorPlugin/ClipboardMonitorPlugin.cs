@@ -71,15 +71,8 @@ namespace ClipboardMonitorPlugin
 
         private async Task CheckClipboardTimerCallbackAsync()
         {
-            PluginContext.Log(pluginName, "[ClipboardMonitor] interval hit");
-            try
-            {
-                //await Task.Run(() => ClipboardMonitor.Instance.CheckFirewall());
-            }
-            catch (Exception ex)
-            {
-                PluginContext.Log(pluginName, $"Detection failed: {ex}");
-            }
+            PluginContext.Log(pluginName, "[CheckClipboard] interval hit");
+            await ClipboardMonitor.Instance.ProcessClipboardFiles();
         }
     }
 }

@@ -65,8 +65,13 @@ namespace AgileInspect
         public string triggerType { get; set; } // interval or Realtime
         public TriggerParams triggerParams { get; set; }
     }
+
     public class EventParams
     {
+        public string mipClientId { get; set; }
+        public string mipTenantId { get; set; }
+        public string mipClientSecret { get; set; }
+
         public string[] paths { get; set; } = [];
         public string[] filters { get; set; } = [];
         public string[] processes { get; set; } = [];

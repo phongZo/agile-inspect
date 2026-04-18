@@ -31,6 +31,9 @@
 
     public class EventParams
     {
+        public string mipClientId { get; set; }
+        public string mipTenantId { get; set; }
+        public string mipClientSecret { get; set; }
     }
 
     public class TriggerParams

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.PortableExecutable;
 using System.Runtime.Loader;
 using System.Text.Json;
 
@@ -63,7 +64,9 @@ namespace AgileInspect.Code
                 if (dllFiles.Length == 0)
                     continue;
 
-                var context = new PluginLoadContext(subDir);
+                // Auto-detect if any DLL is Mixed-Mode (C++/CLI) to disable collectibility
+                bool requiresNonCollectible = IsMixedModeRequired(subDir);
+                var context = new PluginLoadContext(subDir, !requiresNonCollectible);
                 _loadContexts.Add(context);
 
                 foreach (var dll in dllFiles)
@@ -85,7 +88,7 @@ namespace AgileInspect.Code
                                 plugin.SetParameters(eventParamsJson, setting.triggerType, triggerParamsJson);
 
                                 Plugins.Add(plugin);
-                                DebugLog.WriteLine($"Loaded plugin: {plugin.pluginName} as {eventType} from {dll}");
+                                DebugLog.WriteLine($"Loaded plugin: {plugin.pluginName} as {eventType} from {dll} (Collectible: {!requiresNonCollectible})");
                             }
                         }
                     }
@@ -157,7 +160,9 @@ namespace AgileInspect.Code
             {
                 try
                 {
-                    ctx.Unload();
+                    // Only unload if the context supports it
+                    if (ctx.IsCollectible)
+                        ctx.Unload();
                 }
                 catch (Exception ex)
                 {
@@ -171,6 +176,39 @@ namespace AgileInspect.Code
         }
 
         public IEnumerable<T> GetPluginsOfType<T>() where T : IAppPlugin => Plugins.OfType<T>();
+
+        private bool IsMixedModeRequired(string pluginDir)
+        {
+            try
+            {
+                var allDlls = Directory.GetFiles(pluginDir, "*.dll", SearchOption.AllDirectories);
+                foreach (var dllPath in allDlls)
+                {
+                    if (IsMixedModeAssembly(dllPath)) return true;
+                }
+            }
+            catch { }
+            return false;
+        }
+
+        private bool IsMixedModeAssembly(string path)
+        {
+            try
+            {
+                using (var stream = File.OpenRead(path))
+                using (var peReader = new PEReader(stream))
+                {
+                    if (!peReader.HasMetadata) return false;
+                    var corHeader = peReader.PEHeaders.CorHeader;
+                    if (corHeader != null)
+                    {
+                        return (corHeader.Flags & CorFlags.ILOnly) == 0;
+                    }
+                }
+            }
+            catch { }
+            return false;
+        }
     }
 
     public class PluginLoadContext : AssemblyLoadContext
@@ -178,8 +216,8 @@ namespace AgileInspect.Code
         private readonly string pluginPath;
         private readonly string dependencyDir;
 
-        public PluginLoadContext(string pluginPath)
-            : base(isCollectible: true)
+        public PluginLoadContext(string pluginPath, bool isCollectible)
+            : base(isCollectible: isCollectible)
         {
             this.pluginPath = pluginPath;
             this.dependencyDir = Path.Combine(pluginPath, "libs");
@@ -194,6 +232,21 @@ namespace AgileInspect.Code
             }
 
             return null;
+        }
+
+        protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)
+        {
+            string depPath = Path.Combine(dependencyDir, unmanagedDllName);
+            if (!depPath.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)) depPath += ".dll";
+            if (File.Exists(depPath)) return LoadUnmanagedDllFromPath(depPath);
+
+            string arch = Environment.Is64BitProcess ? "x64" : "x86";
+            string archPath = Path.Combine(dependencyDir, arch, unmanagedDllName);
+            if (!archPath.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)) archPath += ".dll";
+            
+            if (File.Exists(archPath)) return LoadUnmanagedDllFromPath(archPath);
+
+            return IntPtr.Zero;
         }
     }
 }
