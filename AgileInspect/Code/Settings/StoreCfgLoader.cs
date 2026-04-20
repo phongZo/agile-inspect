@@ -49,6 +49,10 @@ namespace AgileInspect.Code.Settings
 
                 string json = File.ReadAllText(configPath);
                 var cfg = JsonConvert.DeserializeObject<StoreCfgJson>(json) ?? new StoreCfgJson();
+
+                // Check License
+                License.CheckLicenseAgentLoad(cfg.license);
+
                 // save to roaming
                 if (!File.Exists(roamingPath))
                 {

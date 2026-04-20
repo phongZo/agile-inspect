@@ -81,7 +81,29 @@ namespace AgileInspect.Code
                         {
                             if (Activator.CreateInstance(type) is IAppPlugin plugin)
                             {
-                                string eventParamsJson = JsonSerializer.Serialize(setting.eventParams);
+                                // Merge operational data and secrets into a single JSON for the DLL
+                                var mergedMap = new Dictionary<string, object>();
+                                
+                                // 1. Map standard parameters
+                                if (setting.eventParams != null)
+                                {
+                                    foreach (var prop in typeof(EventParams).GetProperties())
+                                    {
+                                        mergedMap[prop.Name] = prop.GetValue(setting.eventParams);
+                                    }
+                                }
+
+                                // 2. Map ALL fields defined in MIPConfig from License
+                                foreach (var prop in typeof(MIPConfig).GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance))
+                                {
+                                    string secretValue = License.GetSecret(prop.Name);
+                                    if (!string.IsNullOrEmpty(secretValue))
+                                    {
+                                        mergedMap[prop.Name] = secretValue;
+                                    }
+                                }
+
+                                string eventParamsJson = JsonSerializer.Serialize(mergedMap);
                                 string triggerParamsJson = JsonSerializer.Serialize(setting.triggerParams);
 
                                 plugin.Initialize();

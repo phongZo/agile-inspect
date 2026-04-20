@@ -20,6 +20,7 @@ namespace AgileInspect
             Instance.serverUrl = config.serverUrl;
             Instance.hash = config.hash;
             Instance.deployType = config.deployType;
+            Instance.license = config.license;
 
             Instance.logRotation = config.logRotation ?? new LogRotation();
             Instance.eventSettings = config.eventSettings ?? new();
@@ -35,6 +36,7 @@ namespace AgileInspect
         public string serverUrl { get; set; } = "https://a320-171-240-159-247.ngrok-free.app";
         public string hash { get; set; } = "60f773a842963f002e73a25b";
         public string deployType { get; set; } = "serverless";
+        public string license { get; set; } = "";
         public LogRotation logRotation { get; set; } = new LogRotation();
         public List<Rules> rules { get; set; } = new();
         public RuleConditionQueueConfig ruleConditionQueueConfig { get; set; } = new RuleConditionQueueConfig();
@@ -68,10 +70,6 @@ namespace AgileInspect
 
     public class EventParams
     {
-        public string mipClientId { get; set; }
-        public string mipTenantId { get; set; }
-        public string mipClientSecret { get; set; }
-
         public string[] paths { get; set; } = [];
         public string[] filters { get; set; } = [];
         public string[] processes { get; set; } = [];
@@ -80,6 +78,13 @@ namespace AgileInspect
         public string[] aiDomains { get; set; } = [];
         public string[] browsers { get; set; } = [];
         public int activeTime { get; set; }
+    }
+
+    public class MIPConfig
+    {
+        public string mipClientId { get; set; }
+        public string mipTenantId { get; set; }
+        public string mipClientSecret { get; set; }
     }
 
     public class TriggerParams

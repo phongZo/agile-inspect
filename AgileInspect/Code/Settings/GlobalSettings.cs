@@ -9,5 +9,6 @@
         public const string FORMAT_ISO8601 = "yyyy-MM-ddTHH:mm:ssZ";
 
         public const string SecretKey = "AgileN@W";
+        public const string KeyStringLicense = "AgileN@W";
     }
 }
