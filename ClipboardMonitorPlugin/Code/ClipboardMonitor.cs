@@ -212,7 +212,7 @@ namespace ClipboardMonitorPlugin
                 var resultObj = new JObject { [StoreCfgLoader.mapPluginNameToEventType(pluginName)] = payload };
                 
                 PluginContext.Log(pluginName, $"[ClipboardMonitor] types=[{string.Join(",", types)}] preview={contentPreview}");
-                RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(pluginName), resultObj);
+                RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(pluginName), payload);
                 PluginContext.SendDetectionResult(pluginName, resultObj);
             }
             catch (Exception ex)

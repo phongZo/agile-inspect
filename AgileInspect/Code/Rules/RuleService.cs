@@ -256,7 +256,9 @@ namespace AgileInspect.Code.Rules
             }
             else if (condition.eventFilters.Count == 0)
             {
-                value = (((JToken)value)[condition.field]).ToObject<object>();
+                var fieldToken = ((JToken)value)[condition.field];
+                if (fieldToken == null) return false;
+                value = fieldToken.ToObject<object>();
                 if (value == null) return false;
             }
 
