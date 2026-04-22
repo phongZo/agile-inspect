@@ -18,7 +18,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AgileInspect\AgileInspect.csproj" />
+    <ProjectReference Include="..\AgileInspect\AgileInspect.csproj">
+      <AdditionalProperties>DisablePluginRecursiveBuild=true</AdditionalProperties>
+    </ProjectReference>
   </ItemGroup>
 
   <Target Name="CopyPluginWithDependencies" AfterTargets="Build">

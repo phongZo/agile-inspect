@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <!-- Win32 Bluetooth APIs (BluetoothApis.dll); same TFM as other plugins. -->
     <TargetFramework>net8.0-windows</TargetFramework>
     <UseWPF>false</UseWPF>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -14,11 +15,15 @@
   <PropertyGroup>
     <RootDir>$([System.IO.Path]::GetFullPath('$(SolutionDir)..'))</RootDir>
     <MainProjectBuildDir>$(RootDir)\AgileInspect\bin\$(Configuration)\net8.0-windows\$(RuntimeIdentifier)</MainProjectBuildDir>
+    <!-- Main app stays net8.0-windows; copy plugin into that output folder -->
     <PluginOutputDir>$(RootDir)\AgileInspect\bin\$(Platforms)\$(Configuration)\net8.0-windows\$(RuntimeIdentifier)\dll\UnknownBluetoothPlugin</PluginOutputDir>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AgileInspect\AgileInspect.csproj" />
+    <!-- Avoid MSBuild cycle: building this plugin builds AgileInspect; skip BuildPlugins on that inner build. -->
+    <ProjectReference Include="..\AgileInspect\AgileInspect.csproj">
+      <AdditionalProperties>DisablePluginRecursiveBuild=true</AdditionalProperties>
+    </ProjectReference>
   </ItemGroup>
 
   <Target Name="CopyPluginWithDependencies" AfterTargets="Build">

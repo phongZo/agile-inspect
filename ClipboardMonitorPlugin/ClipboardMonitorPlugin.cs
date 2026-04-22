@@ -74,7 +74,7 @@ namespace ClipboardMonitorPlugin
             PurviewGetFileStatus.Shutdown();
         }
 
-        private async Task CheckClipboardTimerCallbackAsync()
+        private Task CheckClipboardTimerCallbackAsync()
         {
             PluginContext.Log(pluginName, "[ClipboardMonitor] interval hit");
             try
@@ -84,6 +84,7 @@ namespace ClipboardMonitorPlugin
             {
                 PluginContext.Log(pluginName, $"Detection failed: {ex}");
             }
+            return Task.CompletedTask;
         }
     }
 }

@@ -24,11 +24,8 @@ namespace SecureBootPlugin
 
             var resultObj = new JObject
             {
-                [StoreCfgLoader.mapPluginNameToEventType(pluginName)] = new JObject
-                {
-                    ["secureBootEnabled"] = status.SecureBootEnabled,
-                    ["tpmPresent"] = status.TpmPresent
-                }
+                [StoreCfgLoader.mapPluginNameToEventType(pluginName)] = status.SecureBootEnabled,
+                ["tpmPresent"] = status.TpmPresent
             };
             RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(pluginName), resultObj);
             PluginContext.SendDetectionResult(pluginName, resultObj);

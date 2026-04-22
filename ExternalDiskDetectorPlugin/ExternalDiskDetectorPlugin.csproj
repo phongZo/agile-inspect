@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFramework>net8.0-windows</TargetFramework>
@@ -30,7 +30,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\AgileInspect\AgileInspect.csproj" />
+		<ProjectReference Include="..\AgileInspect\AgileInspect.csproj">
+      <AdditionalProperties>DisablePluginRecursiveBuild=true</AdditionalProperties>
+    </ProjectReference>
 	</ItemGroup>
 
 	<Target Name="CopyPluginWithDependencies" AfterTargets="Build">

@@ -9,6 +9,7 @@ namespace AgileInspect
 {
     public class SaveEvent
     {
+        public string eventId { get; set; } = Guid.NewGuid().ToString("N");
         public DateTime timestampUtc { get; set; } = DateTime.UtcNow;
         public string eventType {  get; set; }
         public string clientName { get; set; }

@@ -24,12 +24,9 @@ namespace UserPlugin
 
             var resultObj = new JObject
             {
-                [StoreCfgLoader.mapPluginNameToEventType(pluginName)] = new JObject
-                {
-                    ["username"] = userInfo.Username,
-                    ["isAdmin"] = userInfo.IsAdmin,
-                    ["userType"] = userInfo.IsAdmin ? "admin" : "standard"
-                }
+                ["username"] = userInfo.Username,
+                ["isAdmin"] = userInfo.IsAdmin,
+                ["userType"] = userInfo.IsAdmin ? "admin" : "standard"
             };
             RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(pluginName), resultObj);
             PluginContext.SendDetectionResult(pluginName, resultObj);

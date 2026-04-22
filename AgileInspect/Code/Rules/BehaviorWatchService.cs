@@ -2,7 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -46,6 +49,7 @@ namespace AgileInspect.Code.Rules
         private readonly string _appDataDir;
         private readonly string _sessionLogPath;
         private readonly string _overviewPath;
+        private readonly object _queueFileLock = new();
 
         private static readonly Lazy<BehaviorWatchService> _lazy = new(() => new BehaviorWatchService());
         public static BehaviorWatchService Instance => _lazy.Value;
@@ -190,11 +194,161 @@ namespace AgileInspect.Code.Rules
                     }
                 }
 
-                File.AppendAllText(_sessionLogPath, logObj.ToString(Formatting.None) + Environment.NewLine);
+                EnqueueSessionLine(logObj);
             }
             catch (Exception ex)
             {
                 DebugLog.WriteLine($"[BehaviorWatch] Failed to write session log: {ex.Message}");
+            }
+        }
+
+        /// <summary>FIFO queue file: one JSON object per line. Drained by <see cref="SendSessionQueueAsync"/>.</summary>
+        private void EnqueueSessionLine(JObject logObj)
+        {
+            logObj["queueId"] = Guid.NewGuid().ToString("N");
+            var line = logObj.ToString(Formatting.None) + Environment.NewLine;
+            lock (_queueFileLock)
+            {
+                File.AppendAllText(_sessionLogPath, line);
+            }
+        }
+
+        /// <summary>POST pending lines from <c>behavior_watch_sessions.jsonl</c> in order; stop on first failure.</summary>
+        public async Task SendSessionQueueAsync()
+        {
+            if (string.Equals(StoreCfgJson.Instance.deployType, "serverless", StringComparison.OrdinalIgnoreCase))
+                return;
+
+            List<(string queueId, string line)> snapshot;
+            lock (_queueFileLock)
+            {
+                if (!File.Exists(_sessionLogPath))
+                    return;
+
+                var text = File.ReadAllText(_sessionLogPath);
+                if (string.IsNullOrWhiteSpace(text))
+                    return;
+
+                var lines = text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+                snapshot = new List<(string, string)>();
+                foreach (var raw in lines)
+                {
+                    try
+                    {
+                        var o = JObject.Parse(raw);
+                        var qid = (string)o["queueId"];
+                        if (string.IsNullOrWhiteSpace(qid))
+                            continue;
+                        snapshot.Add((qid, raw));
+                    }
+                    catch
+                    {
+                        // skip malformed line
+                    }
+                }
+            }
+
+            if (snapshot.Count == 0)
+                return;
+
+            var sentOk = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var (qid, line) in snapshot)
+            {
+                var envelope = BuildBehaviorWatchEnvelope(line);
+                if (!await TryPostEventLogAsync(envelope).ConfigureAwait(false))
+                    break;
+                sentOk.Add(qid);
+            }
+
+            if (sentOk.Count == 0)
+                return;
+
+            lock (_queueFileLock)
+            {
+                if (!File.Exists(_sessionLogPath))
+                    return;
+
+                var text = File.ReadAllText(_sessionLogPath);
+                var lines = text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+                var remaining = new List<string>();
+                foreach (var raw in lines)
+                {
+                    try
+                    {
+                        var o = JObject.Parse(raw);
+                        var qid = (string)o["queueId"];
+                        if (!string.IsNullOrWhiteSpace(qid) && sentOk.Contains(qid))
+                            continue;
+                        remaining.Add(raw);
+                    }
+                    catch
+                    {
+                        remaining.Add(raw);
+                    }
+                }
+
+                var newContent = remaining.Count > 0
+                    ? string.Join(Environment.NewLine, remaining) + Environment.NewLine
+                    : string.Empty;
+                WriteAllTextAtomic(_sessionLogPath, newContent);
+            }
+        }
+
+        private static string BuildBehaviorWatchEnvelope(string sessionLineJson)
+        {
+            var data = JToken.Parse(sessionLineJson);
+            var saveEvent = new SaveEvent
+            {
+                eventType = "behavior_watch",
+                clientName = MachineName.Instance.Name,
+                customerId = StoreCfgJson.Instance.customerID,
+                data = data,
+                timestampUtc = DateTime.UtcNow,
+            };
+            return JsonConvert.SerializeObject(saveEvent);
+        }
+
+        private static async Task<bool> TryPostEventLogAsync(string json)
+        {
+            try
+            {
+                using var client = new HttpClient();
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                var response = await client.PostAsync(StoreCfgJson.Instance.serverUrl + "/session-log/create", content).ConfigureAwait(false);
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    DebugLog.WriteLine("[BehaviorWatch] SendSessionQueue OK: " + responseString);
+                    return true;
+                }
+
+                var error = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                DebugLog.WriteLine($"[BehaviorWatch] SendSessionQueue error: {response.StatusCode}, {error}");
+                return false;
+            }
+            catch (Exception ex)
+            {
+                DebugLog.WriteLine($"[BehaviorWatch] SendSessionQueue exception: {ex.Message}");
+                return false;
+            }
+        }
+
+        private static void WriteAllTextAtomic(string path, string content)
+        {
+            var dir = Path.GetDirectoryName(path);
+            if (!string.IsNullOrEmpty(dir))
+                Directory.CreateDirectory(dir);
+
+            var tmp = path + ".tmp";
+            File.WriteAllText(tmp, content);
+
+            try
+            {
+                File.Replace(tmp, path, null);
+            }
+            catch
+            {
+                File.Move(tmp, path, true);
             }
         }
 
