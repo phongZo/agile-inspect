@@ -26,7 +26,7 @@
 	  <PluginProjects Include="WatermarkDetectorPlugin;BrightnessChangePlugin;AntivirusDetectorPlugin;FirewallDetectorPlugin;InternetDetectorPlugin;VpnDetectorPlugin;ExternalDiskDetectorPlugin;HostFileMonitorPlugin;FocusWindowDetectorPlugin;PrintScreenDetectorPlugin;AiInteractionDetectorPlugin;PrintDetectorPlugin;ClipboardMonitorPlugin;ScreenLockPlugin;AutoUpdatePlugin;UserPlugin;SecureBootPlugin;RdpPlugin;DevModePlugin;RemoteAccessToolsPlugin;CloudSyncClientsPlugin;PersonalMessagingAppsPlugin;UsbDevicePlugin;UnknownBluetoothPlugin;ScreenSharingPlugin;VirtualMachinePlugin" />
   </ItemGroup>
 
-  <Target Name="BuildPlugins" AfterTargets="Build">
+  <Target Name="BuildPlugins" AfterTargets="Build" Condition="'$(DisablePluginRecursiveBuild)' != 'true'">
     <MSBuild Projects="@(PluginProjects->'..\\%(Identity)\\%(Identity).csproj')" Targets="Build" />
   </Target>
 

@@ -122,10 +122,15 @@ namespace AgileInspect.Code
                 return;
             }
 
-            var newQueue = new List<JToken>();
+            // FIFO: send in order, stop on first failure.
+            // Remove-by-id so new identical events never get dropped.
+            var sentOkIds = new HashSet<string>(StringComparer.Ordinal);
+            bool hitFailure = false;
+            int failIndex = -1;
 
-            foreach (var item in originalQueue)
+            for (int i = 0; i < originalQueue.Count; i++)
             {
+                var item = originalQueue[i];
                 var json = JsonConvert.SerializeObject(item);
                 DebugLog.WriteLine($"[EventQueueService] [SendQueueAsync] Sending JSON: {json}");
 
@@ -133,20 +138,101 @@ namespace AgileInspect.Code
                 if (success)
                 {
                     DebugLog.WriteLine("[EventQueueService] [SendQueueAsync] Send success.");
+                    var id = (string)item["eventId"];
+                    if (!string.IsNullOrWhiteSpace(id))
+                    {
+                        sentOkIds.Add(id);
+                    }
                 }
                 else
                 {
                     DebugLog.WriteLine("[EventQueueService] [SendQueueAsync] Send failed. Will retry next time.");
-                    newQueue.Add(item); // Keep to retry at next interval hit
-                    await Task.Delay(10000); // wait 10 seconds
+                    hitFailure = true;
+                    failIndex = i;
+                    break;
                 }
             }
 
             lock (_lock)
             {
-                var updatedContent = JsonConvert.SerializeObject(newQueue);
-                File.WriteAllText(_filePath, updatedContent);
-                DebugLog.WriteLine($"[EventQueueService] [SendQueueAsync] Updated queue. Remaining: {newQueue.Count}");
+                // Reload latest (may include new Enqueue while sending).
+                List<JToken> currentQueue;
+                try
+                {
+                    var latest = File.ReadAllText(_filePath);
+                    currentQueue = JsonConvert.DeserializeObject<List<JToken>>(latest) ?? new List<JToken>();
+                }
+                catch
+                {
+                    currentQueue = new List<JToken>();
+                }
+
+                // Remove items we sent OK from current queue (eventId).
+                if (sentOkIds.Count > 0 && currentQueue.Count > 0)
+                {
+                    var remaining = new List<JToken>(currentQueue.Count);
+                    foreach (var t in currentQueue)
+                    {
+                        var id = (string)t["eventId"];
+                        if (!string.IsNullOrWhiteSpace(id) && sentOkIds.Contains(id))
+                        {
+                            continue; // drop (already sent OK)
+                        }
+                        remaining.Add(t);
+                    }
+                    currentQueue = remaining;
+                }
+
+                // If we hit failure, ensure unsent suffix from snapshot is still present (in order).
+                // Needed if queue file got corrupted/reset while we were sending.
+                if (hitFailure && failIndex >= 0)
+                {
+                    // Build multiset of currentQueue items (by JSON) so we only append missing ones.
+                    var counts = new Dictionary<string, int>(StringComparer.Ordinal);
+                    foreach (var t in currentQueue)
+                    {
+                        var s = JsonConvert.SerializeObject(t);
+                        if (counts.TryGetValue(s, out var c)) counts[s] = c + 1;
+                        else counts[s] = 1;
+                    }
+
+                    for (int i = failIndex; i < originalQueue.Count; i++)
+                    {
+                        var t = originalQueue[i];
+                        var s = JsonConvert.SerializeObject(t);
+                        if (counts.TryGetValue(s, out var c) && c > 0)
+                        {
+                            counts[s] = c - 1;
+                            continue; // already present
+                        }
+                        currentQueue.Add(t); // append missing
+                    }
+                }
+
+                var updatedContent = JsonConvert.SerializeObject(currentQueue);
+                WriteAllTextAtomic(_filePath, updatedContent);
+                DebugLog.WriteLine($"[EventQueueService] [SendQueueAsync] Updated queue. Remaining: {currentQueue.Count}");
+            }
+        }
+
+        private static void WriteAllTextAtomic(string path, string content)
+        {
+            var dir = Path.GetDirectoryName(path);
+            if (!string.IsNullOrEmpty(dir))
+                Directory.CreateDirectory(dir);
+
+            var tmp = path + ".tmp";
+            File.WriteAllText(tmp, content);
+
+            try
+            {
+                // Atomic replace on Windows.
+                File.Replace(tmp, path, null);
+            }
+            catch
+            {
+                // Fallback (not strictly atomic, but better than silent fail).
+                File.Move(tmp, path, true);
             }
         }
 

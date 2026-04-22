@@ -1,5 +1,5 @@
-using System.Diagnostics;
-using System.Text.RegularExpressions;
+using System.Runtime.InteropServices;
+using System.Text;
 using AgileInspect.Code.Rules;
 using AgileInspect.Code.Settings;
 using Newtonsoft.Json.Linq;
@@ -16,132 +16,216 @@ namespace UnknownBluetoothPlugin
         }
         #endregion
 
+        private const int ErrorNoMoreItems = 259;
+
         private readonly string pluginName = "UnknownBluetoothPlugin";
 
         public void Check()
         {
-            var unknownDevicesDetailed = GetUnknownBluetoothDevicesDetailed();
-            var unknownNames = unknownDevicesDetailed
-                .Select(d => (string?)d["FriendlyName"])
-                .Where(n => !string.IsNullOrWhiteSpace(n))
-                .Cast<string>()
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .OrderBy(x => x)
-                .ToList();
+            // Enumerate paired/remembered devices and their connection status (Settings-like list).
+            // Note: This is classic Bluetooth enumeration (BluetoothApis.dll), not WinRT.
+            var devices = GetDevices(out var connectedCount, out var detail);
+            bool detected = connectedCount > 0;
 
-            bool detected = unknownNames.Count > 0;
-
-            PluginContext.Log(pluginName, $"[UnknownBluetooth] Unknown bluetooth paired: {detected}");
+            PluginContext.Log(pluginName, $"[UnknownBluetooth] Devices={devices.Count}, Connected={connectedCount}, Detail={detail}");
 
             var resultObj = new JObject
             {
+                // User-requested payload shape:
+                // { "unknown_bluetooth": bool, "devices": [{name, connected, paired}, ...], "connectedCount": n }
                 [StoreCfgLoader.mapPluginNameToEventType(pluginName)] = detected,
-                // Back-compat: keep the original string list
-                ["deviceList"] = JToken.FromObject(unknownNames),
-                // New: include type/category when available
-                ["deviceListDetailed"] = JToken.FromObject(unknownDevicesDetailed)
+                ["devices"] = new JArray(devices),
+                ["connectedCount"] = connectedCount
             };
 
             RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(pluginName), resultObj);
             PluginContext.SendDetectionResult(pluginName, resultObj);
         }
 
-        private List<JObject> GetUnknownBluetoothDevicesDetailed()
+        private List<JObject> GetDevices(out int connectedCount, out string detail)
         {
-            var result = new List<JObject>();
+            connectedCount = 0;
+            detail = "bluetooth_apis";
+            var results = new List<JObject>();
+
             try
             {
-                // Collect FriendlyName + InstanceId, and (best effort) Bluetooth ClassOfDevice.
-                // ClassOfDevice is a 24-bit int; bits 8-12 represent Major Device Class.
-                var output = RunPowerShell(
-                    "$ErrorActionPreference='SilentlyContinue';" +
-                    "$devs = Get-PnpDevice -Class Bluetooth -Status OK | Select-Object FriendlyName, InstanceId;" +
-                    "$devs | ForEach-Object {" +
-                    "  $cod=$null;" +
-                    "  try { $p=Get-PnpDeviceProperty -InstanceId $_.InstanceId -KeyName 'DEVPKEY_Bluetooth_ClassOfDevice' -ErrorAction Stop; $cod=$p.Data } catch {}" +
-                    "  [pscustomobject]@{ FriendlyName=$_.FriendlyName; InstanceId=$_.InstanceId; ClassOfDevice=$cod }" +
-                    "} | ConvertTo-Json -Compress"
-                );
-                if (string.IsNullOrWhiteSpace(output)) return result.ToList();
-
-                var token = JToken.Parse(output.Trim());
-                var arr = token.Type == JTokenType.Array ? (JArray)token : new JArray(token);
-
-                foreach (var t in arr)
+                var pr = new BLUETOOTH_FIND_RADIO_PARAMS
                 {
-                    var name = (string?)t["FriendlyName"] ?? "";
-                    if (string.IsNullOrWhiteSpace(name)) continue;
+                    dwSize = (uint)Marshal.SizeOf<BLUETOOTH_FIND_RADIO_PARAMS>(),
+                };
 
-                    var lower = name.ToLowerInvariant();
-                    if (lower.Contains("unknown") || lower.Contains("bluetooth device") || Regex.IsMatch(lower, @"^ble\s"))
+                IntPtr hFind = BluetoothNative.BluetoothFindFirstRadio(ref pr, out IntPtr hRadio);
+                if (hFind == IntPtr.Zero)
+                {
+                    int err = Marshal.GetLastWin32Error();
+                    detail = err == ErrorNoMoreItems ? "no_bluetooth_radio" : $"radio_find_failed_{err}";
+                    return results;
+                }
+
+                try
+                {
+                    if (hRadio == IntPtr.Zero)
                     {
-                        int? cod = null;
-                        try
-                        {
-                            var codTok = t["ClassOfDevice"];
-                            if (codTok != null && codTok.Type != JTokenType.Null)
-                                cod = codTok.Value<int?>();
-                        }
-                        catch { /* ignore */ }
-
-                        var major = cod.HasValue ? (int?)((cod.Value >> 8) & 0x1F) : null;
-                        var majorName = major.HasValue ? BluetoothMajorClassName(major.Value) : null;
-
-                        result.Add(new JObject
-                        {
-                            ["FriendlyName"] = name,
-                            ["InstanceId"] = (string?)t["InstanceId"],
-                            ["ClassOfDevice"] = cod.HasValue ? cod.Value : new JValue((object?)null),
-                            ["MajorClass"] = major.HasValue ? major.Value : new JValue((object?)null),
-                            ["MajorClassName"] = majorName != null ? majorName : new JValue((object?)null)
-                        });
+                        detail = "no_bluetooth_radio";
+                        return results;
                     }
+
+                    // Search for known devices (paired/remembered), and include connected ones.
+                    var sp = new BLUETOOTH_DEVICE_SEARCH_PARAMS
+                    {
+                        dwSize = (uint)Marshal.SizeOf<BLUETOOTH_DEVICE_SEARCH_PARAMS>(),
+                        fReturnAuthenticated = true,
+                        fReturnRemembered = true,
+                        fReturnConnected = true,
+                        fReturnUnknown = false,
+                        fIssueInquiry = false,
+                        cTimeoutMultiplier = 0,
+                        hRadio = hRadio
+                    };
+
+                    var di = new BLUETOOTH_DEVICE_INFO
+                    {
+                        dwSize = (uint)Marshal.SizeOf<BLUETOOTH_DEVICE_INFO>()
+                    };
+
+                    IntPtr hDevFind = BluetoothNative.BluetoothFindFirstDevice(ref sp, ref di);
+                    if (hDevFind == IntPtr.Zero)
+                    {
+                        int err = Marshal.GetLastWin32Error();
+                        if (err == ErrorNoMoreItems)
+                        {
+                            detail = "no_devices";
+                            return results;
+                        }
+
+                        detail = $"device_find_failed_{err}";
+                        return results;
+                    }
+
+                    try
+                    {
+                        while (true)
+                        {
+                            var obj = new JObject
+                            {
+                                ["name"] = (di.szName ?? string.Empty).Trim(),
+                                ["connected"] = di.fConnected,
+                                ["paired"] = di.fAuthenticated
+                            };
+                            results.Add(obj);
+                            if (di.fConnected) connectedCount++;
+
+                            // Prepare for next call.
+                            di = new BLUETOOTH_DEVICE_INFO { dwSize = (uint)Marshal.SizeOf<BLUETOOTH_DEVICE_INFO>() };
+
+                            bool ok = BluetoothNative.BluetoothFindNextDevice(hDevFind, ref di);
+                            if (!ok)
+                            {
+                                int err = Marshal.GetLastWin32Error();
+                                if (err == ErrorNoMoreItems)
+                                    break;
+
+                                detail = $"device_next_failed_{err}";
+                                break;
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        BluetoothNative.BluetoothFindDeviceClose(hDevFind);
+                    }
+
+                    return results;
+                }
+                finally
+                {
+                    if (hRadio != IntPtr.Zero)
+                        BluetoothNative.CloseHandle(hRadio);
+                    if (hFind != IntPtr.Zero)
+                        BluetoothNative.BluetoothFindRadioClose(hFind);
                 }
             }
             catch (Exception ex)
             {
-                PluginContext.Log(pluginName, $"[UnknownBluetooth] Detection error: {ex.Message}");
+                detail = "error";
+                PluginContext.Log(pluginName, $"[UnknownBluetooth] Enumeration error: {ex.Message}");
+                return results;
             }
-
-            return result
-                .OrderBy(x => (string?)x["FriendlyName"] ?? "")
-                .ToList();
         }
 
-        private static string BluetoothMajorClassName(int major)
+        [StructLayout(LayoutKind.Sequential)]
+        private struct BLUETOOTH_FIND_RADIO_PARAMS
         {
-            // Bluetooth Class of Device (CoD) Major Device Class values.
-            return major switch
-            {
-                0x00 => "Misc",
-                0x01 => "Computer",
-                0x02 => "Phone",
-                0x03 => "LAN/Network Access",
-                0x04 => "Audio/Video",
-                0x05 => "Peripheral",
-                0x06 => "Imaging",
-                0x07 => "Wearable",
-                0x08 => "Toy",
-                0x09 => "Health",
-                0x1F => "Uncategorized",
-                _ => "Unknown"
-            };
+            public uint dwSize;
         }
 
-        private string RunPowerShell(string command)
+        // https://learn.microsoft.com/windows/win32/api/bluetoothapis/ns-bluetoothapis-bluetooth_device_search_params
+        [StructLayout(LayoutKind.Sequential)]
+        private struct BLUETOOTH_DEVICE_SEARCH_PARAMS
         {
-            using var process = new Process();
-            process.StartInfo.FileName = "powershell.exe";
-            process.StartInfo.Arguments = $"-NoProfile -ExecutionPolicy Bypass -Command \"{command}\"";
-            process.StartInfo.RedirectStandardOutput = true;
-            process.StartInfo.RedirectStandardError = true;
-            process.StartInfo.CreateNoWindow = true;
-            process.StartInfo.UseShellExecute = false;
-            process.Start();
+            public uint dwSize;
+            [MarshalAs(UnmanagedType.Bool)] public bool fReturnAuthenticated;
+            [MarshalAs(UnmanagedType.Bool)] public bool fReturnRemembered;
+            [MarshalAs(UnmanagedType.Bool)] public bool fReturnUnknown;
+            [MarshalAs(UnmanagedType.Bool)] public bool fReturnConnected;
+            [MarshalAs(UnmanagedType.Bool)] public bool fIssueInquiry;
+            public byte cTimeoutMultiplier;
+            public IntPtr hRadio;
+        }
 
-            var output = process.StandardOutput.ReadToEnd();
-            process.WaitForExit(5000);
-            return output;
+        // https://learn.microsoft.com/windows/win32/api/bluetoothapis/ns-bluetoothapis-bluetooth_device_info
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        private struct BLUETOOTH_DEVICE_INFO
+        {
+            public uint dwSize;
+            public ulong Address;
+            public uint ulClassofDevice;
+            [MarshalAs(UnmanagedType.Bool)] public bool fConnected;
+            [MarshalAs(UnmanagedType.Bool)] public bool fRemembered;
+            [MarshalAs(UnmanagedType.Bool)] public bool fAuthenticated;
+            public SYSTEMTIME stLastSeen;
+            public SYSTEMTIME stLastUsed;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 248)]
+            public string szName;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct SYSTEMTIME
+        {
+            public ushort wYear;
+            public ushort wMonth;
+            public ushort wDayOfWeek;
+            public ushort wDay;
+            public ushort wHour;
+            public ushort wMinute;
+            public ushort wSecond;
+            public ushort wMilliseconds;
+        }
+
+        private static class BluetoothNative
+        {
+            [DllImport("BluetoothApis.dll", SetLastError = true)]
+            public static extern IntPtr BluetoothFindFirstRadio(ref BLUETOOTH_FIND_RADIO_PARAMS pbtfrp, out IntPtr phRadio);
+
+            [DllImport("BluetoothApis.dll", SetLastError = true)]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            public static extern bool BluetoothFindRadioClose(IntPtr hFind);
+
+            [DllImport("BluetoothApis.dll", SetLastError = true)]
+            public static extern IntPtr BluetoothFindFirstDevice(ref BLUETOOTH_DEVICE_SEARCH_PARAMS pbtsp, ref BLUETOOTH_DEVICE_INFO pbtdi);
+
+            [DllImport("BluetoothApis.dll", SetLastError = true)]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            public static extern bool BluetoothFindNextDevice(IntPtr hFind, ref BLUETOOTH_DEVICE_INFO pbtdi);
+
+            [DllImport("BluetoothApis.dll", SetLastError = true)]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            public static extern bool BluetoothFindDeviceClose(IntPtr hFind);
+
+            [DllImport("kernel32.dll", SetLastError = true)]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            public static extern bool CloseHandle(IntPtr hObject);
         }
     }
 }

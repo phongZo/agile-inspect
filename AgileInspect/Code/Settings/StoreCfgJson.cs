@@ -66,8 +66,6 @@ namespace AgileInspect
     {
         public bool enable { get; set; } = true;
         public int defaultWatchWindowSec { get; set; } = 60;
-        public int signalTimelineMaxSizeMb { get; set; } = 20;
-        public int signalTimelineMaxFiles { get; set; } = 5;
     }
     public class EventSetting
     {
@@ -78,14 +76,10 @@ namespace AgileInspect
     }
     public class EventParams
     {
-        public string[] paths { get; set; } = [];
-        public string[] filters { get; set; } = [];
         public string[] processes { get; set; } = [];
-        public string[] services { get; set; } = [];
         public string[] allowedInternetSsids { get; set; } = [];
         public string[] aiDomains { get; set; } = [];
         public string[] browsers { get; set; } = [];
-        public int activeTime { get; set; }
     }
 
     public class TriggerParams

@@ -246,7 +246,7 @@ namespace AgileInspect.Code.Rules
                         }
                     } else
                     {
-                        var left = condition.value;
+                        var left = JToken.FromObject(condition.value);
                         var right = item[condition.field];
                         var compare = JToken.Equals(right, left);
                         combine = combine || compare;

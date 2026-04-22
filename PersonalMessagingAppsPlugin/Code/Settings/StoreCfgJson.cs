@@ -10,15 +10,7 @@ namespace PersonalMessagingAppsPlugin
         }
         #endregion
 
-        public LogRotation LogRotation { get; set; } = new LogRotation();
         public EventSetting eventSetting { get; set; } = new EventSetting();
-    }
-
-    public class LogRotation
-    {
-        public bool enable { get; set; } = true;
-        public int size { get; set; } = 10 * 1024 * 1024;
-        public int rotate { get; set; } = 5;
     }
 
     public class EventSetting

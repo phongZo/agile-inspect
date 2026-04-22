@@ -24,11 +24,7 @@ namespace FocusWindowDetectorPlugin.Code.Settings
 
     public class EventParams
     {
-        public string[] paths { get; set; } = [];
-        public string[] filters { get; set; } = [];
         public string[] processes { get; set; } = [];
-        public string[] services { get; set; } = [];
-        public int activeTime { get; set; }
     }
 
     public class TriggerParams
