@@ -1,5 +1,7 @@
 #nullable enable
 using AgileInspect.Code.PluginContracts;
+using AgileInspect.Code.Rules;
+using AgileInspect.Code.Settings;
 using AiInteractionDetectorPlugin.Code.Settings;
 using Newtonsoft.Json.Linq;
 using System;
@@ -45,6 +47,7 @@ namespace AiInteractionDetectorPlugin
         
         // Timeout is fallback, we try to detect stop events actively now
         private const int SessionTimeoutSeconds = 15;
+        private const string PluginName = "AiInteractionDetectorPlugin";
 
         [DllImport("user32.dll")] private static extern IntPtr GetForegroundWindow();
         [DllImport("user32.dll")] private static extern int GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
@@ -54,11 +57,11 @@ namespace AiInteractionDetectorPlugin
             var setting = StoreCfgJson.Instance.eventSetting;
             if (setting.eventParams.aiDomains != null)
             {
-                PluginContext.Log("AiInteractionDetectorPlugin", $"Monitoring AI Domains: {string.Join(", ", setting.eventParams.aiDomains)}");
+                PluginContext.Log(PluginName, $"Monitoring AI Domains: {string.Join(", ", setting.eventParams.aiDomains)}");
             }
             if (setting.eventParams.browsers != null)
             {
-                PluginContext.Log("AiInteractionDetectorPlugin", $"Monitoring Browsers: {string.Join(", ", setting.eventParams.browsers)}");
+                PluginContext.Log(PluginName, $"Monitoring Browsers: {string.Join(", ", setting.eventParams.browsers)}");
             }
 
             StopWatcher(); 
@@ -68,7 +71,7 @@ namespace AiInteractionDetectorPlugin
             Task.Run(async () => 
             {
                 await Task.Delay(500); 
-                PluginContext.Log("AiInteractionDetectorPlugin", "Performing initial system scan...");
+                PluginContext.Log(PluginName, "Performing initial system scan...");
                 TriggerScan("Initial");
             });
         }
@@ -143,7 +146,7 @@ namespace AiInteractionDetectorPlugin
                     catch (OperationCanceledException) { }
                     catch (Exception ex) 
                     {
-                        PluginContext.Log("AiInteractionDetectorPlugin", $"Tracking task error: {ex.Message}");
+                        PluginContext.Log(PluginName, $"Tracking task error: {ex.Message}");
                     }
                     finally
                     {
@@ -231,7 +234,7 @@ namespace AiInteractionDetectorPlugin
                         // Format: [STARTED] AI: claude | Source: chrome (PID: 1234) | Info: ...
                         string pidInfo = session.Pid > 0 ? $" (PID: {session.Pid})" : "";
                         string info = !string.IsNullOrEmpty(session.Details) ? $" | Info: {session.Details}" : "";
-                        PluginContext.Log("AiInteractionDetectorPlugin", $"[STARTED] AI: {session.Keyword} | Type: {session.DetectionType} | Source: {session.ProcessName}{pidInfo}{info}");
+                        PluginContext.Log(PluginName, $"[STARTED] AI: {session.Keyword} | Type: {session.DetectionType} | Source: {session.ProcessName}{pidInfo}{info}");
 
                         try
                         {
@@ -242,7 +245,8 @@ namespace AiInteractionDetectorPlugin
                                 ["process"] = session.ProcessName,
                                 ["type"] = session.DetectionType
                             };
-                            PluginContext.SendDetectionResult("AiInteractionDetectorPlugin", resultObj);
+                            RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(PluginName), resultObj);
+                            PluginContext.SendDetectionResult(PluginName, resultObj);
                         }
                         catch { }
 
@@ -302,7 +306,7 @@ namespace AiInteractionDetectorPlugin
                     {
                         if (_activeSessions.TryRemove(key, out _))
                         {
-                            PluginContext.Log("AiInteractionDetectorPlugin", $"[STOPPED] AI: {session.Keyword} | Type: {session.DetectionType} | Reason: {stopReason}");
+                            PluginContext.Log(PluginName, $"[STOPPED] AI: {session.Keyword} | Type: {session.DetectionType} | Reason: {stopReason}");
 
                             try
                             {
@@ -313,7 +317,8 @@ namespace AiInteractionDetectorPlugin
                                     ["process"] = session.ProcessName,
                                     ["type"] = session.DetectionType
                                 };
-                                PluginContext.SendDetectionResult("AiInteractionDetectorPlugin", resultObj);
+                                RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(PluginName), resultObj);
+                                PluginContext.SendDetectionResult(PluginName, resultObj);
                             }
                             catch { }
                         }

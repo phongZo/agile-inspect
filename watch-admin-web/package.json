@@ -1,0 +1,9 @@
+{
+  "name": "watch-admin-web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Simple admin dashboard for behavior watch sessions and overview",
+  "scripts": {
+    "start": "node server.js"
+  }
+}

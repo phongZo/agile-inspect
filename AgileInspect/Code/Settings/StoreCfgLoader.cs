@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -146,6 +146,58 @@ namespace AgileInspect.Code.Settings
             else if (pluginName == "ClipboardMonitorPlugin")
             {
                 return "clipboard";
+            }
+            else if (pluginName == "ScreenLockPlugin")
+            {
+                return "screen_lock";
+            }
+            else if (pluginName == "AutoUpdatePlugin")
+            {
+                return "auto_update";
+            }
+            else if (pluginName == "UserPlugin")
+            {
+                return "user";
+            }
+            else if (pluginName == "SecureBootPlugin")
+            {
+                return "secure_boot";
+            }
+            else if (pluginName == "RdpPlugin")
+            {
+                return "rdp";
+            }
+            else if (pluginName == "DevModePlugin")
+            {
+                return "dev_mode";
+            }
+            else if (pluginName == "RemoteAccessToolsPlugin")
+            {
+                return "remote_access_tools";
+            }
+            else if (pluginName == "CloudSyncClientsPlugin")
+            {
+                return "cloud_sync_clients";
+            }
+            else if (pluginName == "PersonalMessagingAppsPlugin")
+            {
+                return "personal_messaging_apps";
+            }
+            else if (pluginName == "UsbDevicePlugin")
+            {
+                return "usb_device";
+            }
+            else if (pluginName == "UnknownBluetoothPlugin")
+            {
+                return "unknown_bluetooth";
+            }
+            else if (pluginName == "ScreenSharingPlugin")
+            {
+                return "screen_sharing";
+            }
+            else if (pluginName == "VirtualMachinePlugin")
+            {
+                return "virtual_machine";
             }
             else
                 return "";

@@ -179,7 +179,7 @@ namespace AgileInspect.Code
         private readonly string dependencyDir;
 
         public PluginLoadContext(string pluginPath)
-            : base(isCollectible: true)
+            : base(isCollectible: false)
         {
             this.pluginPath = pluginPath;
             this.dependencyDir = Path.Combine(pluginPath, "libs");
