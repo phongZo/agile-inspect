@@ -161,11 +161,6 @@ namespace ClipboardMonitorPlugin
                 string? contentPreview = null;
                 var mipResults = new JArray();
                 
-                // Fields for backward compatibility with dev branch payload
-                bool? purviewIsLabeled = null;
-                bool? purviewIsRmsProtected = null;
-                string? purviewMainLabelName = null;
-
                 // 1. File & MIP Detection
                 if (Clipboard.ContainsFileDropList())
                 {
@@ -174,22 +169,6 @@ namespace ClipboardMonitorPlugin
                     {
                         var files = Clipboard.GetFileDropList();
                         contentPreview = $"Files count: {files.Count}";
-
-                        if (files.Count > 0)
-                        {
-                            var firstPath = files[0];
-                            if (!string.IsNullOrEmpty(firstPath))
-                            {
-                                // Call Purview PS for the first file (from dev branch)
-                                var st = PurviewGetFileStatus.Query(firstPath);
-                                if (st.Ok)
-                                {
-                                    purviewIsLabeled = st.IsLabeled;
-                                    purviewIsRmsProtected = st.IsRMSProtected;
-                                    purviewMainLabelName = st.MainLabelName;
-                                }
-                            }
-                        }
 
                         if (_mipHelper != null)
                         {
@@ -208,14 +187,6 @@ namespace ClipboardMonitorPlugin
                                     });
 
                                     PluginContext.Log(pluginName, $"[DETECTION] File: {Path.GetFileName(filePath)} | Label: {result.Name} ({result.Id}) | Method: {result.DetectionMethod}");
-                                    
-                                    // If we got info from MIP SDK for the first file, use it to populate purview fields too
-                                    if (filePath == files[0])
-                                    {
-                                        purviewIsLabeled = true;
-                                        purviewIsRmsProtected = result.IsProtected;
-                                        purviewMainLabelName = result.Name;
-                                    }
                                 }
                             }
                         }
@@ -253,12 +224,7 @@ namespace ClipboardMonitorPlugin
                     ["event"] = "CLIPBOARD_UPDATED",
                     ["type"] = types.FirstOrDefault() ?? "unknown", // Backward compatibility
                     ["types"] = new JArray(types.Any() ? types : new[] { "unknown" }),
-                    ["preview"] = contentPreview ?? "",
-                    
-                    // Always include Purview fields (empty when not applicable/unavailable)
-                    ["IsLabeled"] = purviewIsLabeled.HasValue ? purviewIsLabeled.Value.ToString() : "",
-                    ["IsRMSProtected"] = purviewIsRmsProtected.HasValue ? purviewIsRmsProtected.Value.ToString() : "",
-                    ["MainLabelName"] = purviewMainLabelName ?? ""
+                    ["preview"] = contentPreview ?? ""
                 };
 
                 if (mipResults.Any()) payload["mip_labels"] = mipResults;
