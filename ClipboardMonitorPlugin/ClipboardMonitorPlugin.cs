@@ -1,4 +1,5 @@
-﻿using AgileInspect.Code.PluginContracts;
+using AgileInspect.Code.PluginContracts;
+using ClipboardMonitorPlugin.Code;
 
 namespace ClipboardMonitorPlugin
 {
@@ -44,6 +45,9 @@ namespace ClipboardMonitorPlugin
             PluginContext.Log(pluginName, "Start");
             PluginContext.Log(pluginName, $"triggerType: {triggerType}");
 
+            // Start a single hidden PowerShell instance up front for Purview queries.
+            PurviewGetFileStatus.Initialize();
+
             if (triggerType.Equals("interval", StringComparison.OrdinalIgnoreCase))
             {
                 _clipboardTimerService = new AsyncTimerService(interval * 1000, CheckClipboardTimerCallbackAsync);
@@ -67,12 +71,20 @@ namespace ClipboardMonitorPlugin
             _clipboardTimerService?.Dispose();
             _clipboardTimerService = null;
             ClipboardMonitor.Instance.StopWatcher();
+            PurviewGetFileStatus.Shutdown();
         }
 
         private async Task CheckClipboardTimerCallbackAsync()
         {
-            PluginContext.Log(pluginName, "[CheckClipboard] interval hit");
-            await ClipboardMonitor.Instance.ProcessClipboardFiles();
+            PluginContext.Log(pluginName, "[ClipboardMonitor] interval hit");
+            try
+            {
+                await ClipboardMonitor.Instance.ProcessClipboardFiles();
+            }
+            catch (Exception ex)
+            {
+                PluginContext.Log(pluginName, $"Detection failed: {ex}");
+            }
         }
     }
 }

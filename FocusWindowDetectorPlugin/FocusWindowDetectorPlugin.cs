@@ -1,6 +1,7 @@
-﻿using AgileInspect.Code.PluginContracts;
+using AgileInspect.Code.PluginContracts;
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
@@ -125,6 +126,26 @@ namespace FocusWindowDetectorPlugin
             }
         }
 
+        private static string GetAppName(uint pid)
+        {
+            try
+            {
+                using var process = Process.GetProcessById((int)pid);
+                string? exePath = process.MainModule?.FileName;
+                if (string.IsNullOrEmpty(exePath) || !File.Exists(exePath))
+                    return process.ProcessName;
+                var vi = FileVersionInfo.GetVersionInfo(exePath);
+                return !string.IsNullOrWhiteSpace(vi.FileDescription) ? vi.FileDescription.Trim()
+                    : !string.IsNullOrWhiteSpace(vi.ProductName) ? vi.ProductName.Trim()
+                    : process.ProcessName;
+            }
+            catch
+            {
+                try { return Process.GetProcessById((int)pid).ProcessName; } catch { }
+                return "Unknown";
+            }
+        }
+
         private void LogWindowInfo(IntPtr handle)
         {
             try
@@ -137,16 +158,18 @@ namespace FocusWindowDetectorPlugin
                     GetWindowThreadProcessId(handle, out uint pid);
                     string processName = "Unknown";
                     try { processName = Process.GetProcessById((int)pid).ProcessName; } catch { }
+                    string appName = GetAppName(pid);
 
                     var detectionResult = new JObject
                     {
                         ["processName"] = processName,
+                        ["appName"] = appName,
                         ["windowTitle"] = windowTitle,
                         ["pid"] = pid,
                         ["timestamp"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
                     };
 
-                    PluginContext.Log(pluginName, $"Focus: App='{processName}' Title='{windowTitle}' (PID: {pid})");
+                    PluginContext.Log(pluginName, $"Focus: App='{appName}' Title='{windowTitle}' (PID: {pid})");
                     RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(pluginName), detectionResult);
                     PluginContext.SendDetectionResult(pluginName, detectionResult);
                 }

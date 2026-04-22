@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
@@ -23,7 +23,7 @@
   </PropertyGroup>
   <!--Plugin list -->
   <ItemGroup>
-	  <PluginProjects Include="WatermarkDetectorPlugin;BrightnessChangePlugin;AntivirusDetectorPlugin;FirewallDetectorPlugin;InternetDetectorPlugin;VpnDetectorPlugin;ExternalDiskDetectorPlugin;HostFileMonitorPlugin;FocusWindowDetectorPlugin;PrintScreenDetectorPlugin;AiInteractionDetectorPlugin;PrintDetectorPlugin;ClipboardMonitorPlugin" />
+	  <PluginProjects Include="WatermarkDetectorPlugin;BrightnessChangePlugin;AntivirusDetectorPlugin;FirewallDetectorPlugin;InternetDetectorPlugin;VpnDetectorPlugin;ExternalDiskDetectorPlugin;HostFileMonitorPlugin;FocusWindowDetectorPlugin;PrintScreenDetectorPlugin;AiInteractionDetectorPlugin;PrintDetectorPlugin;ClipboardMonitorPlugin;ScreenLockPlugin;AutoUpdatePlugin;UserPlugin;SecureBootPlugin;RdpPlugin;DevModePlugin;RemoteAccessToolsPlugin;CloudSyncClientsPlugin;PersonalMessagingAppsPlugin;UsbDevicePlugin;UnknownBluetoothPlugin;ScreenSharingPlugin;VirtualMachinePlugin" />
   </ItemGroup>
 
   <Target Name="BuildPlugins" AfterTargets="Build">
@@ -32,13 +32,16 @@
 
   <!-- Publish plugin -->
   <Target Name="PublishPlugins" AfterTargets="Publish">
-    <MSBuild Projects="@(PluginProjects->'..\\%(Identity)\\%(Identity).csproj')" Targets="Publish" Properties="SelfContained=false;PublishSingleFile=false" />
+    <MSBuild Projects="@(PluginProjects->'..\\%(Identity)\\%(Identity).csproj')" Targets="Publish" Properties="Configuration=$(Configuration);RuntimeIdentifier=$(RuntimeIdentifier);TargetFramework=$(TargetFramework);SelfContained=false;PublishSingleFile=false" />
   </Target>
 
 
   <Target Name="CopyPluginsAfterPublish" AfterTargets="PublishPlugins">
     <ItemGroup>
-      <PluginPublishFiles Include="..\%(PluginProjects.Identity)\bin\$(Configuration)\net8.0-windows\win-x86\publish\win-x86\**\*.dll">
+      <PluginPublishFiles Include="..\%(PluginProjects.Identity)\bin\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)\publish\**\*.dll">
+        <PluginName>%(PluginProjects.Identity)</PluginName>
+      </PluginPublishFiles>
+      <PluginPublishFiles Include="..\%(PluginProjects.Identity)\bin\$(Configuration)\$(RuntimeIdentifier)\publish\**\*.dll">
         <PluginName>%(PluginProjects.Identity)</PluginName>
       </PluginPublishFiles>
     </ItemGroup>

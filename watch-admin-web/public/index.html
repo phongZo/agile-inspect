@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Behavior Watch Dashboard</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <h1>Behavior Watcher Dashboard</h1>
+      </div>
+      <div class="muted" id="last-refresh">Loading...</div>
+    </header>
+
+    <section class="outcome-grid" id="outcome-cards">
+      <article class="outcome-card complied">
+        <div class="symbol">&#10003;</div>
+        <div class="title">Resolved</div>
+        <div class="desc">Behavior stopped within window</div>
+        <div class="count" id="count-resolved">0</div>
+      </article>
+      <article class="outcome-card ignored">
+        <div class="symbol">&#8212;</div>
+        <div class="title">Ignored</div>
+        <div class="desc">Behavior continued past window</div>
+        <div class="count" id="count-ignored">0</div>
+      </article>
+      <article class="outcome-card deferred">
+        <div class="symbol">&#8635;</div>
+        <div class="title">Deferred</div>
+        <div class="desc">Stopped briefly, resumed after window</div>
+        <div class="count" id="count-deferred">0</div>
+      </article>
+    </section>
+
+    <section class="panel">
+      <h2>Overview by Rule Description</h2>
+      <table id="overview-table">
+        <thead>
+          <tr>
+            <th>Rule ID</th>
+            <th>Description</th>
+            <th>Started</th>
+            <th>Extended</th>
+            <th>Finished</th>
+            <th>Resolved</th>
+            <th>Deferred</th>
+            <th>Ignored</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <section class="panel">
+      <h2>Recent Watch Sessions</h2>
+      <table id="sessions-table">
+        <thead>
+          <tr>
+            <th>Time (UTC)</th>
+            <th>Type</th>
+            <th>Condition Summary</th>
+            <th>Outcome</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
