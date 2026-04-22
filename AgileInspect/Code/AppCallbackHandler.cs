@@ -1,14 +1,11 @@
-﻿using AgileInspect.Code;
+using AgileInspect.Code;
 using AgileInspect.Code.PluginContracts;
 using AgileInspect.Code.Rules;
 using AgileInspect.Code.Settings;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text.Json;
-using System.Xml.Linq;
+using Newtonsoft.Json;
 
 namespace AgileInspect
 {
@@ -24,7 +21,7 @@ namespace AgileInspect
         private RuleConditionQueueService RuleConditionQueueService { get; set; } = new RuleConditionQueueService();
         private EventQueueService EventQueueService { get; set; } = new EventQueueService();
 
-        private readonly Dictionary<string, string> _latestFields = new();
+        private readonly Dictionary<string, string> _latestEventPayloadByType = new();
 
         public void OnLog(string pluginName, string message)
         {
@@ -38,25 +35,19 @@ namespace AgileInspect
                 var dict = jsonResult.ToObject<JObject>();
 
                 if (dict == null) return;
-                EventQueueService.Instance.Enqueue(pluginName, dict);
-                bool updated = true;
-
-                foreach (var kvp in dict)
-                {
-                    string key = kvp.Key.ToLowerInvariant();
-                    string value = kvp.Value.ToString().ToLowerInvariant();
-
-                    if (!_latestFields.ContainsKey(key) || _latestFields[key] != value)
-                    {
-                        _latestFields[key] = value;
-                    }
-                }
+                var eventType = StoreCfgLoader.mapPluginNameToEventType(pluginName);
+                if (string.IsNullOrWhiteSpace(eventType)) return;
+                var payload = JsonConvert.SerializeObject(dict);
+                bool updated = !_latestEventPayloadByType.TryGetValue(eventType, out string? oldPayload)
+                    || !string.Equals(oldPayload, payload, StringComparison.Ordinal);
 
                 if (updated)
                 {
-                    OnLog(pluginName, $"[CHECK RULE] Start.");
-                    RuleService.CheckRules(StoreCfgLoader.mapPluginNameToEventType(pluginName));
+                    _latestEventPayloadByType[eventType] = payload;
+                    EventQueueService.Instance.Enqueue(pluginName, dict);
                 }
+
+                RuleService.CheckRules(eventType);
             }
             catch (Exception ex)
             {

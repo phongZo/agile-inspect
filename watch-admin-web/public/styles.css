@@ -1,0 +1,169 @@
+body {
+  font-family: Inter, Arial, sans-serif;
+  margin: 0;
+  padding: 18px;
+  background: #070b1a;
+  color: #dbe4ff;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+  border: 1px solid #1a2445;
+  background: #0b1230;
+  border-radius: 10px;
+  padding: 14px;
+}
+
+h1, h2 {
+  margin: 0;
+}
+
+.muted {
+  color: #7d8bb3;
+  font-size: 13px;
+}
+
+.outcome-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.outcome-card {
+  border: 1px solid #1d2a53;
+  border-radius: 10px;
+  padding: 12px;
+  background: linear-gradient(180deg, #0f1a3c 0%, #0a1330 100%);
+}
+
+.outcome-card .symbol {
+  font-size: 16px;
+  margin-bottom: 6px;
+  opacity: 0.95;
+}
+
+.outcome-card .title {
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.outcome-card .desc {
+  color: #8ea1d1;
+  font-size: 12px;
+}
+
+.outcome-card .count {
+  margin-top: 8px;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.outcome-card.complied .symbol,
+.outcome-card.complied .title {
+  color: #35d07f;
+}
+
+.outcome-card.ignored .symbol,
+.outcome-card.ignored .title {
+  color: #ff6f6f;
+}
+
+.outcome-card.deferred .symbol,
+.outcome-card.deferred .title {
+  color: #b68cff;
+}
+
+.panel {
+  background: #0b1230;
+  border: 1px solid #1d2a53;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 10px;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+th, td {
+  border-bottom: 1px solid #1d2a53;
+  padding: 8px;
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  background: #0d173a;
+  font-weight: 600;
+}
+
+.group-row td {
+  background: #111d47;
+  color: #9fb6ff;
+  font-weight: 700;
+  border-top: 1px solid #2a3f82;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge.type-started {
+  background: rgba(64, 178, 255, 0.2);
+  color: #7cc8ff;
+  border: 1px solid rgba(64, 178, 255, 0.45);
+}
+
+.badge.type-extended {
+  background: rgba(182, 140, 255, 0.2);
+  color: #c7a8ff;
+  border: 1px solid rgba(182, 140, 255, 0.45);
+}
+
+.badge.type-finished {
+  background: rgba(53, 208, 127, 0.2);
+  color: #7fe0aa;
+  border: 1px solid rgba(53, 208, 127, 0.45);
+}
+
+.badge.type-other {
+  background: rgba(125, 139, 179, 0.2);
+  color: #b3bfdc;
+  border: 1px solid rgba(125, 139, 179, 0.45);
+}
+
+.badge.outcome-complied {
+  background: rgba(53, 208, 127, 0.2);
+  color: #7fe0aa;
+  border: 1px solid rgba(53, 208, 127, 0.45);
+}
+
+.badge.outcome-extended {
+  background: rgba(64, 178, 255, 0.2);
+  color: #9ad6ff;
+  border: 1px solid rgba(64, 178, 255, 0.45);
+}
+
+.badge.outcome-deferred {
+  background: rgba(182, 140, 255, 0.2);
+  color: #c7a8ff;
+  border: 1px solid rgba(182, 140, 255, 0.45);
+}
+
+.badge.outcome-ignored {
+  background: rgba(255, 111, 111, 0.2);
+  color: #ff9d9d;
+  border: 1px solid rgba(255, 111, 111, 0.45);
+}

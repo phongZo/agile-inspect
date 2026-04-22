@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -54,8 +55,8 @@ namespace AgileInspect.Code.Ipc
                     {
                         DebugLog.WriteLine("[IPC] Successfully connected to AgileMark for request-response.");
 
-                        using (StreamWriter streamWriter = new StreamWriter(pipeClient) { AutoFlush = true })
-                        using (StreamReader streamReader = new StreamReader(pipeClient))
+                        using (StreamWriter streamWriter = new StreamWriter(pipeClient, Encoding.UTF8, 1024, leaveOpen: true) { AutoFlush = true })
+                        using (StreamReader streamReader = new StreamReader(pipeClient, Encoding.UTF8, false, 1024, leaveOpen: true))
                         {
                             // Send the request
                             await streamWriter.WriteLineAsync(message);
@@ -68,8 +69,9 @@ namespace AgileInspect.Code.Ipc
                                 try
                                 {
                                     string response = await streamReader.ReadLineAsync().WaitAsync(cts.Token);
-                                    DebugLog.WriteLine($"[IPC] Received response from AgileMark: {response}");
-                                    return response ?? string.Empty;
+                                    var output = response;
+                                    DebugLog.WriteLine($"[IPC] Received response from AgileMark: {output}");
+                                    return output ?? string.Empty;
                                 }
                                 catch (OperationCanceledException)
                                 {

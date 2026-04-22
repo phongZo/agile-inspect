@@ -122,10 +122,13 @@ namespace PrintScreenDetectorPlugin
             {
                 PluginContext.Log(pluginName, "PrintScreen pressed");
                 var result = new JObject{
-                    ["timestamp"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+                    ["timestamp"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                    ["print"] = true
                 };
                 RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(pluginName), result);
                 PluginContext.SendDetectionResult(pluginName, result);
+                result["print"] = false;
+                RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(pluginName), result);
             }
             catch (Exception ex)
             {

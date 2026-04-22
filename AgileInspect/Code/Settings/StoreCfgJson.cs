@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace AgileInspect
@@ -24,8 +24,10 @@ namespace AgileInspect
             Instance.logRotation = config.logRotation ?? new LogRotation();
             Instance.eventSettings = config.eventSettings ?? new();
             Instance.rules = config.rules ?? new();
+            Instance.interventionWatcherConfig = config.interventionWatcherConfig ?? new InterventionWatcherConfig();
             Instance.ruleConditionQueueConfig = config.ruleConditionQueueConfig ?? new RuleConditionQueueConfig();
             Instance.eventQueueConfig = config.eventQueueConfig ?? new EventQueueConfig();
+            Instance.defaultRuleCooldownSec = config.defaultRuleCooldownSec;
         }
         public static StoreCfgJson GetCurrentStoreConfig()
         {
@@ -37,8 +39,10 @@ namespace AgileInspect
         public string deployType { get; set; } = "serverless";
         public LogRotation logRotation { get; set; } = new LogRotation();
         public List<Rules> rules { get; set; } = new();
+        public InterventionWatcherConfig interventionWatcherConfig { get; set; } = new InterventionWatcherConfig();
         public RuleConditionQueueConfig ruleConditionQueueConfig { get; set; } = new RuleConditionQueueConfig();
         public EventQueueConfig eventQueueConfig { get; set; } = new EventQueueConfig();
+        public int defaultRuleCooldownSec { get; set; } = 300;
         public List<EventSetting> eventSettings { get; set; } = new();
         public string settingHash { get; set; } = "abc";
         public int settingPullInterval { get; set; } = 30000;
@@ -57,6 +61,13 @@ namespace AgileInspect
         public bool enable { get; set; } = true;
         public int size { get; set; } = 10 * 1024 * 1024;
         public int rotate { get; set; } = 5;
+    }
+    public class InterventionWatcherConfig
+    {
+        public bool enable { get; set; } = true;
+        public int defaultWatchWindowSec { get; set; } = 60;
+        public int signalTimelineMaxSizeMb { get; set; } = 20;
+        public int signalTimelineMaxFiles { get; set; } = 5;
     }
     public class EventSetting
     {
@@ -85,14 +96,16 @@ namespace AgileInspect
     {
         public List<List<Condition>> conditions { get; set; }
         public List<Action> actions { get; set; }
+        public int? cooldownSec { get; set; }
     }
 
     public class Condition
     {
-        public string field { get; set; }
-        public Dictionary<string, object> fieldParams { get; set; } = new();
+        public string eventType { get; set; }
+        public Dictionary<string, object> eventFilters { get; set; } = new();
         public string @operator { get; set; }   // eq, gte, lte, ...
         public object value { get; set; }
+        public string field { get; set; }
     }
 
     public class Action

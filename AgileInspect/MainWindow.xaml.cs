@@ -1,9 +1,10 @@
-﻿using AgileInspect.Code;
+using AgileInspect.Code;
 using AgileInspect.Code.Ipc;
 using AgileInspect.Code.Rules;
 using AgileInspect.Code.Settings;
 using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using System.Windows;
 
 namespace AgileInspect
@@ -41,7 +42,7 @@ namespace AgileInspect
             LogRotateTimer = new BackgroundTimer(LogRotateTimerCallback, "log rotation");
             //Setup timer call back for log rotate
             LogRotateTimer.StopIfRunning();
-            LogRotateTimer.Start(0); //start immediately
+            //LogRotateTimer.Start(0); //start immediately
             //Prevent kill
             Unkillable.UnkillableInit();
             //if (!Debugger.IsAttached)
@@ -52,6 +53,7 @@ namespace AgileInspect
             StoreCfgLoader.Instance.Load();
             IpcService.Instance.startSendingProcess();
             RuleService.Load();
+            await Task.Delay(3000);
             if (string.Equals(StoreCfgJson.Instance.deployType, "server", StringComparison.OrdinalIgnoreCase))
             {
                 DebugLog.Write("deployType is server - start HashCheckInterval.");

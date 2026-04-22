@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -15,6 +15,8 @@ namespace AgileInspect.Code.Rules
     public class RuleService
     {
         public static Dictionary<string, JToken> _latestStates = new();
+        private static readonly Dictionary<string, DateTime> _lastActionTimeByRule = new();
+        private static string? _lastRuleWithSticky;
         private const string ConfigFileName = "event_last_state_log.json";
         private static string GetRoamingConfigPath()
         {
@@ -25,6 +27,9 @@ namespace AgileInspect.Code.Rules
 
         public static void Load()
         {
+            // Persistence for event_last_state_log.json is disabled.
+            // Original code kept below for quick restore:
+            /*
             try
             {
                 string lastStatePath = GetRoamingConfigPath();
@@ -46,6 +51,8 @@ namespace AgileInspect.Code.Rules
             {
                 DebugLog.WriteLine($"Failed to load last states: {ex.Message}");
             }
+            */
+            _latestStates ??= new Dictionary<string, JToken>();
         }
 
         public static void Save(string key, JToken value)
@@ -55,7 +62,21 @@ namespace AgileInspect.Code.Rules
             if (JToken.DeepEquals(oldValue, value))
                 return;
             _latestStates[key] = value;
+#if DEBUG
+            try
+            {
+                var stateJson = JsonConvert.SerializeObject(_latestStates);
+                DebugLog.WriteLine($"[RuleService] _latestStates updated by '{key}': {stateJson}");
+            }
+            catch (Exception ex)
+            {
+                DebugLog.WriteLine($"[RuleService] Failed to serialize _latestStates for debug log: {ex.Message}");
+            }
+#endif
 
+            // Persistence for event_last_state_log.json is disabled.
+            // Original code kept below for quick restore:
+            /*
             try
             {
                 string lastStatePath = GetRoamingConfigPath();
@@ -68,19 +89,27 @@ namespace AgileInspect.Code.Rules
             {
                 DebugLog.WriteLine($"Failed to save last states: {ex.Message}");
             }
+            */
         }
 
         public static void CheckRules(String pluginName)
         {
             var ruleSettings = StoreCfgJson.Instance.rules;
             if (ruleSettings == null || ruleSettings.Count == 0) return;
-            ruleSettings = ruleSettings.Where(o => {
-                var condition = o.conditions.Where(i => i.Where(e=>e.field == pluginName).Any()).ToList();
-                return condition.Any();
-            }).ToList();
-            foreach (var rule in ruleSettings)
+            var indexedRules = ruleSettings
+                .Select((rule, index) => new { rule, index })
+                .Where(o =>
+                {
+                    var condition = o.rule.conditions.Where(i => i.Where(e => e.eventType == pluginName).Any()).ToList();
+                    return condition.Any();
+                })
+                .ToList();
+            foreach (var indexedRule in indexedRules)
             {
-                foreach (var conditionGroup in rule.conditions)
+                string ruleId = $"rule_{indexedRule.index}";
+                bool anyGroupMatched = false;
+
+                foreach (var conditionGroup in indexedRule.rule.conditions)
                 {
                     bool groupMatched = true;
 
@@ -95,41 +124,173 @@ namespace AgileInspect.Code.Rules
 
                     if (groupMatched)
                     {
-                        ExecuteActions(rule.actions, conditionGroup);
+                        anyGroupMatched = true;
+                        if (IsRuleCooldownActive(ruleId, indexedRule.rule))
+                        {
+                            break;
+                        }
+                        _lastActionTimeByRule[ruleId] = DateTime.UtcNow;
+                        ExecuteActions(indexedRule.rule.actions, conditionGroup, ruleId);
                         break;
+                    }
+                }
+
+                if (!anyGroupMatched)
+                {
+                    ClearCooldown(ruleId);
+                    if (_lastRuleWithSticky == ruleId)
+                    {
+                        _lastRuleWithSticky = null;
+                        var hideAction = new { action = Constant.ACTION_AGILEMARK_HIDE_MESSAGE, @params = new Dictionary<string, object>() };
+                        IpcService.Instance.SendRequest(JsonConvert.SerializeObject(hideAction));
+                        PluginContext.Log("RuleEngine", $"[STICKY] Hide message for {ruleId} (rule no longer matched)");
                     }
                 }
             }
         }
 
+        private static bool IsRuleCooldownActive(string ruleId, AgileInspect.Rules rule)
+        {
+            if (!_lastActionTimeByRule.TryGetValue(ruleId, out DateTime lastFired))
+                return false;
+
+            int cooldownSec = rule.cooldownSec ?? StoreCfgJson.Instance.defaultRuleCooldownSec;
+            if (cooldownSec <= 0)
+                return false;
+
+            double elapsed = (DateTime.UtcNow - lastFired).TotalSeconds;
+            if (elapsed < cooldownSec)
+            {
+                PluginContext.Log("RuleEngine", $"[COOLDOWN] {ruleId} skipped, {cooldownSec - (int)elapsed}s remaining");
+                return true;
+            }
+
+            return false;
+        }
+
+        public static void ClearCooldown(string ruleId)
+        {
+            _lastActionTimeByRule.Remove(ruleId);
+        }
+
+        public static bool IsRuleCurrentlyMatched(string ruleId)
+        {
+            if (string.IsNullOrWhiteSpace(ruleId)) return false;
+            if (!ruleId.StartsWith("rule_", StringComparison.OrdinalIgnoreCase)) return false;
+
+            var suffix = ruleId.Substring("rule_".Length);
+            if (!int.TryParse(suffix, out int index)) return false;
+
+            var ruleSettings = StoreCfgJson.Instance.rules;
+            if (ruleSettings == null || index < 0 || index >= ruleSettings.Count) return false;
+
+            var rule = ruleSettings[index];
+            foreach (var conditionGroup in rule.conditions)
+            {
+                bool groupMatched = true;
+                foreach (var condition in conditionGroup)
+                {
+                    if (!SatisfiedCondition(condition))
+                    {
+                        groupMatched = false;
+                        break;
+                    }
+                }
+
+                if (groupMatched)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private static bool SatisfiedCondition(Condition condition)
         {
+            // filter condition
+            if (condition.eventFilters.Count > 0)
+            {
+                foreach (var item in condition.eventFilters.Keys)
+                {
+                    object? obj = UnwrapJsonElement(_latestStates.TryGetValue(item, out var o) ? o : null);
+                    object? con = condition.eventFilters[item];
+                    if (con == null || obj == null) { 
+                        return false;
+                    }
+                    if (con.GetType() != obj.GetType()) return false;
+                    if (!Equals(con,obj)) {  return false; }
+                }
+            }
+            
             object? expected = UnwrapJsonElement(condition.value);
             if (expected == null) return true;
 
-            object? value = UnwrapJsonElement(_latestStates.TryGetValue(condition.field, out var v) ? v : null);
+            object? value = UnwrapJsonElement(_latestStates.TryGetValue(condition.eventType, out var v) ? v : null);
             if (value == null) return false;
-            if (condition.fieldParams.Count == 0) {
-                value = (((JToken)value)[condition.field]).ToObject<object>();
-                if (value == null) return false;
-            }
-            if (condition.field.Equals("antivirus"))
+            if (condition.eventType.Equals("antivirus"))
             {
-               var data =  JsonConvert.DeserializeObject<JObject>(value.ToString());
-               var appList = (JArray)data["appList"];
-               var combine = true;
+                var data = JsonConvert.DeserializeObject<JObject>(value.ToString());
+                var appList = (JArray)data["appList"];
+                var combine = true;
                 foreach (var item in appList)
                 {
-                    foreach (var key in condition.fieldParams.Keys)
+                    if (condition.eventFilters.Count > 0)
                     {
-                        var left = JToken.FromObject(condition.fieldParams[key]);
-                        var right = item[key];
+                        foreach (var key in condition.eventFilters.Keys)
+                        {
+                            var left = JToken.FromObject(condition.eventFilters[key]);
+                             var right = item[key];
+                            var compare = JToken.Equals(right, left);
+                            combine = combine || compare;
+                        }
+                    } else
+                    {
+                        var left = condition.value;
+                        var right = item[condition.field];
                         var compare = JToken.Equals(right, left);
-                        combine = combine && compare;         
+                        combine = combine || compare;
                     }
                 }
                 value = combine;
             }
+            else if (condition.eventFilters.Count == 0)
+            {
+                value = (((JToken)value)[condition.field]).ToObject<object>();
+                if (value == null) return false;
+            }
+
+            if (value is JArray jsonArray)
+            {
+                var expectedToken = JToken.FromObject(expected);
+                if (expected is System.Collections.IEnumerable expectedEnumerable && expected is not string)
+                {
+                    foreach (var item in expectedEnumerable)
+                    {
+                        var itemToken = JToken.FromObject(item);
+                        if (!jsonArray.Any(x => JToken.DeepEquals(x, itemToken)))
+                        {
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+
+                return jsonArray.Any(x => JToken.DeepEquals(x, expectedToken));
+            }
+
+            if (value is System.Collections.IEnumerable valueEnumerable && value is not string)
+            {
+                var actualItems = valueEnumerable.Cast<object?>().ToList();
+                if (expected is System.Collections.IEnumerable expectedEnumerable && expected is not string)
+                {
+                    var expectedItems = expectedEnumerable.Cast<object?>().ToList();
+                    return expectedItems.All(exp => actualItems.Any(act => Equals(act, exp)));
+                }
+
+                return actualItems.Any(act => Equals(act, expected));
+            }
+
             if (expected.GetType() != value.GetType()) return false;
 
             string op = condition.@operator?.ToLower();
@@ -164,13 +325,22 @@ namespace AgileInspect.Code.Rules
                                        je.TryGetDouble(out double d) ? d : null,
                 JsonValueKind.True => true,
                 JsonValueKind.False => false,
+                JsonValueKind.Array => je.EnumerateArray().Select(x => UnwrapJsonElement(x)).ToList(),
                 _ => je.ToString()
             };
         }
 
-        private static void ExecuteActions(List<Action> actions, List<Condition> conditionGroup)
+        private static void ExecuteActions(List<Action> actions, List<Condition> conditionGroup, string ruleId)
         {
-            string conditionStr = string.Join(", ", conditionGroup.Select(c => $"{c.field} {c.@operator} {c.value}"));
+            string conditionStr = string.Join(", ", conditionGroup.Select(c => $"{c.eventType} {c.@operator} {c.value}"));
+            var ruleMatchEvent = new JObject
+            {
+                ["ruleId"] = ruleId,
+                ["conditions"] = JArray.FromObject(conditionGroup),
+                ["actions"] = JArray.FromObject(actions)
+            };
+            EventQueueService.Instance.EnqueueByEventType("rule_match", ruleMatchEvent);
+            BehaviorWatchService.Instance.OnRuleMatched(ruleId, conditionGroup);
             List<Action> messageAction = new List<Action>();
             foreach (var action in actions)
             {
@@ -220,6 +390,7 @@ namespace AgileInspect.Code.Rules
                 .Where(o=>o!=null)
                 .ToList() ;
                 IpcService.Instance.SendRequest(JsonConvert.SerializeObject(messageAction));
+                _lastRuleWithSticky = ruleId;
             }
         }
         public static string ReplacePlaceholders(string template, JObject data)

@@ -44,12 +44,23 @@ namespace AgileInspect.Code
         string _filePath;
         public void Enqueue(string pluginName, JToken json)
         {
+            var eventType = StoreCfgLoader.mapPluginNameToEventType(pluginName);
+            if (string.IsNullOrWhiteSpace(eventType))
+            {
+                return;
+            }
+            EnqueueByEventType(eventType, json);
+        }
+
+        public void EnqueueByEventType(string eventType, JToken json)
+        {
             if (string.Equals(StoreCfgJson.Instance.deployType, "serverless", StringComparison.OrdinalIgnoreCase))
                 return;
 
             var saveEvent = new SaveEvent
             {
-                eventType = StoreCfgLoader.mapPluginNameToEventType(pluginName),
+                timestampUtc = DateTime.UtcNow,
+                eventType = eventType,
                 clientName = MachineName.Instance.Name,
                 customerId = StoreCfgJson.Instance.customerID,
                 data = json

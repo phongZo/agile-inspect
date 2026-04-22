@@ -77,7 +77,7 @@ namespace WatermarkDetectorPlugin
                 await Task.Run(async () =>
                 {
                     // Send IPC message to AgileMark with 3s timeout
-                    string response = await IpcService.Instance.SendRequestWithResponseAsync("{\"action\":\"check_watermark_status\"}", 3000);
+                    string response = await IpcService.Instance.SendRequestWithResponseAsync("{\"action\":\"check_watermark_status\"}", 5000);
                     
                     bool visible = false;
                     if (!string.IsNullOrEmpty(response))

@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Linq;
 
 namespace AgileInspect.Code.PluginContracts
 {
@@ -53,6 +53,45 @@ namespace AgileInspect.Code.PluginContracts
     {
     }
     public interface IClipboardMonitorPlugin : IAppPlugin
+    {
+    }
+    public interface IScreenLockPlugin : IAppPlugin
+    {
+    }
+    public interface IAutoUpdatePlugin : IAppPlugin
+    {
+    }
+    public interface IUserPlugin : IAppPlugin
+    {
+    }
+    public interface ISecureBootPlugin : IAppPlugin
+    {
+    }
+    public interface IRdpPlugin : IAppPlugin
+    {
+    }
+    public interface IDevModePlugin : IAppPlugin
+    {
+    }
+    public interface IRemoteAccessToolsPlugin : IAppPlugin
+    {
+    }
+    public interface ICloudSyncClientsPlugin : IAppPlugin
+    {
+    }
+    public interface IPersonalMessagingAppsPlugin : IAppPlugin
+    {
+    }
+    public interface IUsbDevicePlugin : IAppPlugin
+    {
+    }
+    public interface IUnknownBluetoothPlugin : IAppPlugin
+    {
+    }
+    public interface IScreenSharingPlugin : IAppPlugin
+    {
+    }
+    public interface IVirtualMachinePlugin : IAppPlugin
     {
     }
 }

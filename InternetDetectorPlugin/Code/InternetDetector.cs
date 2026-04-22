@@ -1,4 +1,4 @@
-﻿using AgileInspect.Code.Rules;
+using AgileInspect.Code.Rules;
 using AgileInspect.Code.Settings;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -108,6 +108,12 @@ namespace InternetDetectorPlugin
         {
             try
             {
+                //if (HasActiveLanConnection())
+                //{
+                //    PluginContext.Log(pluginName, "[InternetDetector] Active LAN detected, internet allowed.");
+                //    return true;
+                //}
+
                 string ssid = GetInternetSSID();
                 PluginContext.Log(pluginName, $"[InternetDetector] Current SSID: {ssid}");
                 if (string.IsNullOrWhiteSpace(ssid))
@@ -121,6 +127,23 @@ namespace InternetDetectorPlugin
                 return false;
             }
         }
+
+        private static bool HasActiveLanConnection()
+        {
+            return NetworkInterface.GetAllNetworkInterfaces().Any(nic =>
+                nic.OperationalStatus == OperationalStatus.Up &&
+                nic.NetworkInterfaceType != NetworkInterfaceType.Loopback &&
+                nic.NetworkInterfaceType != NetworkInterfaceType.Tunnel &&
+                nic.NetworkInterfaceType != NetworkInterfaceType.Unknown &&
+                (
+                    nic.NetworkInterfaceType == NetworkInterfaceType.Ethernet ||
+                    nic.NetworkInterfaceType == NetworkInterfaceType.Ethernet3Megabit ||
+                    nic.NetworkInterfaceType == NetworkInterfaceType.FastEthernetFx ||
+                    nic.NetworkInterfaceType == NetworkInterfaceType.FastEthernetT ||
+                    nic.NetworkInterfaceType == NetworkInterfaceType.GigabitEthernet
+                ));
+        }
+
         private string GetInternetSSID()
         {
             try
