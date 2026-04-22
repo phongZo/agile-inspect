@@ -70,6 +70,7 @@ namespace AgileInspect
                 _eventQueueTimerService = new AsyncTimerService(StoreCfgJson.Instance.eventQueueConfig.interval * 1000, async () =>
                 {
                     await EventQueueService.Instance.SendQueueAsync();
+                    await BehaviorWatchService.Instance.SendSessionQueueAsync();
                 });
                 _eventQueueTimerService.Start();
             }

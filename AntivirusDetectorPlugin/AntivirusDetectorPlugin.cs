@@ -134,7 +134,6 @@ namespace WatermarkDetectorPlugin
                 {
                     ["appList"] = JToken.FromObject(appList)
                 };
-                string json = JsonConvert.SerializeObject(output);
                 PluginContext.Log(pluginName, $"[AntivirusDetector] Current antivirus: {output}");
                 RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(pluginName), output);
                 PluginContext.SendDetectionResult(pluginName, output);

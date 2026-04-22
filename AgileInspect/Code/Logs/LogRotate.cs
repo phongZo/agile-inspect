@@ -23,6 +23,12 @@ namespace AgileInspect
                     return;
                 }
 
+                if (StoreCfgJson.Instance.logRotation == null || !StoreCfgJson.Instance.logRotation.enable
+                    || DebugLog.StreamWriter == null)
+                {
+                    return;
+                }
+
                 LogRotation logRotation = StoreCfgJson.Instance.logRotation;
                 FileInfo logFileInfo = new FileInfo(logFilePath);
 
@@ -34,7 +40,7 @@ namespace AgileInspect
             }
             catch (Exception ex)
             {
-                DebugLog.WriteLine($"Error in HandleRotation: {ex.Message}");
+                DebugLog.WriteLine($"Error in HandleRotation: " + ex.Message);
             }
         }
 

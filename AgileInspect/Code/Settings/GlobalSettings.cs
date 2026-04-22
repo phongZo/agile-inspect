@@ -1,4 +1,4 @@
-﻿namespace AgileInspect.Code.Settings
+namespace AgileInspect.Code.Settings
 {
     public static class GlobalSettings
     {
@@ -8,7 +8,10 @@
         // ISO 8601 –   2025-06-10T12:34:56Z
         public const string FORMAT_ISO8601 = "yyyy-MM-ddTHH:mm:ssZ";
 
-        public const string SecretKey = "AgileN@W";
+        /// <summary>HMAC key segment for signed requests (same as license secret unless you split them).</summary>
         public const string KeyStringLicense = "AgileN@W";
+
+        /// <summary>AES key material for encrypting query/body; must match server.</summary>
+        public const string KeyString = "zSPk37gZRhuA8ynCkqv3JES9dmkaC3Ol";
     }
 }

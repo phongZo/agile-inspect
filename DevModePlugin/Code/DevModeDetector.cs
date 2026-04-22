@@ -34,9 +34,11 @@ namespace DevModePlugin
         {
             try
             {
-                // Check Windows Developer Mode
+                // 32-bit process (win-x86): Registry.LocalMachine follows WOW6432Node. Developer Mode lives under
+                // the 64-bit hive: HKLM\SOFTWARE\...\AppModelUnlock — must use RegistryView.Registry64.
                 // HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock
-                using var devModeKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock");
+                using var baseKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
+                using var devModeKey = baseKey.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock");
                 if (devModeKey != null)
                 {
                     // AllowDevelopmentWithoutDevLicense: 1 = Developer mode enabled

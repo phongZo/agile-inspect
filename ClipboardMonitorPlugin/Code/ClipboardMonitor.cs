@@ -1,3 +1,4 @@
+#nullable enable
 using AgileInspect.Code.Rules;
 using AgileInspect.Code.Settings;
 using ClipboardMonitorPlugin.Code;
@@ -24,27 +25,6 @@ namespace ClipboardMonitorPlugin
         private static extern bool CloseClipboard();
         [DllImport("user32.dll")]
         private static extern uint EnumClipboardFormats(uint format);
-
-        /// <summary>Returns first format on clipboard stack that is files, image, or text; else null.</summary>
-        private static string? GetFirstSupportedFormat()
-        {
-            if (!OpenClipboard(IntPtr.Zero)) return null;
-            try
-            {
-                uint format = 0;
-                while ((format = EnumClipboardFormats(format)) != 0)
-                {
-                    if (format == CF_HDROP) return "files";
-                    if (format == CF_BITMAP || format == CF_DIB) return "image";
-                    if (format == CF_TEXT || format == CF_UNICODETEXT) return "text";
-                }
-                return null;
-            }
-            finally
-            {
-                CloseClipboard();
-            }
-        }
 
         #region Singleton
         public static ClipboardMonitor Instance { get; set; }
