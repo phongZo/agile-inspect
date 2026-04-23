@@ -38,6 +38,8 @@ namespace AgileInspect
 
             DebugLog.Write("", false);
             DebugLog.Write("--------AgileInspect Start-------");
+            StoreCfgLoader.Instance.Load();
+
             // set timer
             LogRotateTimer = new BackgroundTimer(LogRotateTimerCallback, "log rotation");
             //Setup timer call back for log rotate
@@ -50,7 +52,6 @@ namespace AgileInspect
             //    Debugger.Launch();
             //}
             MachineName.Instance.UpdateName();
-            StoreCfgLoader.Instance.Load();
             IpcService.Instance.startSendingProcess();
             RuleService.Load();
             await Task.Delay(3000);

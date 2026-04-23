@@ -1,18 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System;
 
 namespace AgileInspect
 {
     public class MachineName
     {
-         #region Singleton
-        public static MachineName Instance { get; set; }
+        #region Singleton
+        private static MachineName _instance;
+        public static MachineName Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    _instance = new MachineName();
+                    _instance.UpdateName(); // Ensure name is always populated on first access
+                }
+                return _instance;
+            }
+        }
+
         public MachineName()
         {
-            Instance = this;
+            UpdateName();
         }
 
         #endregion
@@ -22,8 +31,15 @@ namespace AgileInspect
 
         public void UpdateName()
         {
-            Name = Environment.MachineName.ToString() + ":" + Environment.UserName.ToString();
-            ID = 0; //Default is allwhite
+            try
+            {
+                Name = Environment.MachineName.ToString() + ":" + Environment.UserName.ToString();
+                ID = 0; //Default is allwhite
+            }
+            catch
+            {
+                Name = "UnknownDevice";
+            }
         }
     }
 }

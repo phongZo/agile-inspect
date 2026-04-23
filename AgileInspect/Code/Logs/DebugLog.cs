@@ -55,7 +55,7 @@ namespace AgileInspect
                     string logPath = Path.Combine(
                         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                         "AgileInspect",
-                        "log.txt"
+                        "agileinspect_debug_log.txt"
                     );
 
                     Permission.Instance.ResetPermissionOfFile(logPath);

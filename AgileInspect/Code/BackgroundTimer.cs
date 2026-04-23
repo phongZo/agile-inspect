@@ -45,7 +45,7 @@ namespace AgileInspect.Code
         {
             try
             {
-                Callback(); 
+                Callback();
             }
             catch (Exception exc)
             {

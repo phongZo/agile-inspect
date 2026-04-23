@@ -27,6 +27,9 @@
 
 	<ItemGroup>
 		<PackageReference Include="System.Management" Version="9.0.5" />
+		<PackageReference Include="Microsoft.InformationProtection.File" Version="1.15.134" />
+		<PackageReference Include="Microsoft.Identity.Client" Version="4.61.3" />
+		<PackageReference Include="Microsoft.IdentityModel.Abstractions" Version="6.35.0" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -43,6 +46,13 @@
 			<DependencyFiles Include="@(ReferenceCopyLocalPaths)" />
 		</ItemGroup>
 		<Copy SourceFiles="@(DependencyFiles)" DestinationFolder="$(PluginOutputDir)\libs" SkipUnchangedFiles="true" />
+
+		<ItemGroup>
+			<NativeMipFilesX86 Include="$(TargetDir)x86\*.dll" />
+			<NativeMipFilesX64 Include="$(TargetDir)x64\*.dll" />
+		</ItemGroup>
+		<Copy SourceFiles="@(NativeMipFilesX86)" DestinationFolder="$(PluginOutputDir)\libs\x86" SkipUnchangedFiles="true" Condition="Exists('$(TargetDir)x86')" />
+		<Copy SourceFiles="@(NativeMipFilesX64)" DestinationFolder="$(PluginOutputDir)\libs\x64" SkipUnchangedFiles="true" Condition="Exists('$(TargetDir)x64')" />
 
 		<ItemGroup>
 			<FilesToDelete Include="$(PluginOutputDir)\libs\*AgileInspect*.dll" />

@@ -16,7 +16,12 @@ namespace AgileInspect
             try
             {
                 string logFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\AgileInspect\\";
-                string logFilePath = Path.Combine(logFolder, "log.txt");
+                string logFilePath = Path.Combine(logFolder, "agileinspect_debug_log.txt");
+
+                if (StoreCfgJson.Instance.logRotation == null || !StoreCfgJson.Instance.logRotation.enable)
+                {
+                    return;
+                }
 
                 if (StoreCfgJson.Instance.logRotation == null || !StoreCfgJson.Instance.logRotation.enable
                     || DebugLog.StreamWriter == null)
@@ -42,10 +47,10 @@ namespace AgileInspect
         private static void HandleCompression(string logFolder, LogRotation logRotation)
         {
 
-            // fileflog.txt.ddMMyyyyhhmmss.1.gz
+            // agileinspect_debug_log.txt.ddMMyyyyhhmmss.1.gz
             string timestamp = DateTime.Now.ToString("ddMMyyyyHHmmss");
 
-            string tempLogFilePath = Path.Combine(logFolder, $"log.txt.{timestamp}.1.txt");
+            string tempLogFilePath = Path.Combine(logFolder, $"agileinspect_debug_log.txt.{timestamp}.1.txt");
             try
             {
                 IsCompressing = true;
@@ -126,7 +131,7 @@ namespace AgileInspect
 
         private static void RenameAndCleanupGZipFiles(string logFolder, int rotation)
         {
-            var gzFiles = Directory.GetFiles(logFolder, "filelog.txt.*.gz")
+            var gzFiles = Directory.GetFiles(logFolder, "agileinspect_debug_log.txt.*.gz")
                 .Select(file => new FileInfo(file))
                 .Select(file => new
                 {
