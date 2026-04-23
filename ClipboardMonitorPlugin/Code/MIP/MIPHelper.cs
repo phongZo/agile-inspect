@@ -14,12 +14,12 @@ namespace ClipboardMonitorPlugin.Code.MIP
 {
     public class LabelResult
     {
-        public string Name { get; set; }
-        public string Id { get; set; }
-        public string Owner { get; set; }
-        public string TenantId { get; set; }
+        public string? Name { get; set; }
+        public string? Id { get; set; }
+        public string? Owner { get; set; }
+        public string? TenantId { get; set; }
         public bool IsProtected { get; set; }
-        public bool HasLabel => !string.IsNullOrEmpty(Id) && Id != "NOT_FOUND";
+        public bool HasLabel => !string.IsNullOrEmpty(Id);
         public string DetectionMethod { get; set; }
         public DateTime LastScannedAt { get; set; }
     }
@@ -30,7 +30,7 @@ namespace ClipboardMonitorPlugin.Code.MIP
         public const string METHOD_SDK = "SDK";
         public const string METHOD_OFFLINE_UNZIP = "OFFLINE_UNZIP";
         public const string METHOD_OFFLINE_BINARY = "OFFLINE_BINARY";
-        public const string METHOD_NOT_FOUND = "NOT_FOUND";
+        public const string METHOD_NOT_FOUND = "NONE";
         #endregion
 
         private readonly string pluginName = "ClipboardMonitorPlugin";
@@ -169,18 +169,26 @@ namespace ClipboardMonitorPlugin.Code.MIP
                     using (var handler = await _fileEngine.CreateFileHandlerAsync(filePath, filePath, true))
                     {
                         var label = handler.Label;
-                        if (label != null)
+                        bool isProtected = handler.Protection != null;
+
+                        if (label != null || isProtected)
                         {
-                            string labelId = label.Label.Id.ToLower();
-                            if (!_labelNameCache.TryGetValue(labelId, out string cachedName))
+                            string? labelId = label?.Label.Id.ToLower();
+                            string? labelName = null;
+                            if (label != null)
                             {
-                                PluginContext.Log(pluginName, $"Warning: Detected Label ID {labelId} not found in synced labels.");
+                                if (!_labelNameCache.TryGetValue(labelId!, out labelName))
+                                {
+                                    labelName = label.Label.Name;
+                                    PluginContext.Log(pluginName, $"Warning: Detected Label ID {labelId} not found in synced labels.");
+                                }
                             }
 
                             return new LabelResult
                             {
-                                Id = label.Label.Id,
-                                Name = cachedName ?? label.Label.Name,
+                                Id = labelId,
+                                Name = labelName,
+                                IsProtected = isProtected,
                                 DetectionMethod = METHOD_SDK,
                                 LastScannedAt = DateTime.Now
                             };
@@ -210,12 +218,13 @@ namespace ClipboardMonitorPlugin.Code.MIP
                     Name = cachedName ?? detailedInfo.LabelName ?? $"Label ({detailedInfo.LabelId})",
                     Owner = detailedInfo.Owner,
                     TenantId = detailedInfo.TenantId,
+                    IsProtected = detailedInfo.IsProtected,
                     DetectionMethod = detailedInfo.DetectionMethod,
                     LastScannedAt = DateTime.Now
                 };
             }
 
-            return new LabelResult { Name = "NOT FOUND", Id = "NOT_FOUND", DetectionMethod = METHOD_NOT_FOUND };
+            return new LabelResult { Name = null, Id = null, DetectionMethod = METHOD_NOT_FOUND };
         }
     }
 }
