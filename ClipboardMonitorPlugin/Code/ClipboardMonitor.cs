@@ -150,25 +150,43 @@ namespace ClipboardMonitorPlugin
                         var files = Clipboard.GetFileDropList();
                         contentPreview = $"Files count: {files.Count}";
 
-                        if (_mipHelper != null)
+                        foreach (string filePath in files)
                         {
-                            foreach (string filePath in files)
-                            {
-                                if (!File.Exists(filePath)) continue;
-                                var result = await _mipHelper.GetLabelFromFileAsync(filePath);
-                                if (result != null && result.HasLabel)
-                                {
-                                    mipResults.Add(new JObject
-                                    {
-                                        ["fileName"] = Path.GetFileName(filePath),
-                                        ["labelName"] = result.Name,
-                                        ["labelId"] = result.Id,
-                                        ["method"] = result.DetectionMethod
-                                    });
+                            if (!File.Exists(filePath)) continue;
+                            
+                            bool fileHasLabel = false;
+                            bool fileHasProtection = false;
+                            string? labelName = null;
 
-                                    PluginContext.Log(pluginName, $"[DETECTION] File: {Path.GetFileName(filePath)} | Label: {result.Name} ({result.Id}) | Method: {result.DetectionMethod}");
+                            if (_mipHelper != null)
+                            {
+                                var result = await _mipHelper.GetLabelFromFileAsync(filePath);
+                                if (result != null)
+                                {
+                                    fileHasLabel = result.HasLabel;
+                                    fileHasProtection = result.IsProtected;
+                                    labelName = result.Name;
+
+                                    if (fileHasLabel || fileHasProtection)
+                                    {
+                                        string detail = fileHasLabel ? $"Label: {labelName}" : "PROTECTED";
+                                        if (fileHasLabel && fileHasProtection) detail += " [PROTECTED]";
+                                        
+                                        PluginContext.Log(pluginName, $"[DETECTION] File: {Path.GetFileName(filePath)} | {detail} | Method: {result.DetectionMethod}");
+                                    }
                                 }
                             }
+
+                            var filePayload = new ClipboardPayload
+                            {
+                                type = "files",
+                                preview = Path.GetFileName(filePath),
+                                IsLabeled = fileHasLabel,
+                                IsRMSProtected = fileHasProtection,
+                                MainLabelName = labelName
+                            };
+                            
+                            SendAndLogPayload(JObject.FromObject(filePayload));
                         }
                     }
                     catch { }
@@ -196,29 +214,38 @@ namespace ClipboardMonitorPlugin
                 }
 
                 // Guard clause: Exit if nothing detected
-                if (!types.Any() && !mipResults.Any()) return;
+                if (!types.Any()) return;
 
-                // 3. Build Payload & Send Result
-                var payload = new JObject
-                {
-                    ["event"] = "CLIPBOARD_UPDATED",
-                    ["type"] = types.FirstOrDefault() ?? "unknown", // Backward compatibility
-                    ["types"] = new JArray(types.Any() ? types : new[] { "unknown" }),
-                    ["preview"] = contentPreview ?? ""
-                };
-
-                if (mipResults.Any()) payload["mip_labels"] = mipResults;
-
-                var resultObj = new JObject { [StoreCfgLoader.mapPluginNameToEventType(pluginName)] = payload };
-                
+                // 3. Log Summary & Send
+#if DEBUG
                 PluginContext.Log(pluginName, $"[ClipboardMonitor] types=[{string.Join(",", types)}] preview={contentPreview}");
-                RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(pluginName), payload);
-                PluginContext.SendDetectionResult(pluginName, resultObj);
+#else
+                PluginContext.Log(pluginName, "[ClipboardMonitor] Clipboard updated.");
+#endif
+
+                if (types.Any(t => t != "files"))
+                {
+                    var otherPayload = new ClipboardPayload
+                    {
+                        type = types.FirstOrDefault(t => t != "files") ?? "unknown",
+                        preview = contentPreview ?? ""
+                    };
+                    SendAndLogPayload(JObject.FromObject(otherPayload));
+                }
             }
             catch (Exception ex)
             {
+
                 PluginContext.Log(pluginName, $"Internal Process Error: {ex.Message}");
             }
+        }
+
+        private void SendAndLogPayload(JObject payload)
+        {
+            var resultObj = new JObject { [StoreCfgLoader.mapPluginNameToEventType(pluginName)] = payload };
+
+            RuleService.Save(StoreCfgLoader.mapPluginNameToEventType(pluginName), payload);
+            PluginContext.SendDetectionResult(pluginName, resultObj);
         }
 
         public void StopWatcher()

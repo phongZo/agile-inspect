@@ -14,7 +14,8 @@ namespace ClipboardMonitorPlugin.Code.MIP
         public string Owner { get; set; }
         public string TenantId { get; set; }
         public string DetectionMethod { get; set; }
-        public bool HasData => !string.IsNullOrEmpty(LabelId);
+        public bool IsProtected { get; set; }
+        public bool HasData => !string.IsNullOrEmpty(LabelId) || IsProtected;
     }
 
     public static class MetadataScanner
@@ -49,57 +50,75 @@ namespace ClipboardMonitorPlugin.Code.MIP
                 if (!File.Exists(filePath)) return result;
                 string ext = Path.GetExtension(filePath).ToLower();
                 
-                if (!(ext == ".docx" || ext == ".xlsx" || ext == ".pptx" || ext == ".docm" || ext == ".xlsm" || ext == ".pptm")) return result;
+                bool isOfficeExt = (ext == ".docx" || ext == ".xlsx" || ext == ".pptx" || ext == ".docm" || ext == ".xlsm" || ext == ".pptm");
+                if (!isOfficeExt) return result;
 
-                using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                using (ZipArchive archive = new ZipArchive(fs, ZipArchiveMode.Read))
+                try 
                 {
-                    result.DetectionMethod = MIPHelper.METHOD_OFFLINE_UNZIP;
-
-                    var labelInfoEntry = archive.Entries.FirstOrDefault(e => e.FullName.EndsWith("labelInfo.xml", StringComparison.OrdinalIgnoreCase));
-                    if (labelInfoEntry != null)
+                    using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                    using (ZipArchive archive = new ZipArchive(fs, ZipArchiveMode.Read))
                     {
-                        using (Stream stream = labelInfoEntry.Open())
-                        {
-                            XDocument xml = XDocument.Load(stream);
-                            XNamespace ns = "http://schemas.microsoft.com/office/2020/mipLabelMetadata";
-                            var labelElement = xml.Descendants(ns + "label").FirstOrDefault();
-                            if (labelElement != null)
-                            {
-                                result.LabelId = labelElement.Attribute("id")?.Value?.Trim('{', '}');
-                                result.LabelName = labelElement.Attribute("name")?.Value;
-                                result.TenantId = labelElement.Attribute("siteId")?.Value?.Trim('{', '}');
-                                if (normalizedValidIds != null && normalizedValidIds.Contains(result.LabelId.ToLower())) return result;
-                            }
-                        }
-                    }
+                        result.DetectionMethod = MIPHelper.METHOD_OFFLINE_UNZIP;
 
-                    var customPropsEntry = archive.GetEntry("docProps/custom.xml");
-                    if (customPropsEntry != null)
-                    {
-                        using (Stream stream = customPropsEntry.Open())
+                        var labelInfoEntry = archive.Entries.FirstOrDefault(e => e.FullName.EndsWith("labelInfo.xml", StringComparison.OrdinalIgnoreCase));
+                        if (labelInfoEntry != null)
                         {
-                            XDocument xml = XDocument.Load(stream);
-                            XNamespace ns = "http://schemas.openxmlformats.org/officeDocument/2006/custom-properties";
-                            foreach (var prop in xml.Root.Elements(ns + "property"))
+                            using (Stream stream = labelInfoEntry.Open())
                             {
-                                string name = prop.Attribute("name")?.Value;
-                                string value = prop.Value;
-                                if (name != null && name.StartsWith("MSIP_Label_", StringComparison.OrdinalIgnoreCase))
+                                XDocument xml = XDocument.Load(stream);
+                                XNamespace ns = "http://schemas.microsoft.com/office/2020/mipLabelMetadata";
+                                var labelElement = xml.Descendants(ns + "label").FirstOrDefault();
+                                if (labelElement != null)
                                 {
-                                    string guid = "";
-                                    if (name.EndsWith("_Enabled", StringComparison.OrdinalIgnoreCase)) guid = name.Substring(11, name.Length - 19);
-                                    else if (name.EndsWith("_Name", StringComparison.OrdinalIgnoreCase)) guid = name.Substring(11, name.Length - 16);
-                                    
-                                    if (normalizedValidIds != null && normalizedValidIds.Contains(guid.ToLower())) {
-                                        result.LabelId = guid;
-                                        if (name.EndsWith("_Name", StringComparison.OrdinalIgnoreCase)) result.LabelName = value;
-                                        return result;
-                                    }
-                                    if (string.IsNullOrEmpty(result.LabelId)) result.LabelId = guid;
+                                    result.LabelId = labelElement.Attribute("id")?.Value?.Trim('{', '}');
+                                    result.LabelName = labelElement.Attribute("name")?.Value;
+                                    result.TenantId = labelElement.Attribute("siteId")?.Value?.Trim('{', '}');
+                                    if (normalizedValidIds != null && normalizedValidIds.Contains(result.LabelId.ToLower())) return result;
                                 }
                             }
                         }
+
+                        var customPropsEntry = archive.GetEntry("docProps/custom.xml");
+                        if (customPropsEntry != null)
+                        {
+                            using (Stream stream = customPropsEntry.Open())
+                            {
+                                XDocument xml = XDocument.Load(stream);
+                                XNamespace ns = "http://schemas.openxmlformats.org/officeDocument/2006/custom-properties";
+                                foreach (var prop in xml.Root.Elements(ns + "property"))
+                                {
+                                    string name = prop.Attribute("name")?.Value;
+                                    string value = prop.Value;
+                                    if (name != null && name.StartsWith("MSIP_Label_", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        string guid = "";
+                                        if (name.EndsWith("_Enabled", StringComparison.OrdinalIgnoreCase)) guid = name.Substring(11, name.Length - 19);
+                                        else if (name.EndsWith("_Name", StringComparison.OrdinalIgnoreCase)) guid = name.Substring(11, name.Length - 16);
+                                        
+                                        if (normalizedValidIds != null && normalizedValidIds.Contains(guid.ToLower())) {
+                                            result.LabelId = guid;
+                                            if (name.EndsWith("_Name", StringComparison.OrdinalIgnoreCase)) result.LabelName = value;
+                                            return result;
+                                        }
+                                        if (string.IsNullOrEmpty(result.LabelId)) result.LabelId = guid;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (InvalidDataException)
+                {
+                    // Not a ZIP but has Office extension. Check for OLE signature (RMS protection)
+                    byte[] signature = new byte[8];
+                    using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                    {
+                        fs.Read(signature, 0, 8);
+                    }
+                    if (signature[0] == 0xD0 && signature[1] == 0xCF && signature[2] == 0x11 && signature[3] == 0xE0)
+                    {
+                        result.IsProtected = true;
+                        result.DetectionMethod = "OFFLINE_OLE_PROTECTED";
                     }
                 }
             } catch { }
@@ -134,6 +153,12 @@ namespace ClipboardMonitorPlugin.Code.MIP
                 
                 string ascii = System.Text.Encoding.ASCII.GetString(data);
                 string unicode = System.Text.Encoding.Unicode.GetString(data);
+
+                // Detection for PDF encryption
+                if (ascii.Contains("/Encrypt") || unicode.Contains("/Encrypt"))
+                {
+                    result.IsProtected = true;
+                }
 
                 result.LabelId = ExtractTag(ascii, "name=\"ID\">", "</") ?? ExtractTag(unicode, "name=\"ID\">", "</") ?? FindGuidFromRaw(data);
                 if (result.LabelId != null) result.LabelId = result.LabelId.Trim('{', '}');
