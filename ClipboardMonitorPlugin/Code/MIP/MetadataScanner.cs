@@ -13,7 +13,7 @@ namespace ClipboardMonitorPlugin.Code.MIP
         public string LabelName { get; set; }
         public string Owner { get; set; }
         public string TenantId { get; set; }
-        public string DetectionMethod { get; set; }
+        public string DetectionMethod { get; set; } = "NONE";
         public bool IsProtected { get; set; }
         public bool HasData => !string.IsNullOrEmpty(LabelId) || IsProtected;
     }
@@ -27,13 +27,13 @@ namespace ClipboardMonitorPlugin.Code.MIP
             // 1. Try ZIP-based extraction (For modern Office files only)
             var info = ScanZipMetadata(filePath, normalizedValidIds);
             
-            bool foundInZip = info.HasData && (normalizedValidIds == null || normalizedValidIds.Contains(info.LabelId.ToLower()));
+            bool foundInZip = info.HasData && (normalizedValidIds == null || (info.LabelId != null && normalizedValidIds.Contains(info.LabelId.ToLower())));
 
             if (!foundInZip)
             {
                 // 2. Fallback to Fast Binary scanning (For PDF, Images, TXT, and all other formats)
                 var binaryInfo = ScanBinaryMetadata(filePath, normalizedValidIds);
-                bool foundInBinary = binaryInfo.HasData && (normalizedValidIds == null || normalizedValidIds.Contains(binaryInfo.LabelId.ToLower()));
+                bool foundInBinary = binaryInfo.HasData && (normalizedValidIds == null || (binaryInfo.LabelId != null && normalizedValidIds.Contains(binaryInfo.LabelId.ToLower())));
                 if (foundInBinary || (!info.HasData && binaryInfo.HasData))
                 {
                     info = binaryInfo;
@@ -73,7 +73,7 @@ namespace ClipboardMonitorPlugin.Code.MIP
                                     result.LabelId = labelElement.Attribute("id")?.Value?.Trim('{', '}');
                                     result.LabelName = labelElement.Attribute("name")?.Value;
                                     result.TenantId = labelElement.Attribute("siteId")?.Value?.Trim('{', '}');
-                                    if (normalizedValidIds != null && normalizedValidIds.Contains(result.LabelId.ToLower())) return result;
+                                    if (normalizedValidIds != null && result.LabelId != null && normalizedValidIds.Contains(result.LabelId.ToLower())) return result;
                                 }
                             }
                         }

@@ -47,8 +47,17 @@
     </ItemGroup>
 
     <ItemGroup>
+      <!-- Identify Main DLL -->
       <MainDllFiles Include="@(PluginPublishFiles)" Condition="'%(Filename)%(Extension)' == '%(PluginName).dll'" />
+      
+      <!-- Identify Native DLLs by common relative paths in publish folder -->
+      <NativeDllFilesX86 Include="@(PluginPublishFiles)" Condition="'%(RecursiveDir)' == 'x86\' or '%(RecursiveDir)' == '$(RuntimeIdentifier)\x86\'" />
+      <NativeDllFilesX64 Include="@(PluginPublishFiles)" Condition="'%(RecursiveDir)' == 'x64\' or '%(RecursiveDir)' == '$(RuntimeIdentifier)\x64\'" />
+      
+      <!-- All other DLLs are dependencies-->
       <DependencyDllFiles Include="@(PluginPublishFiles)" Condition="'%(Filename)%(Extension)' != '%(PluginName).dll'" />
+      <DependencyDllFiles Remove="@(NativeDllFilesX86)" />
+      <DependencyDllFiles Remove="@(NativeDllFilesX64)" />
     </ItemGroup>
 
     <!-- Copy Main DLL -->
@@ -56,6 +65,10 @@
 
     <!-- Copy Dependency DLLs -->
     <Copy SourceFiles="@(DependencyDllFiles)" DestinationFiles="@(DependencyDllFiles->'$(PublishDir)dll\\%(PluginName)\\libs\\%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+
+    <!-- Copy Native DLLs (Preserve x86/x64 structure) -->
+    <Copy SourceFiles="@(NativeDllFilesX86)" DestinationFolder="$(PublishDir)dll\%(PluginName)\libs\x86" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(NativeDllFilesX64)" DestinationFolder="$(PublishDir)dll\%(PluginName)\libs\x64" SkipUnchangedFiles="true" />
 
     <!-- Delete copied AgileInspect*.dll in libs folder -->
     <ItemGroup>

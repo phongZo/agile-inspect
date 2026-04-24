@@ -206,8 +206,9 @@ namespace ClipboardMonitorPlugin.Code.MIP
             
             if (detailedInfo.HasData)
             {
-                string labelId = detailedInfo.LabelId.ToLower();
-                if (!_labelNameCache.TryGetValue(labelId, out string cachedName))
+                string labelId = detailedInfo.LabelId?.ToLower();
+                string cachedName = null;
+                if (labelId != null && !_labelNameCache.TryGetValue(labelId, out cachedName))
                 {
                     PluginContext.Log(pluginName, $"Warning: Detected Offline Label ID {labelId} not found in synced labels.");
                 }
@@ -215,11 +216,11 @@ namespace ClipboardMonitorPlugin.Code.MIP
                 return new LabelResult
                 {
                     Id = detailedInfo.LabelId,
-                    Name = cachedName ?? detailedInfo.LabelName ?? $"Label ({detailedInfo.LabelId})",
+                    Name = cachedName ?? detailedInfo.LabelName ?? (detailedInfo.LabelId != null ? $"Label ({detailedInfo.LabelId})" : null),
                     Owner = detailedInfo.Owner,
                     TenantId = detailedInfo.TenantId,
                     IsProtected = detailedInfo.IsProtected,
-                    DetectionMethod = detailedInfo.DetectionMethod,
+                    DetectionMethod = detailedInfo.DetectionMethod ?? METHOD_NOT_FOUND,
                     LastScannedAt = DateTime.Now
                 };
             }

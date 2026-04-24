@@ -59,4 +59,13 @@
 		</ItemGroup>
 		<Delete Files="@(FilesToDelete)" />
 	</Target>
+
+	<Target Name="CopyNativeMipToPublish" AfterTargets="Publish">
+		<ItemGroup>
+			<PublishNativeMipFilesX86 Include="$(TargetDir)x86\*.dll" />
+			<PublishNativeMipFilesX64 Include="$(TargetDir)x64\*.dll" />
+		</ItemGroup>
+		<Copy SourceFiles="@(PublishNativeMipFilesX86)" DestinationFolder="$(PublishDir)x86" SkipUnchangedFiles="true" Condition="Exists('$(TargetDir)x86')" />
+		<Copy SourceFiles="@(PublishNativeMipFilesX64)" DestinationFolder="$(PublishDir)x64" SkipUnchangedFiles="true" Condition="Exists('$(TargetDir)x64')" />
+	</Target>
 </Project>
