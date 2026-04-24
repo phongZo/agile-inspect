@@ -44,7 +44,7 @@ namespace AgileInspect
             LogRotateTimer = new BackgroundTimer(LogRotateTimerCallback, "log rotation");
             //Setup timer call back for log rotate
             LogRotateTimer.StopIfRunning();
-            //LogRotateTimer.Start(0); //start immediately
+            LogRotateTimer.Start(0); //start immediately
             //Prevent kill
             Unkillable.UnkillableInit();
             //if (!Debugger.IsAttached)
